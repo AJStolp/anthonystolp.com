@@ -87,7 +87,7 @@ export function NameReveal() {
       >
         <h2 className="font-display font-bold leading-[0.85] tracking-[-0.05em]">
           <span
-            className="wordmark-fill block bg-clip-text bg-[length:100%_auto] text-transparent md:bg-[length:75%_auto]"
+            className="wordmark-fill block bg-clip-text bg-[length:100%_auto] text-transparent"
             style={{
               fontSize: "clamp(2.5rem, 17vw, 20rem)",
               backgroundImage: `url(${HOUSE_IMAGE})`,
