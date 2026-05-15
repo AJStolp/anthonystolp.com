@@ -22,7 +22,7 @@ const services: {
     word: "Buy",
     short: "Buy without overpaying.",
     body:
-      "Mortgage prep, inspections, appraisal, negotiation. I’ve done it hundreds of times so you don’t have to learn it on the job. The goal is the right house at the right number, not whichever offer wins the bidding war.",
+      "Inspections, appraisal, negotiation. I take care of the heavy lifting so you can focus on the move.",
     image: "/images/services/buy.webp",
     href: "/?intent=buy#contact",
     theme: "cream",
@@ -32,7 +32,7 @@ const services: {
     word: "Sell",
     short: "Sell on your terms.",
     body:
-      "Honest pricing, real staging, and photography that actually sells. A process built to bring the right buyer to your door faster, with fewer concessions along the way.",
+      "Honest pricing, real staging, and photography that actually sells. A process built to bring the right buyer to your door faster.",
     image: "/images/services/home.jpeg",
     href: "/?intent=sell#contact",
     theme: "ink",

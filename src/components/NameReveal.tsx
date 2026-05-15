@@ -6,7 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Swap WORDMARK to "HEARTH" / "ROOTED" / "DWELL" / "HOME" / "BELONG" etc.
 const WORDMARK = "BELONG";
-const TAGLINE = "Real Estate";
 
 const HOUSE_IMAGE = "/images/hero-alpha.png";
 
@@ -97,20 +96,14 @@ export function NameReveal() {
           >
             {WORDMARK}
           </span>
-          <span
-            className="mt-3 block font-medium text-ink"
-            style={{ fontSize: "clamp(1rem, 2.6vw, 2.25rem)" }}
-          >
-            {TAGLINE}
-          </span>
         </h2>
+        <span className="mx-auto mt-6 block h-[2px] w-32 bg-ink/40 md:mt-8 md:w-48" />
       </div>
 
       <div
         ref={captionRef}
         className="relative z-10 mt-10 flex flex-col items-center gap-3 px-6 text-center"
       >
-        <span className="h-px w-10 bg-ink/35" />
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-medium uppercase tracking-[0.32em] text-ink/60 sm:tracking-[0.38em]">
           <span>Anthony Stolp</span>
           <span aria-hidden>·</span>
