@@ -162,7 +162,7 @@ export function LeadForm() {
               <Field
                 label="Phone (optional)"
                 type="tel"
-                placeholder="Optional — only if you'd like a text follow-up"
+                placeholder="Only if you'd like a text follow-up"
                 error={errors.phone?.message}
                 {...register("phone")}
               />
@@ -198,7 +198,7 @@ export function LeadForm() {
                   {...register("message")}
                   rows={3}
                   className="mt-3 w-full resize-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus:border-accent-soft"
-                  placeholder="Optional — neighborhoods, timing, anything on your mind."
+                  placeholder="Neighborhoods, timing, anything on your mind."
                 />
               </div>
 

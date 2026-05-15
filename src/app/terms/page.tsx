@@ -84,8 +84,8 @@ export default function TermsPage() {
               Intellectual property
             </h2>
             <p className="mt-3">
-              All content on the Site — including text, design, images, and
-              logos — is the property of Anthony Stolp or its licensors and is
+              All content on the Site (including text, design, images, and
+              logos) is the property of Anthony Stolp or its licensors and is
               protected by applicable copyright and trademark law.
             </p>
           </section>

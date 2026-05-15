@@ -78,7 +78,7 @@ export function NameReveal() {
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-[80vh] w-full flex-col items-center justify-center overflow-hidden bg-cream py-24"
+      className="relative flex min-h-[48vh] w-full flex-col items-center justify-center overflow-hidden bg-cream py-12 md:min-h-[80vh] md:py-24"
     >
       {/* BELONG wordmark — house image clipped to the letterforms */}
       <div
@@ -87,11 +87,10 @@ export function NameReveal() {
       >
         <h2 className="font-display font-bold leading-[0.85] tracking-[-0.05em]">
           <span
-            className="wordmark-fill block bg-clip-text text-transparent"
+            className="wordmark-fill block bg-clip-text bg-[length:100%_auto] text-transparent md:bg-[length:75%_auto]"
             style={{
-              fontSize: "clamp(5rem, 22vw, 20rem)",
+              fontSize: "clamp(2.5rem, 17vw, 20rem)",
               backgroundImage: `url(${HOUSE_IMAGE})`,
-              backgroundSize: "75% auto",
               backgroundPosition: "center 55%",
               backgroundRepeat: "no-repeat",
             }}
@@ -100,7 +99,7 @@ export function NameReveal() {
           </span>
           <span
             className="mt-3 block font-medium text-ink"
-            style={{ fontSize: "clamp(1.25rem, 2.6vw, 2.25rem)" }}
+            style={{ fontSize: "clamp(1rem, 2.6vw, 2.25rem)" }}
           >
             {TAGLINE}
           </span>
@@ -112,10 +111,14 @@ export function NameReveal() {
         className="relative z-10 mt-10 flex flex-col items-center gap-3 px-6 text-center"
       >
         <span className="h-px w-10 bg-ink/35" />
-        <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink/60">
-          Anthony Stolp &middot; Realtor &middot; Greater Milwaukee
-        </p>
-        <p className="max-w-md text-sm leading-[1.7] text-ink-soft">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-medium uppercase tracking-[0.32em] text-ink/60 sm:tracking-[0.38em]">
+          <span>Anthony Stolp</span>
+          <span aria-hidden>·</span>
+          <span>Realtor</span>
+          <span aria-hidden>·</span>
+          <span>Greater Milwaukee</span>
+        </div>
+        <p className="max-w-md px-2 text-sm leading-[1.7] text-ink-soft">
           Belonging starts with the right address. Let&apos;s find yours.
         </p>
       </div>

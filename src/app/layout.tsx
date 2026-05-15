@@ -18,7 +18,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Anthony Stolp · Greater Milwaukee Realtor",
   description:
-    "Honest guidance for buyers and sellers across southeast Wisconsin — Ozaukee, Washington, Waukesha, Sheboygan and the Greater Milwaukee area. Find where you belong.",
+    "Honest guidance for buyers and sellers across southeast Wisconsin: Ozaukee, Washington, Waukesha, Sheboygan and the Greater Milwaukee area. Find where you belong.",
 };
 
 export default function RootLayout({

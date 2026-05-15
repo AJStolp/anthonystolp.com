@@ -22,7 +22,7 @@ const services: {
     word: "Buy",
     short: "Buy without overpaying.",
     body:
-      "Mortgage prep, inspections, appraisal, negotiation — I’ve done it hundreds of times so you don’t have to learn it on the job. The goal is the right house at the right number, not whichever offer wins the bidding war.",
+      "Mortgage prep, inspections, appraisal, negotiation. I’ve done it hundreds of times so you don’t have to learn it on the job. The goal is the right house at the right number, not whichever offer wins the bidding war.",
     image: "/images/services/buy.webp",
     href: "/?intent=buy#contact",
     theme: "cream",
@@ -32,7 +32,7 @@ const services: {
     word: "Sell",
     short: "Sell on your terms.",
     body:
-      "Honest pricing, real staging, and photography that actually sells. A process built to bring the right buyer to your door faster — with fewer concessions along the way.",
+      "Honest pricing, real staging, and photography that actually sells. A process built to bring the right buyer to your door faster, with fewer concessions along the way.",
     image: "/images/services/home.jpeg",
     href: "/?intent=sell#contact",
     theme: "ink",
@@ -40,9 +40,9 @@ const services: {
   {
     n: "03",
     word: "Search",
-    short: "See it before Zillow.",
+    short: "Find the one that fits.",
     body:
-      "Browse every active listing across Greater Milwaukee — plus the off-market and pre-list homes I see first.",
+      "There’s a home out there for the life you’re building. I’ll help you find it across every neighborhood in Greater Milwaukee, including the ones that haven’t hit the market yet.",
     image: "/images/services/aerial.jpeg",
     href: "/?intent=exploring#contact",
     theme: "cream",
@@ -217,7 +217,7 @@ export function Approach() {
                       {s.short}
                     </p>
                     <p
-                      className="mt-3 text-[14px] leading-[1.7]"
+                      className="mt-3 hidden text-[14px] leading-[1.7] md:block"
                       style={{ color: "rgb(var(--row-text-rgb) / 0.78)" }}
                     >
                       {s.body}

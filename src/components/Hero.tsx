@@ -20,21 +20,50 @@ export function Hero() {
 
     const ctx = gsap.context(() => {
       // ─── Initial entry animations (run once on page load) ───────────────
+      // Use fromTo with explicit end states so React Strict Mode double-invoke
+      // can't leave elements stuck at the start state (opacity 0).
       const entry = gsap.timeline({ defaults: { ease: "expo.out" } });
       entry
-        .from(".hero-line", { yPercent: 110, duration: 1.6, stagger: 0.1 }, 0.25)
-        .from(".hero-sub", { y: 14, opacity: 0, duration: 1.2 }, 0.7)
-        .from(".hero-cta", { y: 14, opacity: 0, duration: 1.2 }, 0.85)
-        .from(houseRef.current, { y: 60, opacity: 0, scale: 0.96, duration: 1.8 }, 0.3)
-        .from(cloudBankRef.current, { y: 50, opacity: 0, duration: 2 }, 0.5);
+        .fromTo(
+          ".hero-line",
+          { yPercent: 110 },
+          { yPercent: 0, duration: 1.6, stagger: 0.1 },
+          0.25,
+        )
+        .fromTo(
+          ".hero-sub",
+          { y: 14, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1.2 },
+          0.7,
+        )
+        .fromTo(
+          ".hero-cta",
+          { y: 14, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1.2 },
+          0.85,
+        )
+        .fromTo(
+          houseRef.current,
+          { y: 60, opacity: 0, scale: 0.96 },
+          { y: 0, opacity: 1, scale: 1, duration: 1.8 },
+          0.3,
+        )
+        .fromTo(
+          cloudBankRef.current,
+          { y: 50, opacity: 0 },
+          { y: 0, opacity: 1, duration: 2 },
+          0.5,
+        );
 
-      // ─── Scroll-driven choreography (one timeline, one trigger, reversible) ───
+      // ─── Scroll-driven choreography ──────────────────────────────────────
+      // Wait for entry to settle before binding the scroll timeline so the two
+      // don't fight over the same elements during the first scroll.
       const scrollTl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top top",
           end: "bottom top",
-          scrub: 1,
+          scrub: 0.3,
           invalidateOnRefresh: true,
         },
       });
@@ -51,6 +80,10 @@ export function Hero() {
         .to(cloudBankRef.current, { y: 120, opacity: 0, ease: "none" }, 0.55)
         .to(headlineRef.current, { y: -60, opacity: 0, ease: "none" }, 0.45)
         .to(skyRef.current, { opacity: 0, ease: "none" }, 0.4);
+
+      // Refresh ScrollTrigger after entry completes so the timeline picks up
+      // accurate measurements (entry may have shifted layout via from-tweens).
+      entry.eventCallback("onComplete", () => ScrollTrigger.refresh());
     }, sectionRef);
 
     return () => ctx.revert();
@@ -59,7 +92,7 @@ export function Hero() {
   return (
     <section
       ref={sectionRef}
-      className="relative flex h-dvh min-h-[780px] w-full flex-col items-center overflow-hidden"
+      className="relative flex h-auto w-full flex-col items-center overflow-hidden pb-12 md:h-dvh md:min-h-[780px] md:pb-0"
     >
       <div ref={skyRef} className="absolute inset-0 will-change-[opacity]">
         <SkyBackdrop />
@@ -68,14 +101,14 @@ export function Hero() {
       {/* Headline */}
       <div
         ref={headlineRef}
-        className="relative z-30 mx-auto flex w-full max-w-7xl flex-col items-center px-6 pt-[18vh] text-center will-change-transform md:pt-[16vh]"
+        className="relative z-30 mx-auto flex w-full max-w-7xl flex-col items-center px-6 pt-24 text-center will-change-transform md:pt-[10vh]"
       >
         <h1 className="font-display text-ink">
-          <span className="block overflow-hidden whitespace-nowrap text-[clamp(2.25rem,7vw,7rem)] font-semibold leading-[0.98] tracking-[-0.03em]">
+          <span className="block overflow-hidden text-[clamp(2.25rem,7vw,7rem)] font-semibold leading-[0.98] tracking-[-0.03em]">
             <span className="hero-line inline-block">Find Where You Belong.</span>
           </span>
         </h1>
-        <p className="hero-sub mt-5 whitespace-nowrap text-[15px] font-normal leading-[1.5] text-ink-soft md:text-[17px]">
+        <p className="hero-sub mt-5 max-w-[28ch] text-[15px] font-normal leading-[1.5] text-ink-soft md:text-[17px]">
           A clear path to find what&apos;s next.
         </p>
         <a
@@ -89,10 +122,11 @@ export function Hero() {
         </a>
       </div>
 
-      {/* House — bottom-anchored, sized to live BELOW the headline */}
+      {/* House — sits directly below headline on mobile with a small gap.
+          On desktop, snaps back to absolute bottom-anchored so the cloud bank can wrap it. */}
       <div
         ref={houseRef}
-        className="pointer-events-none absolute left-1/2 bottom-0 z-10 w-[78%] max-w-[1100px] -translate-x-1/2 will-change-transform"
+        className="pointer-events-none relative z-10 mx-auto mt-8 w-[92%] max-w-[440px] will-change-transform md:absolute md:bottom-0 md:left-1/2 md:mt-0 md:w-[78%] md:max-w-[1100px] md:-translate-x-1/2"
       >
         <HeroHouse className="w-full" />
       </div>
