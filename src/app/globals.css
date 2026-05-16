@@ -67,6 +67,35 @@ html.lenis body {
   color: var(--cream);
 }
 
+/* Visible keyboard focus — without affecting mouse users */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Skip link — only visible when focused */
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  padding: 0.625rem 1rem;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
 .sky-gradient {
   background:
     radial-gradient(ellipse 80% 50% at 50% 100%, #fef9ec 0%, transparent 70%),

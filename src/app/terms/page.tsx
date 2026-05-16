@@ -1,10 +1,17 @@
+import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 
-export const metadata = {
-  title: "Terms of Service · Anthony Stolp Real Estate",
-  description:
-    "Terms of Service governing your use of anthonystolp.com.",
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "Terms of Service governing your use of anthonystolp.com.",
+  alternates: { canonical: "/terms" },
+  openGraph: {
+    title: "Terms of Service · Anthony Stolp",
+    description: "Terms of Service governing your use of anthonystolp.com.",
+    url: "/terms",
+    type: "article",
+  },
 };
 
 export default function TermsPage() {

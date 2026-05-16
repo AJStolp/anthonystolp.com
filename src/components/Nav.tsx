@@ -66,9 +66,10 @@ export function Nav() {
 
         <a
           href={`mailto:${EMAIL}`}
+          aria-label={`Email ${EMAIL}`}
           className="flex items-center gap-2 text-[12px] tracking-[0.04em] transition-opacity hover:opacity-70"
         >
-          <Mail className="h-3.5 w-3.5" strokeWidth={1.5} />
+          <Mail className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
           <span className="hidden sm:inline">{EMAIL}</span>
         </a>
       </div>

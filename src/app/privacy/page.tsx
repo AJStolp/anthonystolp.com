@@ -1,10 +1,19 @@
+import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 
-export const metadata = {
-  title: "Privacy Policy · Anthony Stolp Real Estate",
+export const metadata: Metadata = {
+  title: "Privacy Policy",
   description:
     "How Anthony Stolp Real Estate collects, uses, and protects your personal information.",
+  alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: "Privacy Policy · Anthony Stolp",
+    description:
+      "How Anthony Stolp Real Estate collects, uses, and protects your personal information.",
+    url: "/privacy",
+    type: "article",
+  },
 };
 
 export default function PrivacyPage() {

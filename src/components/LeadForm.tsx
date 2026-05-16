@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -73,6 +73,12 @@ export function LeadForm() {
   }, []);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const intentId = useId();
+  const messageId = useId();
+  const smsId = useId();
+  const termsId = useId();
+  const termsErrorId = useId();
+  const formErrorId = useId();
 
   const onSubmit = async (values: FormValues) => {
     setSubmitError(null);
@@ -128,7 +134,11 @@ export function LeadForm() {
 
         <div className="md:col-span-7">
           {submitted ? (
-            <div className="lead-fade flex h-full min-h-[400px] flex-col items-start justify-center border border-cream/15 p-10">
+            <div
+              role="status"
+              aria-live="polite"
+              className="lead-fade flex h-full min-h-[400px] flex-col items-start justify-center border border-cream/15 p-10"
+            >
               <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-accent-soft">
                 Sent
               </p>
@@ -150,30 +160,41 @@ export function LeadForm() {
             >
               <Field
                 label="Name"
+                autoComplete="name"
+                required
                 error={errors.name?.message}
                 {...register("name")}
               />
               <Field
                 label="Email"
                 type="email"
+                autoComplete="email"
+                inputMode="email"
+                required
                 error={errors.email?.message}
                 {...register("email")}
               />
               <Field
                 label="Phone (optional)"
                 type="tel"
+                autoComplete="tel"
+                inputMode="tel"
                 placeholder="Only if you'd like a text follow-up"
                 error={errors.phone?.message}
                 {...register("phone")}
               />
 
               <div>
-                <label className="block text-[11px] uppercase tracking-[0.32em] text-cream/60">
+                <label
+                  htmlFor={intentId}
+                  className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+                >
                   I&apos;m looking to
                 </label>
                 <select
+                  id={intentId}
                   {...register("intent")}
-                  className="mt-3 w-full appearance-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none focus:border-accent-soft"
+                  className="mt-3 w-full appearance-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50 focus-visible:ring-offset-0"
                 >
                   <option value="buy" className="bg-ink">
                     Buy a home
@@ -191,21 +212,29 @@ export function LeadForm() {
               </div>
 
               <div>
-                <label className="block text-[11px] uppercase tracking-[0.32em] text-cream/60">
+                <label
+                  htmlFor={messageId}
+                  className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+                >
                   Anything else?
                 </label>
                 <textarea
+                  id={messageId}
                   {...register("message")}
                   rows={3}
-                  className="mt-3 w-full resize-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus:border-accent-soft"
+                  className="mt-3 w-full resize-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
                   placeholder="Neighborhoods, timing, anything on your mind."
                 />
               </div>
 
               {/* 10DLC consent — exact wording per Lofty's Sole Proprietor checkbox spec */}
               <div className="space-y-4 pt-2">
-                <label className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65">
+                <label
+                  htmlFor={smsId}
+                  className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65"
+                >
                   <input
+                    id={smsId}
                     type="checkbox"
                     {...register("smsConsent")}
                     className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cream"
@@ -218,10 +247,19 @@ export function LeadForm() {
                     HELP for help or STOP to opt out.
                   </span>
                 </label>
-                <label className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65">
+                <label
+                  htmlFor={termsId}
+                  className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65"
+                >
                   <input
+                    id={termsId}
                     type="checkbox"
                     {...register("termsConsent")}
+                    aria-required="true"
+                    aria-invalid={errors.termsConsent ? "true" : undefined}
+                    aria-describedby={
+                      errors.termsConsent ? termsErrorId : undefined
+                    }
                     className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cream"
                   />
                   <span>
@@ -243,7 +281,10 @@ export function LeadForm() {
                   </span>
                 </label>
                 {errors.termsConsent && (
-                  <p className="text-[11px] tracking-[0.12em] text-accent-soft">
+                  <p
+                    id={termsErrorId}
+                    className="text-[11px] tracking-[0.12em] text-accent-soft"
+                  >
                     {errors.termsConsent.message}
                   </p>
                 )}
@@ -253,9 +294,10 @@ export function LeadForm() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="group inline-flex items-center gap-3 self-start border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink disabled:opacity-50"
+                  aria-describedby={submitError ? formErrorId : undefined}
+                  className="group inline-flex items-center gap-3 self-start border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
                 >
-                  {isSubmitting ? "Sending..." : "Send"}
+                  {isSubmitting ? "Sending…" : "Send"}
                   <span
                     aria-hidden
                     className="transition-transform group-hover:translate-x-1"
@@ -264,7 +306,11 @@ export function LeadForm() {
                   </span>
                 </button>
                 {submitError && (
-                  <p className="text-[11px] tracking-[0.12em] text-accent-soft">
+                  <p
+                    id={formErrorId}
+                    role="alert"
+                    className="text-[11px] tracking-[0.12em] text-accent-soft"
+                  >
                     {submitError}
                   </p>
                 )}
@@ -282,18 +328,30 @@ type FieldProps = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
 };
 
-const Field = function Field({ label, error, ...props }: FieldProps) {
+const Field = function Field({ label, error, id, ...props }: FieldProps) {
+  const autoId = useId();
+  const fieldId = id ?? autoId;
+  const errorId = `${fieldId}-error`;
   return (
     <div>
-      <label className="block text-[11px] uppercase tracking-[0.32em] text-cream/60">
+      <label
+        htmlFor={fieldId}
+        className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+      >
         {label}
       </label>
       <input
+        id={fieldId}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? errorId : undefined}
         {...props}
-        className="mt-3 w-full border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus:border-accent-soft"
+        className="mt-3 w-full border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
       />
       {error && (
-        <p className="mt-2 text-[11px] tracking-[0.12em] text-accent-soft">
+        <p
+          id={errorId}
+          className="mt-2 text-[11px] tracking-[0.12em] text-accent-soft"
+        >
           {error}
         </p>
       )}

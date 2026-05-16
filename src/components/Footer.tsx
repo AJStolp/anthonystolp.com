@@ -65,7 +65,7 @@ export function Footer() {
             <h3 className="sr-only">Site</h3>
             <ul className="space-y-3 text-sm text-ink/75">
               <li>
-                <a href="#" className="transition-colors hover:text-ink">
+                <a href="/" className="transition-colors hover:text-ink">
                   Home
                 </a>
               </li>

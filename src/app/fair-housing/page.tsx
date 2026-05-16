@@ -1,10 +1,19 @@
+import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 
-export const metadata = {
-  title: "Fair Housing Notice · Anthony Stolp Real Estate",
+export const metadata: Metadata = {
+  title: "Fair Housing Notice",
   description:
     "Anthony Stolp and ExSell Experts at Epique Realty support equal housing opportunity and comply with federal and Wisconsin fair housing laws.",
+  alternates: { canonical: "/fair-housing" },
+  openGraph: {
+    title: "Fair Housing Notice · Anthony Stolp",
+    description:
+      "Anthony Stolp and ExSell Experts at Epique Realty support equal housing opportunity and comply with federal and Wisconsin fair housing laws.",
+    url: "/fair-housing",
+    type: "article",
+  },
 };
 
 export default function FairHousingPage() {

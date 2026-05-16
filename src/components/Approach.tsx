@@ -149,8 +149,12 @@ export function Approach() {
     <section
       id="approach"
       ref={sectionRef}
+      aria-labelledby="approach-heading"
       className="relative w-full bg-cream text-ink"
     >
+      <h2 id="approach-heading" className="sr-only">
+        How I work with buyers and sellers
+      </h2>
       {/* Service rows — alternating ink/cream themed blinds */}
       <div>
         {services.map((s, i) => {
