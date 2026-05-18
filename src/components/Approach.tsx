@@ -42,9 +42,9 @@ const services: {
     word: "Search",
     short: "Find the one that fits.",
     body:
-      "There’s a home out there for the life you’re building. I’ll help you find it across every neighborhood in Greater Milwaukee, including the ones that haven’t hit the market yet.",
+      "Every active listing across Greater Milwaukee, in one place. Filter, save, and come back when something catches your eye.",
     image: "/images/services/aerial.jpeg",
-    href: "/?intent=exploring#contact",
+    href: "https://anthonystolp.epiquerealty.com/listing",
     theme: "cream",
   },
 ];
