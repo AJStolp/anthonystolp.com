@@ -15,6 +15,7 @@ const schema = z.object({
 const FROM_EMAIL = process.env.LEAD_FROM_EMAIL ?? "hello@anthonystolp.com";
 const TO_EMAIL = process.env.LEAD_TO_EMAIL ?? "anthony@exsellexperts.com";
 const LOFTY_WEBHOOK_URL = process.env.LOFTY_WEBHOOK_URL;
+const LOFTY_PARSE_EMAIL = process.env.LOFTY_PARSE_EMAIL;
 
 const intentLabel: Record<string, string> = {
   buy: "Buy a home",
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
   // Send email; fail loud if Resend errors.
   const emailRes = await resend.emails.send({
     from: `Anthony Stolp Site <${FROM_EMAIL}>`,
-    to: [TO_EMAIL],
+    to: LOFTY_PARSE_EMAIL ? [TO_EMAIL, LOFTY_PARSE_EMAIL] : [TO_EMAIL],
     replyTo: lead.email,
     subject,
     text,
