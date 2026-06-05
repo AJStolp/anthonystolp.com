@@ -58,8 +58,21 @@ export type NichePageRow = {
 
 const SELECT = "slug,title,h1,intent,geo,filters,hero_copy,og_image,meta_desc,active,agent_id,created_at,updated_at";
 
+// Defensive helper: at build time on Vercel, Supabase env vars may be missing
+// (e.g. preview deploys without DB access). Build-time SSG pages call these
+// functions; rather than failing the entire build, return empty results and
+// let runtime pick up the real data once env is wired.
+function trySupabase(): ReturnType<typeof getSupabase> | null {
+  try {
+    return getSupabase();
+  } catch {
+    return null;
+  }
+}
+
 export async function getActiveSlugs(): Promise<string[]> {
-  const supabase = getSupabase();
+  const supabase = trySupabase();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("niche_pages")
     .select("slug")
@@ -71,7 +84,8 @@ export async function getActiveSlugs(): Promise<string[]> {
 export async function getActiveBySlug(
   slug: string,
 ): Promise<NichePageRow | null> {
-  const supabase = getSupabase();
+  const supabase = trySupabase();
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from("niche_pages")
     .select(SELECT)
@@ -83,7 +97,8 @@ export async function getActiveBySlug(
 }
 
 export async function getBySlug(slug: string): Promise<NichePageRow | null> {
-  const supabase = getSupabase();
+  const supabase = trySupabase();
+  if (!supabase) return null;
   const { data, error } = await supabase
     .from("niche_pages")
     .select(SELECT)
@@ -94,7 +109,8 @@ export async function getBySlug(slug: string): Promise<NichePageRow | null> {
 }
 
 export async function listAll(): Promise<NichePageRow[]> {
-  const supabase = getSupabase();
+  const supabase = trySupabase();
+  if (!supabase) return [];
   const { data, error } = await supabase
     .from("niche_pages")
     .select(SELECT)

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { HomeValueFunnel } from "@/components/HomeValueFunnel";
@@ -24,7 +25,12 @@ export default function HomeValuePage() {
       </a>
       <main id="main" className="relative w-full overflow-x-hidden">
         <Nav />
-        <HomeValueFunnel />
+        {/* HomeValueFunnel reads URL params via useSearchParams for the hero
+            pre-fill flow. That triggers CSR bailout under static rendering,
+            so wrap in Suspense per Next's prerender contract. */}
+        <Suspense fallback={<div className="min-h-[80vh]" aria-hidden />}>
+          <HomeValueFunnel />
+        </Suspense>
         <Footer />
       </main>
     </>
