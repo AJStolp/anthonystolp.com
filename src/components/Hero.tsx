@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { HeroAddressInput } from "./HeroAddressInput";
 import { SearchGate } from "./SearchGate";
+import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 
 const EXSELL_REDIRECT =
   "https://exsellexperts.com/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=hero-search";
@@ -38,27 +40,54 @@ export function Hero() {
         </p>
 
         <h1 className="mt-6 max-w-3xl font-display text-[clamp(2.75rem,6.5vw,5.75rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-cream">
-          What is your home worth?
+          {HOME_VALUE_ENABLED
+            ? "What is your home worth?"
+            : "Honest real estate, the Ozaukee way."}
         </h1>
 
         <p className="mt-6 max-w-md text-[15px] leading-[1.7] text-cream/90 md:text-[16px]">
-          A real range from a local agent, sent within 24 hours. No
-          Zestimate guesses, no marketing fluff. Just an honest number
-          based on what is actually selling in your neighborhood.
+          {HOME_VALUE_ENABLED
+            ? "A real range from a local agent, sent within 24 hours. No Zestimate guesses, no marketing fluff. Just an honest number based on what is actually selling in your neighborhood."
+            : "Local agent for Cedarburg, Mequon, Thiensville, Grafton, Port Washington, and Saukville. Browse active listings, get a market read, or just send me a note."}
         </p>
 
-        <HeroAddressInput onDark />
-
-        <div className="mt-5 flex items-center gap-2 text-[13px] text-cream/80">
-          <span>or</span>
-          <button
-            type="button"
-            onClick={() => setSearchOpen(true)}
-            className="text-cream underline-offset-4 hover:underline"
-          >
-            browse active listings →
-          </button>
-        </div>
+        {HOME_VALUE_ENABLED ? (
+          <>
+            <HeroAddressInput onDark />
+            <div className="mt-5 flex items-center gap-2 text-[13px] text-cream/80">
+              <span>or</span>
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="text-cream underline-offset-4 hover:underline"
+              >
+                browse active listings →
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="group inline-flex items-center justify-center gap-3 border border-cream bg-cream px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-ink transition-all hover:bg-transparent hover:text-cream"
+            >
+              Browse active listings
+              <span aria-hidden className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </button>
+            <Link
+              href={SELL_FALLBACK_HREF}
+              className="group inline-flex items-center justify-center gap-3 border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream"
+            >
+              Thinking about selling?
+              <span aria-hidden className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
+          </div>
+        )}
       </div>
 
       <SearchGate

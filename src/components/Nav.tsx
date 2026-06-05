@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import { HOME_VALUE_ENABLED } from "@/lib/feature-flags";
 
 const SCROLL_THRESHOLD = 80;
 
 const LINKS: { href: string; label: string }[] = [
-  { href: "/home-value", label: "Home Value" },
+  ...(HOME_VALUE_ENABLED ? [{ href: "/home-value", label: "Home Value" }] : []),
   { href: "/search/ozaukee-county-homes-for-sale", label: "Search" },
   { href: "/about", label: "About" },
   { href: "/#contact", label: "Contact" },

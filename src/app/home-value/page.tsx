@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { HomeValueFunnel } from "@/components/HomeValueFunnel";
+import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
   title: "What's your home worth?",
@@ -18,6 +20,11 @@ export const metadata: Metadata = {
 };
 
 export default function HomeValuePage() {
+  // Funnel is gated until bndryiq is production-ready. Visitors who arrive
+  // via stale links land on the contact form with intent=sell prefilled,
+  // so we still capture the lead.
+  if (!HOME_VALUE_ENABLED) redirect(SELL_FALLBACK_HREF);
+
   return (
     <>
       <a href="#main" className="skip-link">

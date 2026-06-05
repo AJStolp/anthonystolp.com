@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SearchGate } from "@/components/SearchGate";
+import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 
 type Theme = "ink" | "cream";
 
@@ -38,7 +39,7 @@ const services: {
     body:
       "Honest pricing, real staging, and photography that actually sells. A process built to bring the right buyer to your door faster.",
     image: "/images/services/home.jpeg",
-    href: "/home-value",
+    href: HOME_VALUE_ENABLED ? "/home-value" : SELL_FALLBACK_HREF,
     theme: "ink",
   },
   {

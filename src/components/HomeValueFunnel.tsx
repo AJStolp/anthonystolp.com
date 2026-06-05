@@ -18,16 +18,12 @@ import { getOrCreateVisitorId } from "@/lib/visitor";
 import { track } from "@/lib/track";
 import { Honeypot } from "@/components/Honeypot";
 
+import { BNDRYIQ_ENABLED } from "@/lib/feature-flags";
+
 // ── Bndryiq embed contract ─────────────────────────────────────────────────
 
 const BNDRYIQ_ORIGIN = "https://bndryiq.vercel.app";
 const BNDRYIQ_EMBED_PATH = "/embed/valuation";
-
-// Bndryiq isn't production-ready yet. Set NEXT_PUBLIC_BNDRYIQ_ENABLED=true in
-// Vercel env to show the iframe; default = hidden (placeholder block instead).
-// The contact form + auto-reply email path still works either way — Anthony
-// gets the lead, sends a personalized range manually within 24 hours.
-const BNDRYIQ_ENABLED = process.env.NEXT_PUBLIC_BNDRYIQ_ENABLED === "true";
 
 type BndryiqEstimate = {
   low: number;

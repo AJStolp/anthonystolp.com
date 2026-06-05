@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listAll } from "@/lib/niche-pages";
+import { HOME_VALUE_ENABLED } from "@/lib/feature-flags";
 
 const SITE_URL = "https://anthonystolp.com";
 
@@ -9,12 +10,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const niche = await listAll().catch(() => []);
   const nicheEntries: MetadataRoute.Sitemap = niche
     .filter((p) => p.active)
+    // When the home-value funnel is hidden, drop sell-intent niche pages too —
+    // they all CTA into the contact form, which is already in the sitemap via /.
+    .filter((p) => HOME_VALUE_ENABLED || p.intent !== "sell")
     .map((p) => ({
       url: `${SITE_URL}/search/${p.slug}`,
       lastModified: new Date(p.updated_at),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     }));
+
+  const homeValueEntry: MetadataRoute.Sitemap = HOME_VALUE_ENABLED
+    ? [
+        {
+          url: `${SITE_URL}/home-value`,
+          lastModified: now,
+          changeFrequency: "monthly",
+          priority: 0.9,
+        },
+      ]
+    : [];
 
   return [
     {
@@ -23,12 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 1,
     },
-    {
-      url: `${SITE_URL}/home-value`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
+    ...homeValueEntry,
     {
       url: `${SITE_URL}/about`,
       lastModified: now,
