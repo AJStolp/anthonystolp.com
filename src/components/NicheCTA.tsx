@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SearchGate, type CampaignContext } from "@/components/SearchGate";
-import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
+import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
 
 const EXSELL_REDIRECT =
   "https://exsellexperts.com/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=niche-search";
@@ -19,7 +19,7 @@ export function NicheCTA({ intent, slug }: Props) {
   if (intent === "sell") {
     const sellHref = HOME_VALUE_ENABLED
       ? `/home-value?utm_source=niche&utm_campaign=${slug}`
-      : `${SELL_FALLBACK_HREF}&utm_source=niche&utm_campaign=${slug}`;
+      : sellFallbackHref({ utm_source: "niche", utm_campaign: slug });
     return (
       <Link
         href={sellHref}

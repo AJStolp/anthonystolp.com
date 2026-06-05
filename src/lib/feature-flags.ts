@@ -13,6 +13,14 @@ export const BNDRYIQ_ENABLED =
   process.env.NEXT_PUBLIC_BNDRYIQ_ENABLED === "true";
 
 // Where sell-intent CTAs go when the home-value funnel is disabled.
-// Prefills the contact form with intent=sell so Anthony sees the right
-// signal and can reply with a personal range.
-export const SELL_FALLBACK_HREF = "/#contact?intent=sell";
+// Format note: query string BEFORE fragment so the browser scrolls to
+// #contact AND LeadForm's useEffect reads ?intent=sell from window.search.
+// Use sellFallbackHref() for additional UTM params; the constant is for
+// simple callers without UTM context.
+export function sellFallbackHref(
+  extraParams?: Record<string, string>,
+): string {
+  const params = new URLSearchParams({ intent: "sell", ...extraParams });
+  return `/?${params.toString()}#contact`;
+}
+export const SELL_FALLBACK_HREF = sellFallbackHref();
