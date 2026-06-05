@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Inter } from "next/font/google";
 import "./globals.css";
 import { LenisProvider } from "@/components/LenisProvider";
+import { Pixels } from "@/components/Pixels";
+import { TrackingInit } from "@/components/TrackingInit";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -103,6 +105,8 @@ export default function RootLayout({
       className={`${geist.variable} ${inter.variable} antialiased`}
     >
       <body className="min-h-dvh bg-cream text-ink">
+        <Pixels />
+        <TrackingInit />
         <LenisProvider>{children}</LenisProvider>
       </body>
     </html>

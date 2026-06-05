@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SearchGate } from "@/components/SearchGate";
 
 type Theme = "ink" | "cream";
+
+const SEARCH_REDIRECT_URL =
+  "https://exsellexperts.com/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=search-cta";
 
 const services: {
   n: string;
@@ -34,7 +38,7 @@ const services: {
     body:
       "Honest pricing, real staging, and photography that actually sells. A process built to bring the right buyer to your door faster.",
     image: "/images/services/home.jpeg",
-    href: "/?intent=sell#contact",
+    href: "/home-value",
     theme: "ink",
   },
   {
@@ -44,7 +48,7 @@ const services: {
     body:
       "Every active listing across Greater Milwaukee, in one place. Filter, save, and come back when something catches your eye.",
     image: "/images/services/aerial.jpeg",
-    href: "https://anthonystolp.epiquerealty.com/listing",
+    href: SEARCH_REDIRECT_URL,
     theme: "cream",
   },
 ];
@@ -58,6 +62,7 @@ export function Approach() {
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const blindRefs = useRef<(HTMLDivElement | null)[]>([]);
   const backdropRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [searchGateOpen, setSearchGateOpen] = useState(false);
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -160,6 +165,7 @@ export function Approach() {
         {services.map((s, i) => {
           const isInk = s.theme === "ink";
           const isExternal = s.href.startsWith("http");
+          const isSearchGate = s.word === "Search";
           return (
           <div
             key={s.word}
@@ -193,8 +199,16 @@ export function Approach() {
             {/* Content — text color flips via --row-text-rgb; ink/alpha backdrop appears on reveal */}
             <a
               href={s.href}
-              target={isExternal ? "_blank" : undefined}
-              rel={isExternal ? "noopener noreferrer" : undefined}
+              target={isExternal && !isSearchGate ? "_blank" : undefined}
+              rel={isExternal && !isSearchGate ? "noopener noreferrer" : undefined}
+              onClick={
+                isSearchGate
+                  ? (e) => {
+                      e.preventDefault();
+                      setSearchGateOpen(true);
+                    }
+                  : undefined
+              }
               className="svc-fade group relative z-10 grid grid-cols-1 items-center gap-8 px-6 py-14 md:grid-cols-12 md:px-16 md:py-20 lg:px-24"
             >
               <div className="md:col-span-5">
@@ -255,6 +269,12 @@ export function Approach() {
 
       {/* Cream bottom band */}
       <div className="h-24 md:h-32" />
+
+      <SearchGate
+        open={searchGateOpen}
+        onClose={() => setSearchGateOpen(false)}
+        redirectUrl={SEARCH_REDIRECT_URL}
+      />
     </section>
   );
 }

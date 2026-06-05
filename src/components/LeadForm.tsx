@@ -6,6 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import {
+  captureAttribution,
+  type Attribution,
+} from "@/lib/attribution";
+import { Honeypot } from "@/components/Honeypot";
 
 const INTENTS = ["buy", "sell", "both", "exploring"] as const;
 type Intent = (typeof INTENTS)[number];
@@ -30,6 +35,8 @@ type FormValues = z.infer<typeof schema>;
 export function LeadForm() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const attributionRef = useRef<Attribution | null>(null);
 
   const {
     register,
@@ -42,8 +49,9 @@ export function LeadForm() {
     defaultValues: { intent: "buy", smsConsent: false, termsConsent: false },
   });
 
-  // Prefill intent from URL on mount: e.g. /?intent=sell#contact
+  // Capture attribution + prefill intent from URL on mount.
   useEffect(() => {
+    attributionRef.current = captureAttribution();
     const params = new URLSearchParams(window.location.search);
     const intent = params.get("intent");
     if (intent && (INTENTS as readonly string[]).includes(intent)) {
@@ -86,7 +94,12 @@ export function LeadForm() {
       const res = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          source: "contact-form",
+          hp_company: honeypot,
+          ...(attributionRef.current ?? {}),
+        }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -108,7 +121,7 @@ export function LeadForm() {
       className="relative w-full bg-ink py-24 text-cream md:py-32"
     >
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-16 px-6 md:grid-cols-12 md:px-12">
-        <div className="md:col-span-5">
+        <div className="md:order-2 md:col-span-6">
           <p className="lead-fade text-[11px] font-medium uppercase tracking-[0.38em] text-cream/60">
             Let&apos;s talk
           </p>
@@ -132,7 +145,7 @@ export function LeadForm() {
           </div>
         </div>
 
-        <div className="md:col-span-7">
+        <div className="md:order-1 md:col-span-6">
           {submitted ? (
             <div
               role="status"
@@ -158,6 +171,7 @@ export function LeadForm() {
               className="lead-fade space-y-8"
               noValidate
             >
+              <Honeypot value={honeypot} onChange={setHoneypot} />
               <Field
                 label="Name"
                 autoComplete="name"
