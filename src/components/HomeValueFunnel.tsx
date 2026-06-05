@@ -23,6 +23,12 @@ import { Honeypot } from "@/components/Honeypot";
 const BNDRYIQ_ORIGIN = "https://bndryiq.vercel.app";
 const BNDRYIQ_EMBED_PATH = "/embed/valuation";
 
+// Bndryiq isn't production-ready yet. Set NEXT_PUBLIC_BNDRYIQ_ENABLED=true in
+// Vercel env to show the iframe; default = hidden (placeholder block instead).
+// The contact form + auto-reply email path still works either way — Anthony
+// gets the lead, sends a personalized range manually within 24 hours.
+const BNDRYIQ_ENABLED = process.env.NEXT_PUBLIC_BNDRYIQ_ENABLED === "true";
+
 type BndryiqEstimate = {
   low: number;
   high: number;
@@ -242,20 +248,26 @@ export function HomeValueFunnel() {
         {!submitted ? (
           <>
             <Header />
-            <div className="hv-fade mt-12 overflow-hidden border border-ink/10 bg-cream">
-              {iframeSrc && (
-                <iframe
-                  ref={iframeRef}
-                  src={iframeSrc}
-                  width="100%"
-                  height={iframeHeight}
-                  style={{ border: "none", display: "block" }}
-                  loading="lazy"
-                  title="Free instant home value estimate"
-                />
-              )}
-            </div>
-            <PoweredBy />
+            {BNDRYIQ_ENABLED ? (
+              <>
+                <div className="hv-fade mt-12 overflow-hidden border border-ink/10 bg-cream">
+                  {iframeSrc && (
+                    <iframe
+                      ref={iframeRef}
+                      src={iframeSrc}
+                      width="100%"
+                      height={iframeHeight}
+                      style={{ border: "none", display: "block" }}
+                      loading="lazy"
+                      title="Free instant home value estimate"
+                    />
+                  )}
+                </div>
+                <PoweredBy />
+              </>
+            ) : (
+              <LookingUpBlock address={address} />
+            )}
 
             <Honeypot value={honeypot} onChange={setHoneypot} />
             <PersonalAnalysisBlock
@@ -269,6 +281,36 @@ export function HomeValueFunnel() {
         )}
       </div>
     </section>
+  );
+}
+
+// ── Looking-up placeholder (shown when bndryiq is hidden) ──────────────────
+
+function LookingUpBlock({ address }: { address: BndryiqAddress | null }) {
+  return (
+    <div className="hv-fade mt-12 border border-ink/10 bg-cream p-8 md:p-10">
+      <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-ink-soft/60">
+        We have your address
+      </p>
+      {address ? (
+        <p className="mt-4 font-display text-2xl font-semibold tracking-[-0.01em] text-ink md:text-3xl">
+          {address.address}
+        </p>
+      ) : (
+        <p className="mt-4 text-[15px] text-ink-soft">
+          Drop your address below and I&apos;ll pull comps in your area.
+        </p>
+      )}
+      <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-ink-soft/85">
+        I&apos;ll pull recent sales on your block, look at what is actually
+        selling vs sitting, and email you a clear range within 24 hours. No
+        algorithm guess, no marketing fluff. Just an honest read from a local
+        agent.
+      </p>
+      <p className="mt-4 text-[13px] leading-[1.6] text-ink-soft/65">
+        Fill in your contact info below so I know where to send it.
+      </p>
+    </div>
   );
 }
 

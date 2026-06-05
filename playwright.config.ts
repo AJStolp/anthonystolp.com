@@ -2,6 +2,11 @@ import { defineConfig, devices } from "@playwright/test";
 
 // Tests assume the Next.js dev server is already running on port 3000.
 // Run `bun dev` in another terminal, then `bunx playwright test`.
+//
+// To run against production:
+//   PLAYWRIGHT_BASE_URL=https://anthonystolp.com bunx playwright test
+// Production runs will create real funnel_leads rows + send real Resend
+// notification emails. Delete the test rows from /admin/leads afterward.
 export default defineConfig({
   testDir: "./tests/e2e",
   timeout: 45_000,
@@ -10,7 +15,7 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",
