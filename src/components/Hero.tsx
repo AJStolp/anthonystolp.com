@@ -39,22 +39,16 @@ export function Hero() {
           Ozaukee County · Greater Milwaukee
         </p>
 
-        <h1 className="mt-6 max-w-3xl font-display text-[clamp(2.75rem,6.5vw,5.75rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-cream">
-          {HOME_VALUE_ENABLED ? (
-            "What is your home worth?"
-          ) : (
-            <>
-              Talk to a realist.
-              <br />
-              Not a realtor.
-            </>
-          )}
+        <h1 className="mt-6 max-w-3xl font-display text-[clamp(2.25rem,5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.025em] text-cream">
+          {HOME_VALUE_ENABLED
+            ? "What is your home worth?"
+            : "Your Premier Team for Wisconsin Real Estate Excellence."}
         </h1>
 
         <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-cream/90 md:text-[16px]">
           {HOME_VALUE_ENABLED
             ? "A real range from a local agent, sent within 24 hours. No Zestimate guesses, no marketing fluff. Just an honest number based on what is actually selling in your neighborhood."
-            : "I find your exact net position before we negotiate, not after. When you sell and buy with the same agent, that precision compounds. No scripts, no fluff. Just real numbers."}
+            : "A team that knows Wisconsin cold, answers when you call, and handles every move like it is our only one. No scripts. No fluff. Just real estate done right."}
         </p>
 
         {HOME_VALUE_ENABLED ? (

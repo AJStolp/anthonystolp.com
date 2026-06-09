@@ -190,7 +190,7 @@ export function HeroAddressInput({ onDark = false }: Props) {
           <button
             type="submit"
             disabled={submitting || !selected}
-            className="group inline-flex items-center gap-2 bg-ink px-5 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-ink-soft disabled:opacity-50 md:px-7"
+            className="group inline-flex items-center gap-2 bg-ink px-5 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-cream hover:text-ink md:px-7"
           >
             {submitting ? "…" : "Get estimate"}
             <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
