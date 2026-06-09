@@ -90,7 +90,10 @@ export function HomeValueFunnel() {
   const presetLeadId = searchParams?.get("leadId") ?? null;
 
   const [iframeSrc, setIframeSrc] = useState<string>("");
-  const [iframeHeight, setIframeHeight] = useState<number>(720);
+  // Initial height fits just the address input + powered-by row. Bndryiq is
+  // expected to push a taller value via the `bndryiq:height` postMessage
+  // when the estimate result renders (see message handler below).
+  const [iframeHeight, setIframeHeight] = useState<number>(340);
   const [address, setAddress] = useState<BndryiqAddress | null>(presetAddress);
   const [estimate, setEstimate] = useState<BndryiqEstimate | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -110,6 +113,16 @@ export function HomeValueFunnel() {
       visitor_id: visitorId,
       return_url: typeof window !== "undefined" ? window.location.href : "",
     });
+    // Belt-and-suspenders pre-fill: postMessage (bndryiq:set_address) below
+    // is the in-memory primary channel; URL params are the fallback in case
+    // the embed reads them on load instead. Address PII in the URL is the
+    // tradeoff — acceptable here since the alternative is making the user
+    // retype the address they just gave us.
+    if (presetAddress) {
+      params.set("address", presetAddress.address);
+      params.set("lat", presetAddress.lat.toString());
+      params.set("lng", presetAddress.lng.toString());
+    }
     setIframeSrc(`${BNDRYIQ_ORIGIN}${BNDRYIQ_EMBED_PATH}?${params.toString()}`);
   }, []);
 
@@ -246,7 +259,7 @@ export function HomeValueFunnel() {
             <Header />
             {BNDRYIQ_ENABLED ? (
               <>
-                <div className="hv-fade mt-12 overflow-hidden border border-ink/10 bg-cream">
+                <div className="hv-fade mt-12 overflow-hidden bg-cream">
                   {iframeSrc && (
                     <iframe
                       ref={iframeRef}
