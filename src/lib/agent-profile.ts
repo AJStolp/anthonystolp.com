@@ -17,6 +17,7 @@ export type AgentProfile = {
   replyToEmail: string;            // where replies route
   licenseNumber: string;           // "114204-94"
   licenseState: string;            // "WI"
+  mailingAddress: string;          // physical postal address for CAN-SPAM footer
   serviceArea: string;             // human-readable area
   targetZips: string[];            // zips covered for market reports
   voiceNotes: string;              // brand voice rules for Claude prompts
@@ -33,6 +34,8 @@ const AJ_PROFILE: AgentProfile = {
   replyToEmail: process.env.LEAD_TO_EMAIL ?? "anthony@exsellexperts.com",
   licenseNumber: "114204-94",
   licenseState: "WI",
+  mailingAddress:
+    "ExSell Experts at Epique Realty, W193N10980 Kleinmann Dr, Germantown, WI 53022",
   serviceArea: "Ozaukee County, Wisconsin",
   targetZips: ["53012", "53092", "53097", "53024", "53074", "53080"],
   // Per-agent voice rules for any Claude-drafted content

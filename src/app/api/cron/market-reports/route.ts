@@ -9,6 +9,7 @@ import {
   factCheckDraft,
   validateDraft,
 } from "@/lib/market-report";
+import { applyComplianceFooter } from "@/lib/email-compliance";
 import { Resend as ResendClient } from "resend";
 
 // Allow up to 5 minutes for the cron — Redfin stream + Claude calls + sends.
@@ -110,6 +111,7 @@ export async function GET(req: Request) {
         .select("id")
         .eq("source", "market-report-subscribe")
         .eq("postal_code", zip)
+        .is("unsubscribed_at", null)
         .limit(1);
       if (!subs || subs.length === 0) {
         summary.reports.push({ zip, status: "skipped-no-subscribers" });
@@ -305,7 +307,8 @@ async function sendReport(
     .from("funnel_leads")
     .select("id,email,name")
     .eq("source", "market-report-subscribe")
-    .eq("postal_code", report.zip);
+    .eq("postal_code", report.zip)
+    .is("unsubscribed_at", null);
   const recipients = (subscribers ?? []).filter((s) => !!s.email);
   if (recipients.length === 0) {
     await supabase
@@ -325,8 +328,14 @@ async function sendReport(
   for (const sub of recipients) {
     if (!sub.email) continue;
     const firstName = (sub.name ?? "").split(" ")[0] || "there";
-    const text = report.body_text.replace(/\{\{first_name\}\}/g, firstName);
-    const html = report.body_html.replace(/\{\{first_name\}\}/g, firstName);
+    const personalizedText = report.body_text.replace(/\{\{first_name\}\}/g, firstName);
+    const personalizedHtml = report.body_html.replace(/\{\{first_name\}\}/g, firstName);
+    const { text, html, headers } = applyComplianceFooter({
+      text: personalizedText,
+      html: personalizedHtml,
+      agent,
+      leadId: sub.id,
+    });
     try {
       const res = await resend.emails.send({
         from: `${agent.shortName} Stolp <${agent.fromEmail}>`,
@@ -335,6 +344,7 @@ async function sendReport(
         subject: report.subject,
         text,
         html,
+        headers,
       });
       if (res.error) errors.push(`${sub.email}: ${res.error.message}`);
       else sent += 1;

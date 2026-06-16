@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getSupabase } from "@/lib/supabase-server";
 import { getAgentProfile, DEFAULT_AGENT_ID } from "@/lib/agent-profile";
+import { applyComplianceFooter } from "@/lib/email-compliance";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
@@ -43,7 +44,8 @@ export async function POST(_req: Request, { params }: RouteParams) {
     .from("funnel_leads")
     .select("id,email,name")
     .eq("source", "market-report-subscribe")
-    .eq("postal_code", report.zip);
+    .eq("postal_code", report.zip)
+    .is("unsubscribed_at", null);
   if (subErr) {
     return NextResponse.json({ error: subErr.message }, { status: 500 });
   }
@@ -65,8 +67,14 @@ export async function POST(_req: Request, { params }: RouteParams) {
     if (!sub.email) continue;
     const firstName = (sub.name ?? "").split(" ")[0] || "there";
     const subject = report.subject;
-    const text = report.body_text.replace(/\{\{first_name\}\}/g, firstName);
-    const html = report.body_html.replace(/\{\{first_name\}\}/g, firstName);
+    const personalizedText = report.body_text.replace(/\{\{first_name\}\}/g, firstName);
+    const personalizedHtml = report.body_html.replace(/\{\{first_name\}\}/g, firstName);
+    const { text, html, headers } = applyComplianceFooter({
+      text: personalizedText,
+      html: personalizedHtml,
+      agent,
+      leadId: sub.id,
+    });
 
     try {
       const res = await resend.emails.send({
@@ -76,6 +84,7 @@ export async function POST(_req: Request, { params }: RouteParams) {
         subject,
         text,
         html,
+        headers,
       });
       if (res.error) {
         errors.push(`${sub.email}: ${res.error.message}`);
