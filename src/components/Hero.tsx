@@ -8,7 +8,7 @@ import { SearchGate } from "./SearchGate";
 import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 
 const EXSELL_REDIRECT =
-  "https://exsellexperts.com/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=hero-search";
+  "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=hero-search";
 
 export function Hero() {
   const [searchOpen, setSearchOpen] = useState(false);
