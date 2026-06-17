@@ -6,7 +6,7 @@ import { SearchGate, type CampaignContext } from "@/components/SearchGate";
 import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
 
 const EXSELL_REDIRECT =
-  "https://exsellexperts.com/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=niche-search";
+  "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=niche-search";
 
 type Props = {
   intent: "buy" | "sell";

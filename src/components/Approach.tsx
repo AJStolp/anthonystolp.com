@@ -11,7 +11,7 @@ import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 type Theme = "ink" | "cream";
 
 const SEARCH_REDIRECT_URL =
-  "https://exsellexperts.com/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=search-cta";
+  "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=search-cta";
 
 const services: {
   n: string;
