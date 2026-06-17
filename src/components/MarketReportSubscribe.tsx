@@ -96,8 +96,8 @@ export function MarketReportSubscribe() {
           </h2>
           <p className="mt-6 max-w-md text-[15px] leading-[1.7] text-ink-soft/80">
             Once a month, a short read on what is actually happening in your
-            corner of Ozaukee County. Median prices, days on market, and what
-            it means for you. No fluff, no sales pitches, no daily blasts.
+            local market. Median prices, days on market, and what it means for
+            you. No fluff, no sales pitches, no daily blasts.
           </p>
         </div>
 

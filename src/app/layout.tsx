@@ -77,6 +77,10 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  // Google Search Console domain/URL-prefix verification. Set
+  // GOOGLE_SITE_VERIFICATION to the token GSC gives you; renders the
+  // <meta name="google-site-verification"> tag. Undefined → nothing rendered.
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
   formatDetection: {
     email: false,
     address: false,
