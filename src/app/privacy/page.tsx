@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "How Anthony Stolp Real Estate collects, uses, and protects your personal information.",
+    "How Anthony Stolp Real Estate collects, uses, and protects the personal information you share through anthonystolp.com and its contact and home-value forms.",
   alternates: { canonical: "/privacy" },
   openGraph: {
     title: "Privacy Policy · Anthony Stolp",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
       "How Anthony Stolp Real Estate collects, uses, and protects your personal information.",
     url: "/privacy",
     type: "article",
+    images: OG_IMAGES,
   },
 };
 

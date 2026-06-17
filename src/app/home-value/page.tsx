@@ -5,6 +5,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { HomeValueFunnel } from "@/components/HomeValueFunnel";
 import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
+import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "What's your home worth?",
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
     description:
       "Free, personalized home value estimate. An honest range, emailed within 24 hours.",
     url: "/home-value",
+    images: OG_IMAGES,
   },
 };
 
@@ -31,6 +33,9 @@ export default function HomeValuePage() {
         Skip to content
       </a>
       <main id="main" className="relative w-full overflow-x-hidden">
+        <h1 className="sr-only">
+          Free home value estimate for southeast Wisconsin homes
+        </h1>
         <Nav />
         {/* HomeValueFunnel reads URL params via useSearchParams for the hero
             pre-fill flow. That triggers CSR bailout under static rendering,

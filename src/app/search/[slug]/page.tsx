@@ -10,6 +10,7 @@ import {
   type NicheIntent,
 } from "@/lib/niche-pages";
 import { getGeoSnapshot, type GeoSnapshot } from "@/lib/market-data/geo-stats";
+import { OG_IMAGES } from "@/lib/og";
 
 export const revalidate = 3600; // ISR: refresh published pages hourly
 
@@ -36,14 +37,14 @@ export async function generateMetadata({
     openGraph: {
       title: page.title,
       description: page.meta_desc ?? undefined,
-      images: page.og_image ? [{ url: page.og_image }] : undefined,
+      images: page.og_image ? [{ url: page.og_image }] : OG_IMAGES,
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: page.title,
       description: page.meta_desc ?? undefined,
-      images: page.og_image ? [page.og_image] : undefined,
+      images: page.og_image ? [page.og_image] : OG_IMAGES,
     },
     alternates: { canonical: `/search/${slug}` },
   };
@@ -213,8 +214,17 @@ export default async function NichePage({ params }: { params: RouteParams }) {
         "@type": "RealEstateAgent",
         name: "Anthony Stolp",
         url: SITE_URL,
+        image: `${SITE_URL}/opengraph-image`,
         telephone: "+1-262-885-3310",
         areaServed: page.geo ?? "Southeast Wisconsin",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "W193N10980 Kleinmann Dr",
+          addressLocality: "Germantown",
+          addressRegion: "WI",
+          postalCode: "53022",
+          addressCountry: "US",
+        },
         parentOrganization: {
           "@type": "RealEstateOrganization",
           name: "ExSell Experts at Epique Realty",

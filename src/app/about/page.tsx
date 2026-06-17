@@ -2,17 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "About Anthony Stolp · Ozaukee County Realtor",
   description:
-    "Solo real estate agent serving Ozaukee County, Wisconsin. Cedarburg, Thiensville, Mequon, Grafton, Port Washington, Saukville. Honest pricing, no scripts, no pressure.",
+    "Solo real estate agent serving Ozaukee County, Wisconsin. Cedarburg, Thiensville, Mequon, Grafton, Port Washington, Saukville. Honest pricing, no scripts.",
   alternates: { canonical: "/about" },
   openGraph: {
     title: "About Anthony Stolp · Ozaukee County Realtor",
     description:
       "Solo real estate agent serving Ozaukee County, Wisconsin. Honest pricing, no scripts.",
     type: "profile",
+    images: OG_IMAGES,
   },
 };
 

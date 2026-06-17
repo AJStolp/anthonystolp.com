@@ -331,11 +331,14 @@ function Header() {
       <p className="hv-fade text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/60">
         Free Home Value
       </p>
-      <h1 className="hv-fade mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink">
+      {/* Visual heading only — the page's real <h1> is server-rendered in
+          home-value/page.tsx so crawlers see it without waiting on the
+          client-side Suspense (useSearchParams) boundary to hydrate. */}
+      <h2 className="hv-fade mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink">
         What&apos;s your
         <br />
         home worth?
-      </h1>
+      </h2>
       <p className="hv-fade mt-8 max-w-md text-[15px] leading-[1.7] text-ink-soft/80">
         Get an instant range from real comparable sales below. Want a
         personal analysis? Drop me your info after, no pressure.

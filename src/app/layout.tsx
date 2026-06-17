@@ -21,7 +21,7 @@ const SITE_URL = "https://anthonystolp.com";
 const SITE_NAME = "Anthony Stolp";
 const TAGLINE = "Greater Milwaukee Realtor";
 const DESCRIPTION =
-  "Honest guidance for buyers and sellers across southeast Wisconsin: Ozaukee, Washington, Waukesha, Sheboygan and the Greater Milwaukee area. Find where you belong.";
+  "Honest guidance for buyers and sellers across southeast Wisconsin: Ozaukee, Washington, Waukesha, Sheboygan and Greater Milwaukee. Find where you belong.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
