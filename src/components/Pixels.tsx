@@ -1,28 +1,34 @@
 import Script from "next/script";
 
-// Renders ad-platform pixels. Both are env-gated: absence of env var → no script.
-// Configure conversion / audience definitions in the ad platform UIs against
-// the event names emitted by src/lib/track.ts.
+// Renders measurement + ad-platform tags. All env-gated: absence of env var →
+// no script. GA4 (NEXT_PUBLIC_GA4_ID, "G-…") and Google Ads (NEXT_PUBLIC_GADS_ID,
+// "AW-…") share one gtag.js load — gtag can config multiple destinations, so
+// the funnel events mirrored to window.gtag in src/lib/track.ts reach both.
+// Configure conversions / audiences in the platform UIs against those event names.
 export function Pixels() {
+  const ga4Id = process.env.NEXT_PUBLIC_GA4_ID;
   const gadsId = process.env.NEXT_PUBLIC_GADS_ID;
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  // Load the shared gtag.js once if either Google tag is configured.
+  const gtagLoaderId = ga4Id || gadsId;
 
   return (
     <>
-      {gadsId ? (
+      {gtagLoaderId ? (
         <>
           <Script
-            id="gads-loader"
-            src={`https://www.googletagmanager.com/gtag/js?id=${gadsId}`}
+            id="gtag-loader"
+            src={`https://www.googletagmanager.com/gtag/js?id=${gtagLoaderId}`}
             strategy="afterInteractive"
           />
-          <Script id="gads-init" strategy="afterInteractive">
+          <Script id="gtag-init" strategy="afterInteractive">
             {`
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               window.gtag = gtag;
               gtag('js', new Date());
-              gtag('config', '${gadsId}');
+              ${ga4Id ? `gtag('config', '${ga4Id}');` : ""}
+              ${gadsId ? `gtag('config', '${gadsId}');` : ""}
             `}
           </Script>
         </>
