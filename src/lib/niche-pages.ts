@@ -81,6 +81,20 @@ export async function getActiveSlugs(): Promise<string[]> {
   return data.map((r) => r.slug as string);
 }
 
+// Lightweight directory of active pages for internal cross-linking.
+export type NicheDirEntry = { slug: string; geo: string | null; intent: NicheIntent };
+
+export async function getActiveDirectory(): Promise<NicheDirEntry[]> {
+  const supabase = trySupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("niche_pages")
+    .select("slug,geo,intent")
+    .eq("active", true);
+  if (error || !data) return [];
+  return data as NicheDirEntry[];
+}
+
 export async function getActiveBySlug(
   slug: string,
 ): Promise<NichePageRow | null> {
