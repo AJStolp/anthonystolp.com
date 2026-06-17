@@ -29,7 +29,7 @@ const services: {
     body:
       "Inspections, appraisal, negotiation. I take care of the heavy lifting so you can focus on the move.",
     image: "/images/services/buy.webp",
-    href: "/?intent=buy#contact",
+    href: "/buy",
     theme: "cream",
   },
   {
