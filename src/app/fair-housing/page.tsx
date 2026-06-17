@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Fair Housing Notice",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
       "Anthony Stolp and ExSell Experts at Epique Realty support equal housing opportunity and comply with federal and Wisconsin fair housing laws.",
     url: "/fair-housing",
     type: "article",
+    images: OG_IMAGES,
   },
 };
 

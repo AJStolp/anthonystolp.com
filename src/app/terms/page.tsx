@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms of Service governing your use of anthonystolp.com.",
+  description:
+    "Terms of Service governing your use of anthonystolp.com, the real estate website of Anthony Stolp with ExSell Experts at Epique Realty in southeast Wisconsin.",
   alternates: { canonical: "/terms" },
   openGraph: {
     title: "Terms of Service · Anthony Stolp",
     description: "Terms of Service governing your use of anthonystolp.com.",
     url: "/terms",
     type: "article",
+    images: OG_IMAGES,
   },
 };
 

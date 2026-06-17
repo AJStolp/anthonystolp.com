@@ -4,6 +4,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { NicheCTA } from "@/components/NicheCTA";
 import { getActiveDirectory } from "@/lib/niche-pages";
+import { OG_IMAGES } from "@/lib/og";
 
 export const revalidate = 3600;
 
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
       "Real-time listings, local knowledge, and honest negotiation. Start your home search with Anthony Stolp.",
     url: "/buy",
     type: "website",
+    images: OG_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
