@@ -1,7 +1,6 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { TrustStrip } from "@/components/TrustStrip";
-import { ChoosePath } from "@/components/ChoosePath";
 import { Approach } from "@/components/Approach";
 import { MarketReportSubscribe } from "@/components/MarketReportSubscribe";
 import { LeadForm } from "@/components/LeadForm";
@@ -82,7 +81,6 @@ export default function Home() {
         <Nav />
         <Hero />
         <TrustStrip />
-        <ChoosePath />
         <Approach />
         <MarketReportSubscribe />
         <LeadForm />
