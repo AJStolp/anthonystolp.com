@@ -7,7 +7,7 @@ export function TrustStrip() {
       <div className="mx-auto flex max-w-5xl flex-col gap-y-3 px-6 py-6 md:flex-row md:items-center md:justify-between md:gap-6 md:px-12">
         <Item label="Licensed">WI Real Estate License #114204-94</Item>
         <Divider />
-        <Item label="Brokerage">ExSell Experts at Epique Realty</Item>
+        <Item label="Brokerage">ExSell Experts | Epique Realty</Item>
         <Divider />
         <Item label="Service area">Ozaukee · Washington · Waukesha · Sheboygan</Item>
         <Divider />

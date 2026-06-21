@@ -341,7 +341,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
 
         <div className="mt-16 border-t border-ink/10 pt-8 text-[12px] leading-[1.6] text-ink-soft/65">
           <p>
-            Anthony Stolp, ExSell Experts at Epique Realty. Honest pricing,
+            Anthony Stolp, ExSell Experts | Epique Realty. Honest pricing,
             real staging, no scripts. Greater Milwaukee, southeast Wisconsin.
           </p>
           <p className="mt-2">
