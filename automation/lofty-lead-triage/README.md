@@ -17,21 +17,24 @@ Import file: `lofty-lead-triage-daily.json`
 ```
 Schedule (07:00, 12:00, 17:00 America/Chicago)
   -> Config (Set: ids, model, sheet, recipient)
-  -> Read Watermark (only triage leads newer than last run)
+  -> Read Watermark (passthrough of config; dedup is a seen-id set, see below)
   -> Lofty GET /v1.0/leads?stage=New Leads&sort=CreateTime&desc=true   (pond)
   -> Lofty GET /v1.0/leads?assignedUserId=<you>&sort=CreateTime&desc=true (pipeline)
-  -> Filter & Shape (drop non-WI / no-contact / claimed-by-others; advance watermark;
+  -> Filter & Shape (drop already-seen / non-WI / no-contact / claimed-by-others;
                      build the Anthropic request)        --> empty? stops here, no email
   -> Anthropic POST /v1/messages (score + triage, strict JSON)
   -> Parse & Sort
-  -> Append to Sheet  +  Build Digest Email -> Send (Gmail)
+  -> Build Digest Email -> Send (Resend) -> Mark Emailed Seen (commit seen-ids)
   -> [disabled] Write Note back to Lofty
 ```
 
 ### Anti-redundancy (by design — nothing runs on stale/empty data)
-- **Watermark dedup:** the newest `createTime` already seen is stored in n8n workflow
-  static data. Each of the 3 daily runs only triages leads *newer* than that, so a lead
-  is triaged **once**, when it first appears. No repeats across runs.
+- **Seen-id dedup:** the lead ids already emailed are stored as a set in n8n workflow
+  static data, and committed **only after a successful send** (`Mark Emailed Seen`). Each
+  of the 3 daily runs skips ids already in the set, so a lead is triaged **once**, when it
+  first appears. Because the set is committed post-send, a failed run or a per-run cap
+  overflow never makes a lead silently disappear — it's just retried next run. The set is
+  bounded to the most recent 3000 ids.
 - **No email on empty runs:** if there's nothing new, the workflow stops before Anthropic
   — no wasted model call, no noise email. (Midday/evening only ping you when there's
   something to claim.)
@@ -76,7 +79,7 @@ credential (the import ships placeholder credential IDs).
 | `nearZipPrefixes` | `530,531,532,534` | Drivable-region pre-filter: only WI leads whose zip starts with one of these reach Claude. `530`/`531`/`532`/`534` = SE Wisconsin (Ozaukee, Milwaukee, Washington, Waukesha, Racine, Kenosha, Walworth). Far-WI dumps (Madison `537`, Green Bay `541`, Wausau `544`, Eau Claire `547`…) are dropped. Leave blank to disable and let Claude rank everything. |
 | `maxPerRun` | `50` | Hard cap on pond leads per run (newest kept) so a bulk import can't truncate the model output. Logged when hit. |
 | `model` | `claude-sonnet-4-6` | Change here to swap models — not hardcoded in the request body. |
-| `firstRunSinceDate` | `2026-05-25T00:00:00GMT` | Seeds the watermark for the **very first run** so it surfaces a ~30-day backlog. Ignored after the first run (the stored watermark takes over). |
+| `firstRunSinceDate` | `2026-06-25T00:00:00GMT` | "Since" floor — only leads created after this are ever considered (keeps old graveyard imports out). Dedup of already-emailed leads is handled separately by the seen-id set. |
 | `sheetId` | `PUT_YOUR_GOOGLE_SHEET_ID_HERE` | The spreadsheet's ID (from its URL). **Required.** |
 | `sheetTab` | `Triage` | Tab name. Create the tab with the header row below. |
 | `digestTo` | `anthony.stolp@gmail.com` | Where the digest is emailed. |
@@ -130,7 +133,7 @@ node (cron `0 7,12,17 * * *`).
   `pondOwnerId`, `agentIds`). Used for the smoke test; your pond is `1004768` "WI Leads".
 - `GET /v1.0/leads` — params used: `stage`, `assignedUserId`, `sort=CreateTime`,
   `desc=true`, `limit=100`. Response: `{ _metadata, leads[] }`. **No date filter and no
-  pond filter exist** — `sort=CreateTime desc` + the watermark replace them; the pond is
+  pond filter exist** — `sort=CreateTime desc` + the since-floor replace them; the pond is
   reachable because pond leads carry `pondId`.
 - `POST /v1.0/notes` — body `{ leadId, content, isPin }` (all required), returns
   `{ noteId }`. Used only by the optional, disabled write-back node.
@@ -149,8 +152,8 @@ node (cron `0 7,12,17 * * *`).
 - **Lead IDs are JSON numbers ≈ 1.1e15** — under JS's safe-integer limit, so standard
   parsing is fine and IDs are coerced to strings for display. Revisit only if Lofty ever
   issues IDs above ~9.0e15.
-- **Claiming and re-engagement are not automated** (no claim endpoint; watermark triages
-  each lead once). Both are phase-2 items.
+- **Claiming and re-engagement are not automated** (no claim endpoint; the seen-id set
+  triages each lead once). Both are phase-2 items.
 
 ---
 
