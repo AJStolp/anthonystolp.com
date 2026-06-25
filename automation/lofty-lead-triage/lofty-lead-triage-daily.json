@@ -1,0 +1,489 @@
+{
+  "name": "lofty-lead-triage-daily",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Chicago",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 7,12,17 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000001",
+      "name": "Schedule 3x Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -340,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c-pond",
+              "name": "pondId",
+              "value": "1004768",
+              "type": "string"
+            },
+            {
+              "id": "c-user",
+              "name": "myUserId",
+              "value": "844773616097576",
+              "type": "string"
+            },
+            {
+              "id": "c-stage",
+              "name": "pondStage",
+              "value": "New Leads",
+              "type": "string"
+            },
+            {
+              "id": "c-zip",
+              "name": "nearZipPrefixes",
+              "value": "530,531,532,534",
+              "type": "string"
+            },
+            {
+              "id": "c-max",
+              "name": "maxPerRun",
+              "value": "50",
+              "type": "string"
+            },
+            {
+              "id": "c-model",
+              "name": "model",
+              "value": "claude-sonnet-4-6",
+              "type": "string"
+            },
+            {
+              "id": "c-first",
+              "name": "firstRunSinceDate",
+              "value": "2026-05-25T00:00:00GMT",
+              "type": "string"
+            },
+            {
+              "id": "c-from",
+              "name": "digestFrom",
+              "value": "ExSell Lead Triage <hello@anthonystolp.com>",
+              "type": "string"
+            },
+            {
+              "id": "c-to",
+              "name": "digestTo",
+              "value": "anthony@exsellexperts.com",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000002",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Read the dedup watermark (newest createTime we've already triaged).\n// Stored in workflow static data so it persists across the 3 daily runs.\nconst cfg = $input.first().json;\nconst staticData = $getWorkflowStaticData('global');\nconst watermark = staticData.lastCreateTime || cfg.firstRunSinceDate;\nreturn [{ json: { ...cfg, watermark } }];"
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000003",
+      "name": "Read Watermark",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.lofty.com/v1.0/leads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "stage",
+              "value": "={{ $json.pondStage }}"
+            },
+            {
+              "name": "sort",
+              "value": "CreateTime"
+            },
+            {
+              "name": "desc",
+              "value": "true"
+            },
+            {
+              "name": "limit",
+              "value": "100"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000004",
+      "name": "Lofty: Pond New Leads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_LOFTY_CRED_ID",
+          "name": "Lofty API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.lofty.com/v1.0/leads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "assignedUserId",
+              "value": "={{ $('Config').item.json.myUserId }}"
+            },
+            {
+              "name": "sort",
+              "value": "CreateTime"
+            },
+            {
+              "name": "desc",
+              "value": "true"
+            },
+            {
+              "name": "limit",
+              "value": "100"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000005",
+      "name": "Lofty: My Pipeline",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_LOFTY_CRED_ID",
+          "name": "Lofty API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter, bucket, shape, advance watermark, and build the Anthropic request body.\n// Anti-redundancy: only leads newer than the watermark; drop non-WI, far-from-area\n// (zip prefix), no-contact, and claimed-by-others before anything reaches Claude.\nconst cfg = $('Read Watermark').first().json;\n\nconst norm = s => s ? String(s).replace('T', ' ').replace(/GMT$/, ' GMT') : null;\nconst toD = s => { const n = norm(s); const d = n ? new Date(n) : null; return d && !isNaN(d.getTime()) ? d : null; };\nconst wmD = toD(cfg.watermark) || new Date(0);\nconst hour = $now.hour; // workflow tz (America/Chicago)\n\nconst pondResp = $('Lofty: Pond New Leads').first().json || {};\nconst pipeResp = $('Lofty: My Pipeline').first().json || {};\nconst pond = Array.isArray(pondResp.leads) ? pondResp.leads : [];\nconst pipe = Array.isArray(pipeResp.leads) ? pipeResp.leads : [];\n\n// Graceful handling of permission errors (e.g. code 200100) — leads arrays just stay empty.\nif (pondResp.code || pondResp.message) console.log('Pond response note:', pondResp.code, pondResp.message);\n\n// Advance watermark to the newest pond lead seen (sorted desc => index 0), so the next\n// run never re-evaluates it, even if it was filtered out.\nconst sd = $getWorkflowStaticData('global');\nif (pond.length && pond[0].createTime) sd.lastCreateTime = pond[0].createTime;\n\nconst phone = l => Array.isArray(l.phones) && l.phones.length ? l.phones[0] : null;\nconst email = l => Array.isArray(l.emails) && l.emails.length ? l.emails[0] : null;\nconst hasContact = l => !!(phone(l) || email(l));\nconst isWI = l => String(l.state || '').toUpperCase() === 'WI';\nconst nearPrefixes = String(cfg.nearZipPrefixes || '').split(',').map(s => s.trim()).filter(Boolean);\nconst nearZip = l => { if (!nearPrefixes.length) return true; const z = String(l.zipCode || '').slice(0, 3); return z ? nearPrefixes.includes(z) : true; };\nconst inferType = l => {\n  const sell = !!(l.houseToSell || l.sellingTimeFrame);\n  const buy = !!(l.buyHouse || l.buyingTimeFrame);\n  if (sell && buy) return 'buyer+seller';\n  if (sell) return 'seller';\n  if (buy) return 'buyer';\n  return 'unknown';\n};\nconst priceRange = l => { const q = l.leadInquiry || {}; if (q.priceMin || q.priceMax) return `${q.priceMin || '?'} - ${q.priceMax || '?'}`; return null; };\n\nconst shape = (l, bucket) => ({\n  lead_id: String(l.leadId),\n  name: `${l.firstName || ''} ${l.lastName || ''}`.trim() || '(no name)',\n  type: inferType(l),\n  source: l.source || null,\n  status: l.stage || null,\n  created_at: l.createTime || null,\n  last_touch: l.lastTouch || l.lastVisit || null,\n  lead_score_lofty: typeof l.score === 'number' ? l.score : null,\n  location: [l.city, l.state, l.zipCode].filter(Boolean).join(', ') || null,\n  price_range: priceRange(l),\n  first_time_buyer: !!l.fthb,\n  pre_qualified: !!l.preQual,\n  buying_timeframe: l.buyingTimeFrame || null,\n  selling_timeframe: l.sellingTimeFrame || null,\n  has_phone: !!phone(l),\n  has_email: !!email(l),\n  activity_summary: l.lastVisit ? `last website visit ${l.lastVisit}` : 'no tracked website activity'\n});\n\n// POND: new since watermark, in WI, in drivable region, contactable, still unclaimed.\nconst pondNew = pond\n  .filter(l => l.assignedUserId === -1 && isWI(l) && nearZip(l) && hasContact(l) && (toD(l.createTime) ? toD(l.createTime) > wmD : false))\n  .map(l => ({ shaped: shape(l, 'pond'), bucket: 'pond', phone: phone(l), email: email(l) }));\n\n// PIPELINE: leads already claimed by me. Morning run only (avoid re-emailing the same\n// book 3x/day). assignedUserId compared as strings to be id-safe.\nlet mine = [];\nif (hour < 11) {\n  mine = pipe\n    .filter(l => String(l.assignedUserId) === String(cfg.myUserId))\n    .map(l => ({ shaped: shape(l, 'pipeline'), bucket: 'pipeline', phone: phone(l), email: email(l) }));\n}\n\n// Safety cap so a giant bulk import can't truncate the model output. pondNew is already\n// newest-first; keep the newest N. Pipeline is always kept (small).\nconst MAX = Number(cfg.maxPerRun || 50);\nlet cappedPond = pondNew;\nif (pondNew.length > MAX) { cappedPond = pondNew.slice(0, MAX); console.log(`Capped pond ${pondNew.length} -> ${MAX} (newest kept)`); }\n\nconst all = [...cappedPond, ...mine];\nif (!all.length) return []; // nothing new -> no email, no Anthropic call\n\nconst rawById = {};\nconst batch = all.map(x => {\n  rawById[x.shaped.lead_id] = { bucket: x.bucket, type: x.shaped.type, location: x.shaped.location, phone: x.phone, email: x.email };\n  return x.shaped;\n});\n\nconst SYSTEM = [\n  'You are a lead triage assistant for Anthony Stolp, a residential real estate agent based in',\n  'Ozaukee County, Wisconsin. He actively works Ozaukee County and north Milwaukee County, and will',\n  'consider adjacent Washington and Waukesha County. Each run you score and rank leads from his Lofty',\n  'pond so he knows which to CLAIM and call first. He has very little time, so be decisive.',\n  '',\n  'You receive a JSON array of leads. Some are unclaimed pond leads he could claim, some are leads he',\n  'already works. Score each lead on its own merits.',\n  '',\n  'Score each lead on:',\n  '- Geography (HARD signal): leads in/near Ozaukee + north Milwaukee County are workable. Score down',\n  '  leads far from there for drive time (e.g. Elkhorn, Fontana, Madison, Green Bay, far western/northern',\n  '  WI), and call it out in `why`. Use the city/zip in `location`.',\n  '- Intent & readiness: pre_qualified, a concrete buying/selling timeframe, a defined price_range, a',\n  '  real Lofty lead_score, and recent activity all rank higher. Passive/cold leads rank lower.',\n  '- Type: seller leads are high value (a listing is a listing). Ready, financed buyers are high value.',\n  '- Recency: fresher created_at / last_touch scores higher.',\n  '- Contactability: has_phone and has_email beat missing contact info.',\n  '',\n  'These pond leads are mostly cold imports with thin, similar data. Do NOT dump them all into one tier.',\n  'Rank them RELATIVE to each other for CLAIM PRIORITY and use a real spread: A for the clear best handful',\n  'to call today, B for solid maybes, C for weak/skip. Always surface a usable A/B set worth acting on.',\n  '',\n  'Respond with ONLY a JSON array, no preamble, no markdown, no code fences. Each element:',\n  '{',\n  '  \"lead_id\": \"string (echo back exactly as received)\",',\n  '  \"name\": \"string\",',\n  '  \"tier\": \"A | B | C\",',\n  '  \"score\": 0-100,',\n  '  \"why\": \"one or two sentences on what makes this lead worth or not worth acting on now, incl. geography\",',\n  '  \"best_channel\": \"text | call | email\",',\n  '  \"suggested_action\": \"the single next step (e.g. claim + first touch, or skip / leave in pond, or the next call)\",',\n  '  \"call_opener\": \"one natural opening line he can say or text, specific to this lead\"',\n  '}',\n  'Sort the array by score, highest first.'\n].join('\\n');\n\nconst anthropicBody = {\n  model: cfg.model,\n  max_tokens: 8192,\n  system: SYSTEM,\n  messages: [{ role: 'user', content: JSON.stringify(batch) }]\n};\n\nreturn [{ json: { batch, rawById, anthropicBody, count: batch.length, pondCount: cappedPond.length, pipelineCount: mine.length } }];"
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000006",
+      "name": "Filter & Shape",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        540,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.anthropicBody) }}",
+        "options": {}
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000007",
+      "name": "Anthropic: Score & Triage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        760,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_ANTHROPIC_CRED_ID",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse Claude's JSON, sort by score desc, merge back bucket/type/location for output.\nconst resp = $json;\nconst text = (resp.content || []).filter(b => b.type === 'text').map(b => b.text).join('\\n');\nconst clean = text.replace(/```json|```/g, '').trim();\nlet parsed;\ntry {\n  parsed = JSON.parse(clean);\n} catch (e) {\n  throw new Error('Claude did not return valid JSON: ' + e.message + ' :: ' + clean.slice(0, 500));\n}\nif (!Array.isArray(parsed)) throw new Error('Expected a JSON array from Claude, got: ' + clean.slice(0, 200));\n\nconst raw = $('Filter & Shape').first().json.rawById || {};\nconst today = $now.toFormat('yyyy-LL-dd');\nparsed.sort((a, b) => (b.score || 0) - (a.score || 0));\n\nreturn parsed.map(p => {\n  const r = raw[String(p.lead_id)] || {};\n  return { json: {\n    date: today,\n    tier: p.tier || '',\n    score: p.score != null ? p.score : '',\n    name: p.name || '',\n    type: r.type || '',\n    bucket: r.bucket || '',\n    why: p.why || '',\n    best_channel: p.best_channel || '',\n    suggested_action: p.suggested_action || '',\n    call_opener: p.call_opener || '',\n    lead_id: String(p.lead_id),\n    location: r.location || '',\n    phone: r.phone || '',\n    email: r.email || ''\n  }};\n});"
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-000000000008",
+      "name": "Parse & Sort",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build one scannable HTML digest: every lead as a card with tap-to-call contact.\nconst items = $input.all().map(i => i.json); // already sorted by score desc\nconst date = (items[0] && items[0].date) || $now.toFormat('yyyy-LL-dd');\nconst pond = items.filter(i => i.bucket === 'pond');\nconst pipe = items.filter(i => i.bucket === 'pipeline');\nconst claim = items.filter(i => i.tier === 'A' || i.tier === 'B').length;\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst color = t => t === 'A' ? '#1a7f37' : t === 'B' ? '#9a6700' : '#6e7781';\nconst fmtPhone = p => { const d = String(p || '').replace(/\\D/g, ''); if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`; if (d.length === 11 && d[0] === '1') return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`; return p || ''; };\nconst card = i => {\n  const c = [];\n  if (i.phone) c.push(`<a href=\"tel:${esc(String(i.phone).replace(/\\D/g, ''))}\" style=\"color:#0969da;text-decoration:none\">${esc(fmtPhone(i.phone))}</a>`);\n  if (i.email) c.push(`<a href=\"mailto:${esc(i.email)}\" style=\"color:#0969da;text-decoration:none\">${esc(i.email)}</a>`);\n  return `<div style=\"margin:0 0 10px;padding:10px 12px;border-left:4px solid ${color(i.tier)};background:#f6f8fa;border-radius:4px\">`\n    + `<div><span style=\"font-weight:700;color:${color(i.tier)}\">${esc(i.tier)} ${esc(i.score)}</span> &nbsp;<strong>${esc(i.name)}</strong> <span style=\"color:#57606a\">&middot; ${esc(i.location)} &middot; ${esc(i.type)}</span></div>`\n    + (c.length ? `<div style=\"margin:3px 0;font-size:13px\">${c.join(' &middot; ')}</div>` : `<div style=\"margin:3px 0;font-size:13px;color:#8c959f\">no contact on file</div>`)\n    + `<div style=\"margin:3px 0\">${esc(i.why)}</div>`\n    + `<div style=\"font-size:13px\"><strong>Opener:</strong> &ldquo;${esc(i.call_opener)}&rdquo; <span style=\"color:#8c959f\">(${esc(i.best_channel)})</span></div>`\n    + `</div>`;\n};\nconst section = (title, arr) => arr.length ? `<h2 style=\"font:600 16px system-ui;margin:18px 0 8px\">${title} (${arr.length})</h2>` + arr.map(card).join('') : '';\nconst html = `<div style=\"font:14px/1.5 system-ui,Segoe UI,Arial,sans-serif;max-width:680px;color:#1f2328\">`\n  + `<p style=\"margin:0 0 6px;color:#57606a\">${pond.length} pond leads &middot; ${claim} worth claiming first &middot; ${esc(date)}</p>`\n  + section('Claim now: pond leads', pond)\n  + section('Work your pipeline', pipe)\n  + `<p style=\"color:#8c959f;font-size:12px;margin-top:18px\">Lofty pond &ldquo;WI Leads&rdquo; &middot; ranked by Claude. Tiers are relative priority within this batch.</p>`\n  + `</div>`;\nconst subject = `Lead triage · ${date} · ${pond.length} pond leads, ${claim} to claim first`;\nreturn [{ json: { subject, html } }];\n"
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-00000000000a",
+      "name": "Build Digest Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.resend.com/emails",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ from: $('Config').item.json.digestFrom, to: [$('Config').item.json.digestTo], subject: $json.subject, html: $json.html }) }}",
+        "options": {}
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-00000000000b",
+      "name": "Send Digest (Resend)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1420,
+        220
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_RESEND_CRED_ID",
+          "name": "Resend API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.lofty.com/v1.0/notes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ leadId: Number($json.lead_id), content: 'Claude triage: ' + $json.tier + ' (' + $json.score + '). ' + $json.why, isPin: false }) }}",
+        "options": {}
+      },
+      "id": "a1f0e2d4-1111-4a01-9001-00000000000c",
+      "name": "Write Note to Lofty (optional, OFF)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        420
+      ],
+      "disabled": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_LOFTY_CRED_ID",
+          "name": "Lofty API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule 3x Daily": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "Read Watermark",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Watermark": {
+      "main": [
+        [
+          {
+            "node": "Lofty: Pond New Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lofty: Pond New Leads": {
+      "main": [
+        [
+          {
+            "node": "Lofty: My Pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lofty: My Pipeline": {
+      "main": [
+        [
+          {
+            "node": "Filter & Shape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter & Shape": {
+      "main": [
+        [
+          {
+            "node": "Anthropic: Score & Triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic: Score & Triage": {
+      "main": [
+        [
+          {
+            "node": "Parse & Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse & Sort": {
+      "main": [
+        [
+          {
+            "node": "Build Digest Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Write Note to Lofty (optional, OFF)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Digest Email": {
+      "main": [
+        [
+          {
+            "node": "Send Digest (Resend)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
