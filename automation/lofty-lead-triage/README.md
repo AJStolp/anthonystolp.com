@@ -6,7 +6,8 @@ decision-ready **"claim now / work your pipeline"** digest. Also appends every t
 lead to a Google Sheet as a running log.
 
 **Claiming stays manual** — the Lofty API exposes no claim endpoint. The digest tells you
-which to claim; you tap claim in Lofty.
+which to claim, and each card has an **Open in Lofty** button (deep-links to the lead
+record) so claiming is one tap away.
 
 Import file: `lofty-lead-triage-daily.json`
 
