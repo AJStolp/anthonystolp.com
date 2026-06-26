@@ -163,8 +163,11 @@ export function validateDraft(
   if (!/data from redfin/i.test(draft.bodyText)) {
     issues.push("Missing 'Data from Redfin Data Center' attribution in bodyText");
   }
-  if (!/data from redfin/i.test(draft.bodyHtml)) {
-    issues.push("Missing 'Data from Redfin Data Center' attribution in bodyHtml");
+  // Must be the exact phrase, case-sensitive: applyComplianceFooter linkifies
+  // the literal "Redfin Data Center" string. If the draft varies the wording,
+  // the linkify silently no-ops and the email ships without the required link.
+  if (!draft.bodyHtml.includes("Redfin Data Center")) {
+    issues.push("Missing exact 'Redfin Data Center' attribution in bodyHtml (required for linkify)");
   }
 
   // Sign-off
