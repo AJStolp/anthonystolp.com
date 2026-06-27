@@ -1,0 +1,257 @@
+{
+  "name": "lofty-claim-webhook",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Chicago",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "lofty-claim",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b2000000-0000-4a00-9000-000000000001",
+      "name": "Claim Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -340,
+        300
+      ],
+      "webhookId": "lofty-claim"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cc-who",
+              "name": "claimAssignee",
+              "value": "PUT_YOUR_LOFTY_ACCOUNT_EMAIL_HERE",
+              "type": "string"
+            },
+            {
+              "id": "cc-sec",
+              "name": "claimSecret",
+              "value": "PUT_A_LONG_RANDOM_SECRET_HERE",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2000000-0000-4a00-9000-000000000002",
+      "name": "Claim Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Authorize the claim: validate the shared secret token and the lead id from the\n// email link. The Claim now button is built in the triage workflow with the same\n// claimSecret, so a link with a wrong/absent token is rejected before any API call.\nconst cfg = $('Claim Config').first().json;\nconst q = ($('Claim Webhook').first().json.query) || {};\nconst leadId = String(q.lead_id || '').trim();\nconst token = String(q.t || '');\nconst page = (title, body, color) => `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${title}</title></head><body style=\"font:16px/1.5 -apple-system,system-ui,Segoe UI,Arial,sans-serif;background:#f6f8fa;margin:0;padding:48px 20px;color:#1f2328\"><div style=\"max-width:460px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-top:5px solid ${color}\"><h1 style=\"font-size:20px;margin:0 0 8px\">${title}</h1><div style=\"color:#57606a\">${body}</div></div></body></html>`;\nconst secretSet = cfg.claimSecret && !/PUT_|YOUR_/.test(String(cfg.claimSecret));\nif (!secretSet || token !== String(cfg.claimSecret)) {\n  return [{ json: { ok: false, leadId, html: page('Not authorized', 'This claim link is missing or carries an invalid token.', '#cf222e') } }];\n}\nif (!/^\\d+$/.test(leadId)) {\n  return [{ json: { ok: false, leadId, html: page('Bad link', 'No valid lead id was provided.', '#cf222e') } }];\n}\nreturn [{ json: { ok: true, leadId, assignee: cfg.claimAssignee } }];"
+      },
+      "id": "b2000000-0000-4a00-9000-000000000003",
+      "name": "Verify & Authorize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-ok",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b2000000-0000-4a00-9000-000000000004",
+      "name": "IF Token OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.lofty.com/v1.0/leads/{{ $json.leadId }}/assignment",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify([{ role: 'Agent', assignee: $json.assignee }]) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "b2000000-0000-4a00-9000-000000000005",
+      "name": "Lofty: Assign Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        200
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_LOFTY_CRED_ID",
+          "name": "Lofty API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the confirmation page from the assignment response (the Assign node runs\n// with neverError, so a Lofty rejection lands here as a body instead of failing).\nconst v = $('Verify & Authorize').first().json;\nconst leadId = v.leadId;\nconst resp = $json;\nconst page = (title, body, color) => `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${title}</title></head><body style=\"font:16px/1.5 -apple-system,system-ui,Segoe UI,Arial,sans-serif;background:#f6f8fa;margin:0;padding:48px 20px;color:#1f2328\"><div style=\"max-width:460px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-top:5px solid ${color}\"><h1 style=\"font-size:20px;margin:0 0 8px\">${title}</h1><div style=\"color:#57606a\">${body}</div></div></body></html>`;\n// Success = Lofty echoed a leadId (LeadIdResponse) and returned no error code/message.\nconst ok = !!resp && !resp.code && !resp.message && (resp.leadId || Array.isArray(resp));\nconst html = ok\n  ? page('Claimed \\u2713', 'Lead ' + leadId + ' is assigned to you. Open Lofty to start working it.', '#1a7f37')\n  : page('Claim failed', 'Lofty did not accept the assignment (' + (resp.code || resp.message || 'unknown error') + '). The lead was not claimed \\u2014 try again, or claim it in Lofty.', '#9a6700');\nreturn [{ json: { html, ok, leadId, lofty: resp } }];"
+      },
+      "id": "b2000000-0000-4a00-9000-000000000006",
+      "name": "Build Result HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "b2000000-0000-4a00-9000-000000000007",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        980,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Claim Webhook": {
+      "main": [
+        [
+          {
+            "node": "Claim Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim Config": {
+      "main": [
+        [
+          {
+            "node": "Verify & Authorize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify & Authorize": {
+      "main": [
+        [
+          {
+            "node": "IF Token OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Token OK": {
+      "main": [
+        [
+          {
+            "node": "Lofty: Assign Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lofty: Assign Lead": {
+      "main": [
+        [
+          {
+            "node": "Build Result HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Result HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
