@@ -1,14 +1,19 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { Resend } from "resend";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabase } from "@/lib/supabase-server";
 import { getAgentProfile, DEFAULT_AGENT_ID } from "@/lib/agent-profile";
 import { applyComplianceFooter } from "@/lib/email-compliance";
+import { escapeHtml } from "@/lib/utils";
 
 type RouteParams = { params: Promise<{ id: string }> };
 
 const RATE_LIMIT_MS = 80; // Resend allows ~100 req/s; stay well below
 
-export async function POST(_req: Request, { params }: RouteParams) {
+export async function POST(req: NextRequest, { params }: RouteParams) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { id } = await params;
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -47,7 +52,8 @@ export async function POST(_req: Request, { params }: RouteParams) {
     .eq("postal_code", report.zip)
     .is("unsubscribed_at", null);
   if (subErr) {
-    return NextResponse.json({ error: subErr.message }, { status: 500 });
+    console.error("[admin/reports/send] subscriber fetch failed:", subErr);
+    return NextResponse.json({ error: "Request failed" }, { status: 500 });
   }
   const recipients = (subscribers ?? []).filter((s) => !!s.email);
   if (recipients.length === 0) {
@@ -68,7 +74,10 @@ export async function POST(_req: Request, { params }: RouteParams) {
     const firstName = (sub.name ?? "").split(" ")[0] || "there";
     const subject = report.subject;
     const personalizedText = report.body_text.replace(/\{\{first_name\}\}/g, firstName);
-    const personalizedHtml = report.body_html.replace(/\{\{first_name\}\}/g, firstName);
+    const personalizedHtml = report.body_html.replace(
+      /\{\{first_name\}\}/g,
+      escapeHtml(firstName),
+    );
     const { text, html, headers } = applyComplianceFooter({
       text: personalizedText,
       html: personalizedHtml,

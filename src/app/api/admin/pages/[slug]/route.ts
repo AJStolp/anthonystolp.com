@@ -1,9 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
 import { NichePageUpdate, deletePage, updatePage } from "@/lib/niche-pages";
 
 type RouteParams = { params: Promise<{ slug: string }> };
 
-export async function PATCH(req: Request, { params }: RouteParams) {
+export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { slug } = await params;
 
   let body: unknown;
@@ -29,22 +33,21 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     const page = await updatePage(slug, parsed.data);
     return NextResponse.json({ page });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
-      { status: 500 },
-    );
+    console.error("[admin/pages] update failed:", err);
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 }
 
-export async function DELETE(_req: Request, { params }: RouteParams) {
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { slug } = await params;
   try {
     await deletePage(slug);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
-      { status: 500 },
-    );
+    console.error("[admin/pages] delete failed:", err);
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
 }

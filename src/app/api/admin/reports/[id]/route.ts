@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabase } from "@/lib/supabase-server";
 
 type RouteParams = { params: Promise<{ id: string }> };
@@ -13,7 +14,10 @@ const PatchSchema = z
   })
   .strict();
 
-export async function GET(_req: Request, { params }: RouteParams) {
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { id } = await params;
   const supabase = getSupabase();
   const { data, error } = await supabase
@@ -27,7 +31,10 @@ export async function GET(_req: Request, { params }: RouteParams) {
   return NextResponse.json({ report: data });
 }
 
-export async function PATCH(req: Request, { params }: RouteParams) {
+export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { id } = await params;
   let body: unknown;
   try {
@@ -50,12 +57,16 @@ export async function PATCH(req: Request, { params }: RouteParams) {
     .select("*")
     .single();
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[admin/reports] update failed:", error);
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
   return NextResponse.json({ report: data });
 }
 
-export async function DELETE(_req: Request, { params }: RouteParams) {
+export async function DELETE(req: NextRequest, { params }: RouteParams) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { id } = await params;
   const supabase = getSupabase();
   const { error } = await supabase
@@ -63,7 +74,8 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
     .delete()
     .eq("id", id);
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[admin/reports] delete failed:", error);
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

@@ -1,23 +1,28 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { requireAdmin } from "@/lib/admin-auth";
 import {
   NichePageInput,
   createPage,
   listAll,
 } from "@/lib/niche-pages";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   try {
     const pages = await listAll();
     return NextResponse.json({ pages });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
-      { status: 500 },
-    );
+    console.error("[admin/pages] list failed:", err);
+    return NextResponse.json({ error: "Request failed" }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   let body: unknown;
   try {
     body = await req.json();
@@ -37,9 +42,7 @@ export async function POST(req: Request) {
     const page = await createPage(parsed.data);
     return NextResponse.json({ page });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Unknown error" },
-      { status: 500 },
-    );
+    console.error("[admin/pages] create failed:", err);
+    return NextResponse.json({ error: "Request failed" }, { status: 500 });
   }
 }

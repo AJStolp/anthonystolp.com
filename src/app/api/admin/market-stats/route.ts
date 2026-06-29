@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
+import { requireAdmin } from "@/lib/admin-auth";
 import {
   MarketStatInput,
   upsertMarketStats,
@@ -19,7 +20,10 @@ const RedfinBodySchema = z.object({
 
 const BodySchema = z.union([ManualBodySchema, RedfinBodySchema]);
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   let body: unknown;
   try {
     body = await req.json();
@@ -70,9 +74,7 @@ export async function POST(req: Request) {
     const result = await upsertMarketStats(rows, "redfin", agent.agentId);
     return NextResponse.json({ result });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Redfin fetch failed" },
-      { status: 502 },
-    );
+    console.error("[admin/market-stats] Redfin fetch failed:", err);
+    return NextResponse.json({ error: "Redfin fetch failed" }, { status: 502 });
   }
 }

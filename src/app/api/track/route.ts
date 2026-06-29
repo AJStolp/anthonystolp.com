@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { checkOrigin } from "@/lib/bot-defense";
+import { checkOrigin, checkRateLimit, getClientIp } from "@/lib/bot-defense";
 import { getSupabase } from "@/lib/supabase-server";
 
 const schema = z.object({
-  visitorId: z.string().min(8),
+  visitorId: z.string().min(8).max(128),
   event: z.string().min(1).max(64),
-  properties: z.record(z.string(), z.unknown()).optional(),
-  path: z.string().optional(),
-  referrer: z.string().optional(),
+  properties: z
+    .record(z.string(), z.unknown())
+    .refine((p) => JSON.stringify(p).length <= 4000, "properties too large")
+    .optional(),
+  path: z.string().max(2048).optional(),
+  referrer: z.string().max(2048).optional(),
 });
 
 export async function POST(req: Request) {
@@ -17,6 +20,17 @@ export async function POST(req: Request) {
   const originFailure = checkOrigin(req);
   if (originFailure) {
     return NextResponse.json(originFailure.body, { status: originFailure.status });
+  }
+
+  // Anti-flood (not anti-usage): generous per-IP cap for legit page-view volume.
+  const clientIp = getClientIp(req) ?? "anonymous";
+  const rateLimit = await checkRateLimit({
+    key: `track:${clientIp}`,
+    max: 60,
+    windowMs: 60_000,
+  });
+  if (rateLimit) {
+    return NextResponse.json(rateLimit.body, { status: rateLimit.status });
   }
 
   let body: unknown;
