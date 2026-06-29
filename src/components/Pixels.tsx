@@ -9,6 +9,7 @@ export function Pixels() {
   const ga4Id = process.env.NEXT_PUBLIC_GA4_ID;
   const gadsId = process.env.NEXT_PUBLIC_GADS_ID;
   const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const ahrefsKey = process.env.NEXT_PUBLIC_AHREFS_KEY;
   // Load the shared gtag.js once if either Google tag is configured.
   const gtagLoaderId = ga4Id || gadsId;
 
@@ -41,6 +42,14 @@ export function Pixels() {
             fbq('track','PageView');
           `}
         </Script>
+      ) : null}
+      {ahrefsKey ? (
+        <Script
+          id="ahrefs-analytics"
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key={ahrefsKey}
+          strategy="afterInteractive"
+        />
       ) : null}
     </>
   );
