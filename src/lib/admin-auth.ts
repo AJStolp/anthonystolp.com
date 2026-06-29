@@ -4,8 +4,10 @@
 // Cookie format: `<base64url-payload>.<base64url-signature>`
 // Payload: `{ exp: number /* unix seconds */ }`
 
+import { NextResponse, type NextRequest } from "next/server";
+
 export const ADMIN_COOKIE = "admin_session";
-const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 type Payload = { exp: number };
 
@@ -108,6 +110,20 @@ export async function verifySessionCookie(
   } catch {
     return false;
   }
+}
+
+// Defense-in-depth: a second, independent auth check inside each admin route
+// handler (the proxy/middleware is the first gate). Reads the session cookie
+// the same way proxy.ts does and returns a 401 when missing/invalid.
+export async function requireAdmin(
+  req: NextRequest,
+): Promise<NextResponse | null> {
+  const cookie = req.cookies.get(ADMIN_COOKIE)?.value;
+  const ok = await verifySessionCookie(cookie);
+  if (!ok) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
 }
 
 export const SESSION_COOKIE_OPTS = {

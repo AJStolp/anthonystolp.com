@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabase } from "@/lib/supabase-server";
 
 const STATUSES = ["new", "contacted", "working", "won", "lost"] as const;
@@ -12,9 +13,12 @@ const patchSchema = z.object({
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
 
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { id } = await params;
 
   let body: unknown;
@@ -61,7 +65,8 @@ export async function PATCH(
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[admin/leads] update failed:", error);
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 
   if (
@@ -95,14 +100,18 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const unauth = await requireAdmin(req);
+  if (unauth) return unauth;
+
   const { id } = await params;
   const supabase = getSupabase();
   const { error } = await supabase.from("funnel_leads").delete().eq("id", id);
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[admin/leads] delete failed:", error);
+    return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }

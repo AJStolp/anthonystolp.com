@@ -6,6 +6,7 @@ import {
   createSessionCookie,
   SESSION_COOKIE_OPTS,
 } from "@/lib/admin-auth";
+import { checkRateLimit, getClientIp } from "@/lib/bot-defense";
 
 const schema = z.object({
   password: z.string().min(1),
@@ -22,6 +23,18 @@ export async function POST(req: Request) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Password required" }, { status: 400 });
+  }
+
+  // Throttle brute-force attempts per IP *before* the password check, so
+  // correctness doesn't matter — 5 attempts per 15 minutes.
+  const ip = getClientIp(req) ?? "anonymous";
+  const rateLimit = await checkRateLimit({
+    key: `admin-login:${ip}`,
+    max: 5,
+    windowMs: 900_000,
+  });
+  if (rateLimit) {
+    return NextResponse.json(rateLimit.body, { status: rateLimit.status });
   }
 
   if (!checkPassword(parsed.data.password)) {

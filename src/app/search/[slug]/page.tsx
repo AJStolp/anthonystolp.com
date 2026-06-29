@@ -245,7 +245,9 @@ export default async function NichePage({ params }: { params: RouteParams }) {
     <main className="min-h-dvh bg-cream text-ink">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
       />
       <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 md:py-8">
         <Link

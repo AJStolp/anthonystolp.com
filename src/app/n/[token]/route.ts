@@ -17,7 +17,14 @@ export async function GET(
 
   // Build redirect target. Unknown/expired tokens silently land on home —
   // we don't leak which slugs are valid, but we don't dead-end a real visitor.
-  const targetUrl = new URL(row?.target_url ?? FALLBACK_PATH, req.url);
+  let targetUrl = new URL(row?.target_url ?? FALLBACK_PATH, req.url);
+
+  // Open-redirect guard: never bounce a visitor off our own origin. Relative
+  // target_urls (the common case, e.g. "/search/…") resolve same-origin and
+  // pass; an admin-stored absolute off-site URL falls back to home instead.
+  if (targetUrl.origin !== new URL(req.url).origin) {
+    targetUrl = new URL(FALLBACK_PATH, req.url);
+  }
 
   if (!row) {
     return NextResponse.redirect(targetUrl, { status: 302 });

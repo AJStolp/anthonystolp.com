@@ -48,6 +48,20 @@ export type LinkTokenRow = {
 export async function createToken(
   input: CreateTokenInput,
 ): Promise<{ token: string; fullUrl: string }> {
+  // Defense-in-depth: only mint tokens for relative or same-origin targets so a
+  // bad target_url can never become an off-site open redirect at /n/[token].
+  let resolved: URL;
+  try {
+    resolved = new URL(input.targetUrl, SITE_URL);
+  } catch {
+    throw new Error(`createToken: invalid target_url "${input.targetUrl}"`);
+  }
+  if (resolved.origin !== new URL(SITE_URL).origin) {
+    throw new Error(
+      `createToken: target_url must be relative or same-origin, got "${input.targetUrl}"`,
+    );
+  }
+
   const supabase = getSupabase();
   for (let attempt = 0; attempt < MAX_INSERT_RETRIES; attempt++) {
     const token = generateSlug(10);

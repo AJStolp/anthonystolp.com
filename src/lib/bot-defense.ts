@@ -9,6 +9,8 @@
 // trap. Origin and rate-limit rejections return 4xx since legitimate clients
 // won't hit them.
 
+import { getSupabase } from "@/lib/supabase-server";
+
 const ALLOWED_ORIGINS = new Set([
   "https://anthonystolp.com",
   "https://www.anthonystolp.com",
@@ -108,7 +110,45 @@ export type RateLimitOptions = {
   key: string; // usually `${ip}:${endpoint}`
 };
 
-export function checkRateLimit(opts: RateLimitOptions): DefenseFailure | null {
+const RATE_LIMIT_FAILURE: DefenseFailure = {
+  status: 429,
+  body: { error: "Too many requests. Please try again in a minute." },
+  silent: false,
+};
+
+/**
+ * Cross-instance rate limit backed by the Supabase increment_rate_limit RPC
+ * (fixed window, shared across serverless instances). If Supabase is
+ * unconfigured or the RPC errors, fall back to the in-memory sliding window so
+ * local dev and DB-degraded states still enforce a limit.
+ */
+export async function checkRateLimit(
+  opts: RateLimitOptions,
+): Promise<DefenseFailure | null> {
+  try {
+    const supabase = getSupabase();
+    const windowSeconds = Math.max(1, Math.ceil(opts.windowMs / 1000));
+    const { data, error } = await supabase.rpc("increment_rate_limit", {
+      p_key: opts.key,
+      p_window_seconds: windowSeconds,
+      p_max: opts.max,
+    });
+    if (error) throw error;
+    if (data === false) {
+      console.warn(`[bot-defense] rate limit hit: ${opts.key}`);
+      return RATE_LIMIT_FAILURE;
+    }
+    return null;
+  } catch (err) {
+    console.warn(
+      "[bot-defense] rate-limit RPC unavailable, using in-memory fallback:",
+      err,
+    );
+    return checkRateLimitInMemory(opts);
+  }
+}
+
+function checkRateLimitInMemory(opts: RateLimitOptions): DefenseFailure | null {
   const now = Date.now();
   if (now - lastSweep > SWEEP_INTERVAL_MS) {
     sweep(now);
@@ -144,11 +184,11 @@ function sweep(now: number) {
  * Convenience: run all three checks for a lead-submission endpoint and return
  * the first failure, or null if all pass.
  */
-export function runLeadDefenses(
+export async function runLeadDefenses(
   req: Request,
   body: Record<string, unknown>,
   opts?: { rateLimit?: { max: number; windowMs: number } },
-): DefenseFailure | null {
+): Promise<DefenseFailure | null> {
   const origin = checkOrigin(req);
   if (origin) return origin;
 
@@ -157,7 +197,7 @@ export function runLeadDefenses(
 
   const ip = getClientIp(req) ?? "anonymous";
   const rl = opts?.rateLimit ?? { max: 10, windowMs: 60_000 };
-  const rateLimit = checkRateLimit({
+  const rateLimit = await checkRateLimit({
     key: `lead:${ip}`,
     max: rl.max,
     windowMs: rl.windowMs,

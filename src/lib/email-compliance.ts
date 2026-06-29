@@ -20,8 +20,8 @@ function signingSecret(): string {
   const secret = process.env.UNSUBSCRIBE_SECRET || process.env.CRON_SECRET;
   if (secret) return secret;
   if (process.env.NODE_ENV === "production") {
-    console.warn(
-      "[email-compliance] No UNSUBSCRIBE_SECRET or CRON_SECRET set — using insecure default. Unsubscribe links are forgeable.",
+    throw new Error(
+      "[email-compliance] No UNSUBSCRIBE_SECRET or CRON_SECRET set in production. Refusing to sign unsubscribe links with an insecure default.",
     );
   }
   return "dev-only-unsubscribe-secret";

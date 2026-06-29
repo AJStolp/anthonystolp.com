@@ -5,6 +5,7 @@ import { generateDraft, type LeadDraftInput } from "@/lib/ai-draft";
 import { runLeadDefenses } from "@/lib/bot-defense";
 import { getSupabase } from "@/lib/supabase-server";
 import { resolveToken, type LinkTokenContext } from "@/lib/link-tokens";
+import { escapeHtml } from "@/lib/utils";
 
 // ── Validation ─────────────────────────────────────────────────────────────
 //
@@ -32,29 +33,29 @@ const schema = z.object({
   funnelStep: z.enum(["address-only", "completed"]).default("completed"),
 
   // Address (optional — only funnels that ask for one populate these)
-  address: z.string().optional(),
-  addressLine1: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  postalCode: z.string().optional(),
+  address: z.string().max(200).optional(),
+  addressLine1: z.string().max(200).optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(100).optional(),
+  postalCode: z.string().max(100).optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
-  mapboxId: z.string().optional(),
+  mapboxId: z.string().max(128).optional(),
 
   // Contact (optional for partial captures)
-  name: z.string().optional(),
+  name: z.string().max(120).optional(),
   email: z.string().email("Valid email required").optional(),
-  phone: z.string().optional(),
+  phone: z.string().max(32).optional(),
 
   // Intent signals
   intent: z.enum(["buy", "sell", "both", "exploring"]).optional(),
   timeframe: z
     .enum(["1-3mo", "3-6mo", "6-12mo", "curious", "refinancing"])
     .optional(),
-  message: z.string().optional(),
+  message: z.string().max(4000).optional(),
 
   // Cross-domain visitor + persisted estimate (from bndryiq iframe).
-  visitorId: z.string().optional(),
+  visitorId: z.string().max(128).optional(),
   bndryiqEstimate: z
     .object({
       low: z.number().optional(),
@@ -73,8 +74,8 @@ const schema = z.object({
 
   // Attribution / context
   utm: utmSchema,
-  referrer: z.string().optional(),
-  landingPage: z.string().optional(),
+  referrer: z.string().max(2048).optional(),
+  landingPage: z.string().max(2048).optional(),
 });
 
 type LeadInput = z.infer<typeof schema>;
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
 
   // Bot defense: origin check, honeypot, per-IP rate limit. Honeypot trips
   // return a silent 200 so attackers don't learn the trap exists.
-  const defense = runLeadDefenses(req, body as Record<string, unknown>);
+  const defense = await runLeadDefenses(req, body as Record<string, unknown>);
   if (defense) {
     return NextResponse.json(defense.body, { status: defense.status });
   }
@@ -272,10 +273,20 @@ async function persistLead(
   };
 
   if (lead.leadId) {
+    // Bind the update to the visitor that owns the row. Without a visitorId we
+    // can't prove ownership, so refuse rather than allow an unbounded update by
+    // a guessable UUID. Legit two-step funnels (home-value) always carry it.
+    if (!lead.visitorId) {
+      console.warn(
+        "[lead] update requested without visitorId; refusing unbounded update by id",
+      );
+      return null;
+    }
     const { data, error } = await supabase
       .from("funnel_leads")
       .update(row)
       .eq("id", lead.leadId)
+      .eq("visitor_id", lead.visitorId)
       .select("id")
       .single();
     if (error) {
@@ -585,15 +596,6 @@ async function fireN8nWebhook(
 }
 
 // ── Util ───────────────────────────────────────────────────────────────────
-
-function escapeHtml(s: string) {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 function readCookie(req: Request, name: string): string | undefined {
   const header = req.headers.get("cookie") ?? "";
