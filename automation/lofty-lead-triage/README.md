@@ -21,7 +21,7 @@ Schedule (every 15 min, America/Chicago)
   -> Read Watermark (passthrough of config; dedup is a seen-id set, see below)
   -> Lofty GET /v1.0/leads?stage=New Leads&sort=CreateTime&desc=true   (pond)
   -> Lofty GET /v1.0/leads?assignedUserId=<you>&sort=CreateTime&desc=true (pipeline)
-  -> Filter & Shape (drop already-seen / non-WI / no-contact / claimed-by-others;
+  -> Filter & Shape (drop already-seen / non-WI / no-contact / unreachable / claimed-by-others;
                      build the Anthropic request)        --> empty? stops here, no email
   -> Anthropic POST /v1/messages (score + triage, strict JSON)
   -> Parse & Sort
@@ -41,6 +41,10 @@ Schedule (every 15 min, America/Chicago)
   something to claim.)
 - **Server-side filtering:** the pond is queried with `stage=New Leads` so the dead bulk
   (`Do Not Contact`, `Closed`, `Archived` — most of the 5,408-lead pond) never comes back.
+  Because the stage filter already excludes the graveyard, there is **no date floor** — the
+  seen-id set above is the only dedup, so every workable lead is surfaced once, no matter how
+  far back in the pond it sits. (A `reachable()` guard also drops any lead flagged
+  `Do Not Contact` / fully un-contactable that slips into the pipeline query.)
 - **Region pre-filter:** the pond is fed statewide bulk imports (a single 100-lead dump can
   span Eau Claire to Green Bay). Only WI leads in your drivable zip prefixes reach Claude,
   so you don't pay to C-tier a lead 3 hours away. Observed: a 100-lead dump → 84 in-WI → 32
@@ -82,7 +86,6 @@ credential (the import ships placeholder credential IDs).
 | `nearZipPrefixes` | `530,531,532,534` | Drivable-region pre-filter: only WI leads whose zip starts with one of these reach Claude. `530`/`531`/`532`/`534` = SE Wisconsin (Ozaukee, Milwaukee, Washington, Waukesha, Racine, Kenosha, Walworth). Far-WI dumps (Madison `537`, Green Bay `541`, Wausau `544`, Eau Claire `547`…) are dropped. Leave blank to disable and let Claude rank everything. |
 | `maxPerRun` | `50` | Hard cap on pond leads per run (newest kept) so a bulk import can't truncate the model output. Logged when hit. |
 | `model` | `claude-sonnet-4-6` | Change here to swap models — not hardcoded in the request body. |
-| `firstRunSinceDate` | `2026-06-25T00:00:00GMT` | "Since" floor — only leads created after this are ever considered (keeps old graveyard imports out). Dedup of already-emailed leads is handled separately by the seen-id set. |
 | `sheetId` | `PUT_YOUR_GOOGLE_SHEET_ID_HERE` | The spreadsheet's ID (from its URL). **Required.** |
 | `sheetTab` | `Triage` | Tab name. Create the tab with the header row below. |
 | `digestTo` | `anthony.stolp@gmail.com` | Where the digest is emailed. |
@@ -120,8 +123,9 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
    Expect HTTP 200, a pond array, and a `leads` array with `pondId` populated. A
    `{"code":200100,...}` body = the key is permission-gated on your seat.
 
-2. **Manual run, write-back OFF** (it ships OFF): set `firstRunSinceDate` ~30 days back,
-   execute the workflow once. Confirm: only in-WI New-Leads appear, far-WI leads (e.g.
+2. **Manual run, write-back OFF** (it ships OFF): execute the workflow once. The first run
+   on a fresh seen-set surfaces the whole workable backlog (capped at `maxPerRun`); confirm:
+   only in-WI New-Leads appear, far-WI leads (e.g.
    Elkhorn) rank low, pond vs pipeline buckets are right, the Sheet gets rows, and the
    digest email reads cleanly.
 
@@ -141,8 +145,9 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
   `pondOwnerId`, `agentIds`). Used for the smoke test; your pond is `1004768` "WI Leads".
 - `GET /v1.0/leads` — params used: `stage`, `assignedUserId`, `sort=CreateTime`,
   `desc=true`, `limit=100`. Response: `{ _metadata, leads[] }`. **No date filter and no
-  pond filter exist** — `sort=CreateTime desc` + the since-floor replace them; the pond is
-  reachable because pond leads carry `pondId`.
+  pond filter exist** — `stage=New Leads` + the seen-id dedup replace them; the pond is
+  reachable because pond leads carry `pondId`. Pagination is `&offset=<n>` (verified); the
+  workflow reads only the newest 100 per run, which is ample for steady-state inflow.
 - `POST /v1.0/notes` — body `{ leadId, content, isPin }` (all required), returns
   `{ noteId }`. Used only by the optional, disabled write-back node.
 - `POST /v1.0/leads/{leadId}/assignment` — claim/assign a lead. Body is an **array**:
