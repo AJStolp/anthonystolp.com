@@ -16,6 +16,14 @@ export const NicheFilters = z
   .partial();
 export type NicheFilters = z.infer<typeof NicheFilters>;
 
+// Page-specific FAQ. When present on a row, these override the generated
+// buy/sell FAQ templates (see buildFaqs in the page template).
+export const NicheFaq = z.object({
+  q: z.string().min(1).max(300),
+  a: z.string().min(1).max(2000),
+});
+export type NicheFaq = z.infer<typeof NicheFaq>;
+
 // Slug must be URL-safe and stable; lowercase letters, digits, hyphens.
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -31,6 +39,8 @@ export const NichePageInput = z.object({
   geo: z.string().max(80).nullable().optional(),
   filters: NicheFilters.nullable().optional(),
   hero_copy: z.string().max(2000).nullable().optional(),
+  body: z.string().max(20000).nullable().optional(),
+  faqs: z.array(NicheFaq).max(12).nullable().optional(),
   og_image: z.string().url().nullable().optional(),
   meta_desc: z.string().max(300).nullable().optional(),
   active: z.boolean().optional(),
@@ -48,6 +58,8 @@ export type NichePageRow = {
   geo: string | null;
   filters: NicheFilters | null;
   hero_copy: string | null;
+  body: string | null;
+  faqs: NicheFaq[] | null;
   og_image: string | null;
   meta_desc: string | null;
   active: boolean;
@@ -56,7 +68,7 @@ export type NichePageRow = {
   updated_at: string;
 };
 
-const SELECT = "slug,title,h1,intent,geo,filters,hero_copy,og_image,meta_desc,active,agent_id,created_at,updated_at";
+const SELECT = "slug,title,h1,intent,geo,filters,hero_copy,body,faqs,og_image,meta_desc,active,agent_id,created_at,updated_at";
 
 // Defensive helper: at build time on Vercel, Supabase env vars may be missing
 // (e.g. preview deploys without DB access). Build-time SSG pages call these
@@ -145,6 +157,8 @@ export async function createPage(input: NichePageInput): Promise<NichePageRow> {
       geo: input.geo ?? null,
       filters: input.filters ?? null,
       hero_copy: input.hero_copy ?? null,
+      body: input.body ?? null,
+      faqs: input.faqs ?? null,
       og_image: input.og_image ?? null,
       meta_desc: input.meta_desc ?? null,
       active: input.active ?? true,
