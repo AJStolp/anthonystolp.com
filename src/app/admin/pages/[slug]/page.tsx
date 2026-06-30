@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminNavLinks } from "@/components/admin/AdminNavLinks";
-import { NichePageForm } from "@/components/admin/NichePageForm";
+import { NichePageForm, faqsToText } from "@/components/admin/NichePageForm";
 import { getBySlug } from "@/lib/niche-pages";
 
 export const metadata: Metadata = {
@@ -69,6 +69,8 @@ export default async function EditNichePage({
             intent: page.intent,
             geo: page.geo ?? "",
             hero_copy: page.hero_copy ?? "",
+            body: page.body ?? "",
+            faqs: faqsToText(page.faqs),
             meta_desc: page.meta_desc ?? "",
             og_image: page.og_image ?? "",
             filters_min_price: filters.minPrice?.toString() ?? "",

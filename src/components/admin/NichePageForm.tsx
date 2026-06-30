@@ -10,6 +10,8 @@ type FormState = {
   intent: "buy" | "sell";
   geo: string;
   hero_copy: string;
+  body: string;
+  faqs: string;
   meta_desc: string;
   og_image: string;
   filters_min_price: string;
@@ -17,6 +19,27 @@ type FormState = {
   filters_beds: string;
   active: boolean;
 };
+
+// FAQs are edited as plain text (one "Q:" line then one "A:" line per item,
+// blank line between) and stored as a structured array. Keeps the form simple.
+function parseFaqsText(text: string): { q: string; a: string }[] {
+  const out: { q: string; a: string }[] = [];
+  for (const line of text.split("\n")) {
+    const t = line.trim();
+    if (/^q:/i.test(t)) out.push({ q: t.slice(2).trim(), a: "" });
+    else if (/^a:/i.test(t) && out.length)
+      out[out.length - 1].a = t.slice(2).trim();
+  }
+  return out.filter((f) => f.q && f.a);
+}
+
+// Serialize a stored FAQ array back into the editable text format.
+export function faqsToText(
+  faqs: { q: string; a: string }[] | null | undefined,
+): string {
+  if (!faqs || faqs.length === 0) return "";
+  return faqs.map((f) => `Q: ${f.q}\nA: ${f.a}`).join("\n\n");
+}
 
 type Props = {
   mode: "create" | "edit";
@@ -31,6 +54,8 @@ const EMPTY: FormState = {
   intent: "buy",
   geo: "",
   hero_copy: "",
+  body: "",
+  faqs: "",
   meta_desc: "",
   og_image: "",
   filters_min_price: "",
@@ -64,6 +89,11 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
       intent: state.intent,
       geo: state.geo.trim() || null,
       hero_copy: state.hero_copy.trim() || null,
+      body: state.body.trim() || null,
+      faqs: ((): { q: string; a: string }[] | null => {
+        const parsed = parseFaqsText(state.faqs);
+        return parsed.length > 0 ? parsed : null;
+      })(),
       meta_desc: state.meta_desc.trim() || null,
       og_image: state.og_image.trim() || null,
       filters: Object.keys(filters).length > 0 ? filters : null,
@@ -193,6 +223,27 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
           onChange={(e) => update("hero_copy", e.target.value)}
           rows={4}
           maxLength={2000}
+          className="field"
+        />
+      </Row>
+
+      <Row label="Body — guide content (optional). '## Heading' starts a section; blank line between paragraphs.">
+        <textarea
+          value={state.body}
+          onChange={(e) => update("body", e.target.value)}
+          rows={12}
+          maxLength={20000}
+          placeholder={"## Section heading\n\nFirst paragraph.\n\nSecond paragraph."}
+          className="field"
+        />
+      </Row>
+
+      <Row label="FAQs (optional). One 'Q:' line then one 'A:' line per item; blank line between.">
+        <textarea
+          value={state.faqs}
+          onChange={(e) => update("faqs", e.target.value)}
+          rows={8}
+          placeholder={"Q: Do I have to go through probate?\nA: It depends on how title was held...\n\nQ: ...\nA: ..."}
           className="field"
         />
       </Row>

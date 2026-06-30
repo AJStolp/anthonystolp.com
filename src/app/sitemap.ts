@@ -4,15 +4,21 @@ import { HOME_VALUE_ENABLED } from "@/lib/feature-flags";
 
 const SITE_URL = "https://anthonystolp.com";
 
+// Re-generate hourly so pages added via the admin UI surface in the sitemap
+// without waiting for a redeploy (sitemap routes are statically cached otherwise).
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const niche = await listAll().catch(() => []);
   const nicheEntries: MetadataRoute.Sitemap = niche
     .filter((p) => p.active)
-    // When the home-value funnel is hidden, drop sell-intent niche pages too —
-    // they all CTA into the contact form, which is already in the sitemap via /.
-    .filter((p) => HOME_VALUE_ENABLED || p.intent !== "sell")
+    // When the home-value funnel is hidden, drop sell-intent *listing* pages —
+    // they CTA into the contact form, already in the sitemap via /. Guide pages
+    // (those with body content, e.g. life-event seller guides) are standalone
+    // SEO content and stay in the sitemap regardless of the funnel flag.
+    .filter((p) => HOME_VALUE_ENABLED || p.intent !== "sell" || Boolean(p.body))
     .map((p) => ({
       url: `${SITE_URL}/search/${p.slug}`,
       lastModified: new Date(p.updated_at),

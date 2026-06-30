@@ -96,6 +96,33 @@ function buildFaqs(
   ];
 }
 
+// Markdown-lite body parser: a line starting "## " opens a new section heading;
+// blank lines separate paragraphs; consecutive non-blank lines join into one.
+function parseBody(body: string): { h2?: string; paras: string[] }[] {
+  const sections: { h2?: string; paras: string[] }[] = [];
+  let cur: { h2?: string; paras: string[] } = { paras: [] };
+  let buf: string[] = [];
+  const flushPara = () => {
+    const t = buf.join(" ").trim();
+    if (t) cur.paras.push(t);
+    buf = [];
+  };
+  for (const line of body.replace(/\r\n/g, "\n").split("\n")) {
+    if (line.startsWith("## ")) {
+      flushPara();
+      if (cur.h2 || cur.paras.length) sections.push(cur);
+      cur = { h2: line.slice(3).trim(), paras: [] };
+    } else if (line.trim() === "") {
+      flushPara();
+    } else {
+      buf.push(line.trim());
+    }
+  }
+  flushPara();
+  if (cur.h2 || cur.paras.length) sections.push(cur);
+  return sections;
+}
+
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="border border-ink/10 p-5">
@@ -179,7 +206,12 @@ export default async function NichePage({ params }: { params: RouteParams }) {
 
   const geoShort = shortGeo(page.geo);
   const eyebrow = page.geo ?? (page.intent === "sell" ? "Sellers" : "Buyers");
-  const faqs = buildFaqs(page.intent, geoShort);
+  // Page-specific FAQs (guide pages) override the generated buy/sell templates.
+  const faqs =
+    page.faqs && page.faqs.length > 0
+      ? page.faqs
+      : buildFaqs(page.intent, geoShort);
+  const isGuide = Boolean(page.body);
 
   const [snap, directory] = await Promise.all([
     getGeoSnapshot(page.geo),
@@ -195,51 +227,67 @@ export default async function NichePage({ params }: { params: RouteParams }) {
     .filter((d) => d.intent === page.intent && d.geo !== page.geo)
     .slice(0, 6);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: page.h1,
-            item: `${SITE_URL}/search/${page.slug}`,
-          },
-        ],
-      },
-      {
-        "@type": "RealEstateAgent",
-        name: "Anthony Stolp",
-        url: SITE_URL,
-        image: `${SITE_URL}/opengraph-image`,
-        telephone: "+1-262-885-3310",
-        areaServed: page.geo ?? "Southeast Wisconsin",
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: "W193N10980 Kleinmann Dr",
-          addressLocality: "Germantown",
-          addressRegion: "WI",
-          postalCode: "53022",
-          addressCountry: "US",
+  const graph: Record<string, unknown>[] = [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: page.h1,
+          item: `${SITE_URL}/search/${page.slug}`,
         },
-        parentOrganization: {
-          "@type": "RealEstateOrganization",
-          name: "ExSell Experts at Epique Realty",
-        },
+      ],
+    },
+    {
+      "@type": "RealEstateAgent",
+      name: "Anthony Stolp",
+      url: SITE_URL,
+      image: `${SITE_URL}/opengraph-image`,
+      telephone: "+1-262-885-3310",
+      areaServed: page.geo ?? "Southeast Wisconsin",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "W193N10980 Kleinmann Dr",
+        addressLocality: "Germantown",
+        addressRegion: "WI",
+        postalCode: "53022",
+        addressCountry: "US",
       },
-      {
-        "@type": "FAQPage",
-        mainEntity: faqs.map((f) => ({
-          "@type": "Question",
-          name: f.q,
-          acceptedAnswer: { "@type": "Answer", text: f.a },
-        })),
+      parentOrganization: {
+        "@type": "RealEstateOrganization",
+        name: "ExSell Experts at Epique Realty",
       },
-    ],
-  };
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+  ];
+
+  // Guide pages (with educational body content) are Articles too.
+  if (isGuide) {
+    graph.push({
+      "@type": "Article",
+      headline: page.h1,
+      description: page.meta_desc ?? undefined,
+      author: { "@type": "Person", name: "Anthony Stolp", url: SITE_URL },
+      publisher: {
+        "@type": "RealEstateOrganization",
+        name: "ExSell Experts at Epique Realty",
+      },
+      datePublished: page.created_at,
+      dateModified: page.updated_at,
+      mainEntityOfPage: `${SITE_URL}/search/${page.slug}`,
+    });
+  }
+
+  const jsonLd = { "@context": "https://schema.org", "@graph": graph };
 
   return (
     <main className="min-h-dvh bg-cream text-ink">
@@ -280,12 +328,35 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           <NicheCTA intent={page.intent} slug={page.slug} />
         </div>
 
+        {/* Long-form guide content */}
+        {page.body ? (
+          <section className="mt-16 w-full max-w-2xl">
+            {parseBody(page.body).map((b, i) => (
+              <div key={i} className={i > 0 ? "mt-10" : ""}>
+                {b.h2 ? (
+                  <h2 className="font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
+                    {b.h2}
+                  </h2>
+                ) : null}
+                {b.paras.map((p, j) => (
+                  <p
+                    key={j}
+                    className="mt-4 text-[15px] leading-[1.7] text-ink-soft/80"
+                  >
+                    {p}
+                  </p>
+                ))}
+              </div>
+            ))}
+          </section>
+        ) : null}
+
         {snap ? <MarketSnapshot snap={snap} geoShort={geoShort} /> : null}
 
         {/* FAQ */}
         <section className="mt-16 w-full">
           <h2 className="font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
-            {geoShort} questions, answered
+            {isGuide ? "Common questions" : `${geoShort} questions, answered`}
           </h2>
           <dl className="mt-6 divide-y divide-ink/10 border-t border-ink/10">
             {faqs.map((f) => (
