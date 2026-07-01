@@ -370,6 +370,19 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           </dl>
         </section>
 
+        {/* Legal/tax disclaimer — guide pages only */}
+        {isGuide ? (
+          <section className="mt-14 w-full max-w-2xl">
+            <p className="border-l-2 border-ink/15 pl-4 text-[13px] leading-[1.7] text-ink-soft/60">
+              This page is general information, not legal or tax advice. Every
+              situation is different, so please talk to a qualified attorney or
+              CPA about yours. Anthony and his team at ExSell Experts, Epique
+              Realty handle the real estate side and help keep the process
+              organized.
+            </p>
+          </section>
+        ) : null}
+
         {/* Internal links */}
         {crossLink || nearby.length > 0 ? (
           <section className="mt-16 w-full">
