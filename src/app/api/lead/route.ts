@@ -5,6 +5,7 @@ import { generateDraft, type LeadDraftInput } from "@/lib/ai-draft";
 import { runLeadDefenses } from "@/lib/bot-defense";
 import { getSupabase } from "@/lib/supabase-server";
 import { resolveToken, type LinkTokenContext } from "@/lib/link-tokens";
+import { createLoftyLead } from "@/lib/lofty";
 import { escapeHtml } from "@/lib/utils";
 
 // ── Validation ─────────────────────────────────────────────────────────────
@@ -53,6 +54,10 @@ const schema = z.object({
     .enum(["1-3mo", "3-6mo", "6-12mo", "curious", "refinancing"])
     .optional(),
   message: z.string().max(4000).optional(),
+
+  // Open-house sign-in context (source: "open-house")
+  propertySlug: z.string().max(80).optional(),
+  hasAgent: z.enum(["no", "yes", "agent"]).optional(),
 
   // Cross-domain visitor + persisted estimate (from bndryiq iframe).
   visitorId: z.string().max(128).optional(),
@@ -106,6 +111,13 @@ const sourceLabel: Record<string, string> = {
   "home-value": "Home value request",
   "search-redirect": "Search redirect (active listings)",
   "market-report-subscribe": "Market report subscriber",
+  "open-house": "Open house sign-in",
+};
+
+const hasAgentLabel: Record<string, string> = {
+  no: "Not working with an agent",
+  yes: "Already working with an agent",
+  agent: "Is an agent",
 };
 
 // ── Handler ────────────────────────────────────────────────────────────────
@@ -202,6 +214,18 @@ export async function POST(req: Request) {
       });
     }
 
+    // Open-house sign-ins get pushed into Lofty as new leads. Best-effort and
+    // deferred so a slow/failed Lofty call never blocks the sign-in response.
+    if (lead.source === "open-house" && lead.name?.trim()) {
+      after(async () => {
+        try {
+          await pushOpenHouseToLofty(lead);
+        } catch (err) {
+          console.error("[lead] lofty push failed:", err);
+        }
+      });
+    }
+
     // AI draft generation runs after the response returns so the user doesn't
     // wait on Claude. Failures here must never block the lead-save path.
     if (leadId) {
@@ -253,6 +277,8 @@ async function persistLead(
     intent: lead.intent ?? null,
     timeframe: lead.timeframe ?? null,
     message: lead.message ?? null,
+    property_slug: lead.propertySlug ?? null,
+    has_agent: lead.hasAgent ?? null,
     sms_consent: lead.smsConsent ?? false,
     terms_consent: lead.termsConsent ?? false,
     utm_source: lead.utm?.source ?? null,
@@ -328,6 +354,9 @@ async function sendNotificationEmail(lead: LeadInput): Promise<boolean> {
     ["Phone", lead.phone ?? "—"],
   ];
   if (lead.address) rows.push(["Address", lead.address]);
+  if (lead.propertySlug) rows.push(["Property", lead.propertySlug]);
+  if (lead.hasAgent)
+    rows.push(["Working w/ agent", hasAgentLabel[lead.hasAgent] ?? lead.hasAgent]);
   if (lead.intent) rows.push(["Intent", intentLabel[lead.intent] ?? lead.intent]);
   if (lead.timeframe)
     rows.push(["Timeframe", timeframeLabel[lead.timeframe] ?? lead.timeframe]);
@@ -593,6 +622,36 @@ async function fireN8nWebhook(
   if (!res.ok) {
     console.error("[lead] n8n webhook non-2xx:", res.status);
   }
+}
+
+// ── Lofty push (open-house sign-ins) ───────────────────────────────────────
+
+async function pushOpenHouseToLofty(lead: LeadInput): Promise<void> {
+  const fullName = (lead.name ?? "").trim();
+  if (!fullName) return;
+
+  const [firstName, ...rest] = fullName.split(/\s+/);
+  if (!firstName) return;
+  const lastName = rest.join(" ") || undefined;
+
+  const agentNote = lead.hasAgent
+    ? (hasAgentLabel[lead.hasAgent] ?? lead.hasAgent)
+    : "Unknown";
+  const propertyLabel = lead.propertySlug ?? "open house";
+
+  const tags = ["Open House"];
+  if (lead.propertySlug) tags.push(lead.propertySlug);
+  if (lead.hasAgent === "no") tags.push("Unrepresented");
+
+  await createLoftyLead({
+    firstName,
+    lastName,
+    email: lead.email ?? null,
+    phone: lead.phone ?? null,
+    source: "Open House",
+    tags,
+    note: `Signed in at ${propertyLabel} open house. Working with an agent: ${agentNote}.`,
+  });
 }
 
 // ── Util ───────────────────────────────────────────────────────────────────
