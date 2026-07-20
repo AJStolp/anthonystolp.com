@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type AdminSection = "leads" | "pages" | "reports";
+type AdminSection = "leads" | "pages" | "properties" | "reports";
 
 export function AdminNavLinks({ current }: { current: AdminSection }) {
   return (
@@ -10,6 +10,9 @@ export function AdminNavLinks({ current }: { current: AdminSection }) {
       </Item>
       <Item href="/admin/pages" active={current === "pages"}>
         Pages
+      </Item>
+      <Item href="/admin/properties" active={current === "properties"}>
+        Properties
       </Item>
       <Item href="/admin/reports" active={current === "reports"}>
         Reports
