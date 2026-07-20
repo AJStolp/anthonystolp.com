@@ -14,11 +14,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const niche = await listAll().catch(() => []);
   const nicheEntries: MetadataRoute.Sitemap = niche
     .filter((p) => p.active)
-    // When the home-value funnel is hidden, drop sell-intent *listing* pages —
-    // they CTA into the contact form, already in the sitemap via /. Guide pages
-    // (those with body content, e.g. life-event seller guides) are standalone
-    // SEO content and stay in the sitemap regardless of the funnel flag.
-    .filter((p) => HOME_VALUE_ENABLED || p.intent !== "sell" || Boolean(p.body))
     .map((p) => ({
       url: `${SITE_URL}/search/${p.slug}`,
       lastModified: new Date(p.updated_at),

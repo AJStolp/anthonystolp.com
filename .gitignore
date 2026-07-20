@@ -45,3 +45,9 @@ next-env.d.ts
 
 # raw listing photo drops — only the optimized hero in public/properties/ is committed
 521_updated/
+
+# agent skills tooling (machine-local; .claude/skills/* are symlinks into .agents/)
+.agents/
+.claude/skills/
+.claude/settings.local.json
+skills-lock.json
