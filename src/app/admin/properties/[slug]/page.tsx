@@ -100,7 +100,7 @@ export default async function EditPropertyPage({
               >
                 {publicUrl}
               </a>
-              <p className="mt-4 flex flex-wrap gap-4 text-[11px] uppercase tracking-[0.24em]">
+              <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[11px] uppercase tracking-[0.24em]">
                 <a
                   href={`/property/${property.slug}`}
                   target="_blank"
@@ -111,10 +111,23 @@ export default async function EditPropertyPage({
                 </a>
                 <a
                   href={`/property/${property.slug}/qr`}
-                  download={`qr-${property.slug}.png`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-ink underline-offset-4 hover:underline"
                 >
-                  Download QR
+                  View QR
+                </a>
+                <a
+                  href={`/property/${property.slug}/qr?size=2048&transparent=1&download=1`}
+                  className="text-ink underline-offset-4 hover:underline"
+                >
+                  Download PNG (2048px, no bg)
+                </a>
+                <a
+                  href={`/property/${property.slug}/qr?format=svg&transparent=1&download=1`}
+                  className="text-ink underline-offset-4 hover:underline"
+                >
+                  Download SVG (vector, no bg)
                 </a>
               </p>
             </div>

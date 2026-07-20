@@ -106,6 +106,15 @@ export default async function AdminPropertiesIndex() {
                     >
                       View
                     </Link>
+                    <span className="mx-2 text-ink-soft/30">·</span>
+                    <a
+                      href={`/property/${p.slug}/qr`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/70 underline-offset-4 hover:underline"
+                    >
+                      QR
+                    </a>
                   </td>
                 </tr>
               ))}
