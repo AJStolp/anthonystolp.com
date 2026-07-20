@@ -1,23 +1,40 @@
 import { NextResponse } from "next/server";
 import QRCode from "qrcode";
-import { getBySlug } from "@/lib/properties";
+import { slugExists } from "@/lib/properties";
 
 // Per-property QR code for the open-house poster. Points at the public
 // property page. Query params:
 //   format=svg       → vector SVG (best for print; scales to any size)
 //   size=N           → PNG width in px (default 1024, clamped 256–3000)
-//   transparent=1    → no background (dark modules only)
+//   dark=RRGGBB      → module (foreground) color (default 000000)
+//   light=RRGGBB     → background color (default ffffff)
+//   transparent=1    → no background (overrides light)
 //   download=1       → force a file download instead of inline view
 
 export const dynamic = "force-dynamic";
 
 type RouteParams = Promise<{ slug: string }>;
 
+// Sanitize a hex color param to 6-digit lowercase hex (no leading #), or a
+// fallback. Prevents anything but a valid hex reaching the color string.
+function normalizeHex(v: string | null, fallback: string): string {
+  if (!v) return fallback;
+  const h = v.replace(/^#/, "");
+  if (/^[0-9a-fA-F]{6}$/.test(h)) return h.toLowerCase();
+  if (/^[0-9a-fA-F]{3}$/.test(h)) {
+    return h
+      .split("")
+      .map((c) => c + c)
+      .join("")
+      .toLowerCase();
+  }
+  return fallback;
+}
+
 export async function GET(req: Request, { params }: { params: RouteParams }) {
   const { slug } = await params;
 
-  const property = await getBySlug(slug);
-  if (!property) {
+  if (!(await slugExists(slug))) {
     return NextResponse.json({ error: "Property not found" }, { status: 404 });
   }
 
@@ -36,9 +53,11 @@ export async function GET(req: Request, { params }: { params: RouteParams }) {
     ? 1024
     : Math.min(Math.max(sizeParam, 256), 3000);
 
+  const darkHex = normalizeHex(searchParams.get("dark"), "000000");
+  const lightHex = normalizeHex(searchParams.get("light"), "ffffff");
   const color = {
-    dark: "#000000ff",
-    light: transparent ? "#00000000" : "#ffffffff",
+    dark: `#${darkHex}ff`,
+    light: transparent ? "#00000000" : `#${lightHex}ff`,
   };
   const disposition = download ? "attachment" : "inline";
 

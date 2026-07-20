@@ -105,6 +105,19 @@ export async function getPublicBySlug(
   return data as PropertyRow;
 }
 
+// Lightweight existence check (selects only the slug) — used by the QR route,
+// which needs to confirm the property exists but not read any of its fields.
+export async function slugExists(slug: string): Promise<boolean> {
+  const supabase = trySupabase();
+  if (!supabase) return false;
+  const { data, error } = await supabase
+    .from("properties")
+    .select("slug")
+    .eq("slug", slug)
+    .maybeSingle();
+  return !error && !!data;
+}
+
 export async function getBySlug(slug: string): Promise<PropertyRow | null> {
   const supabase = trySupabase();
   if (!supabase) return null;
