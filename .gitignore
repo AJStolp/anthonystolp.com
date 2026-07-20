@@ -42,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw listing photo drops — only the optimized hero in public/properties/ is committed
+521_updated/
