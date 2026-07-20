@@ -117,19 +117,23 @@ export default async function EditPropertyPage({
                 >
                   View QR
                 </a>
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
                 <a
                   href={`/property/${property.slug}/qr?size=2048&transparent=1&download=1`}
-                  className="text-ink underline-offset-4 hover:underline"
+                  download={`qr-${property.slug}.png`}
+                  className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-cream"
                 >
-                  Download PNG (2048px, no bg)
+                  Download PNG (no bg)
                 </a>
                 <a
                   href={`/property/${property.slug}/qr?format=svg&transparent=1&download=1`}
-                  className="text-ink underline-offset-4 hover:underline"
+                  download={`qr-${property.slug}.svg`}
+                  className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-cream"
                 >
-                  Download SVG (vector, no bg)
+                  Download SVG (best for print)
                 </a>
-              </p>
+              </div>
             </div>
             <div className="shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
