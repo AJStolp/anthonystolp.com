@@ -18,9 +18,10 @@ type FormState = {
   sqft: string;
   description: string;
   photo_url: string;
-  // datetime-local value ("YYYY-MM-DDTHH:mm"), interpreted as the admin's
+  // datetime-local values ("YYYY-MM-DDTHH:mm"), interpreted as the admin's
   // local (Central) time on submit.
   open_house_at: string;
+  open_house_end: string;
   lender_name: string;
   lender_photo_url: string;
   lender_contact: string;
@@ -46,6 +47,7 @@ const EMPTY: FormState = {
   description: "",
   photo_url: "",
   open_house_at: "",
+  open_house_end: "",
   lender_name: "",
   lender_photo_url: "",
   lender_contact: "",
@@ -84,6 +86,9 @@ export function PropertyForm({ mode, initial, slug: editSlug }: Props) {
       // (Central for the admin), which we store as a UTC instant.
       open_house_at: state.open_house_at
         ? new Date(state.open_house_at).toISOString()
+        : null,
+      open_house_end: state.open_house_end
+        ? new Date(state.open_house_end).toISOString()
         : null,
       lender_name: state.lender_name.trim() || null,
       lender_photo_url: state.lender_photo_url.trim() || null,
@@ -256,14 +261,24 @@ export function PropertyForm({ mode, initial, slug: editSlug }: Props) {
         </Row>
       </div>
 
-      <Row label="Open house (date + time, Central)">
-        <input
-          type="datetime-local"
-          value={state.open_house_at}
-          onChange={(e) => update("open_house_at", e.target.value)}
-          className="field"
-        />
-      </Row>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <Row label="Open house start (Central)">
+          <input
+            type="datetime-local"
+            value={state.open_house_at}
+            onChange={(e) => update("open_house_at", e.target.value)}
+            className="field"
+          />
+        </Row>
+        <Row label="Open house end (Central)">
+          <input
+            type="datetime-local"
+            value={state.open_house_end}
+            onChange={(e) => update("open_house_end", e.target.value)}
+            className="field"
+          />
+        </Row>
+      </div>
 
       <Row label="Hero photo URL (e.g. /properties/521-alta-loma.jpg)">
         <input

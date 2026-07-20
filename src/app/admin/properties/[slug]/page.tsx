@@ -163,6 +163,7 @@ export default async function EditPropertyPage({
             description: property.description ?? "",
             photo_url: property.photo_url ?? "",
             open_house_at: isoToCentralInput(property.open_house_at),
+            open_house_end: isoToCentralInput(property.open_house_end),
             lender_name: property.lender_name ?? "",
             lender_photo_url: property.lender_photo_url ?? "",
             lender_contact: property.lender_contact ?? "",
