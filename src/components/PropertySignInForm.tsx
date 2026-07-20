@@ -152,21 +152,33 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
         >
           Are you working with an agent?
         </label>
-        <select
-          id={agentId}
-          {...register("hasAgent")}
-          className="mt-3 w-full appearance-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
-        >
-          <option value="no" className="bg-ink">
-            No, I am not
-          </option>
-          <option value="yes" className="bg-ink">
-            Yes, I am
-          </option>
-          <option value="agent" className="bg-ink">
-            I am an agent
-          </option>
-        </select>
+        <div className="relative mt-3">
+          <select
+            id={agentId}
+            {...register("hasAgent")}
+            className="w-full appearance-none border-0 border-b border-cream/20 bg-transparent py-3 pr-8 text-lg text-cream outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
+          >
+            <option value="no" className="bg-ink">
+              No, I am not
+            </option>
+            <option value="yes" className="bg-ink">
+              Yes, I am
+            </option>
+            <option value="agent" className="bg-ink">
+              I am an agent
+            </option>
+          </select>
+          <svg
+            aria-hidden
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className="pointer-events-none absolute right-1 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/50"
+          >
+            <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
       </div>
 
       <div className="space-y-4 pt-1">

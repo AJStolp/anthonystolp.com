@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminNavLinks } from "@/components/admin/AdminNavLinks";
 import { PropertyForm } from "@/components/admin/PropertyForm";
+import { QrCustomizer } from "@/components/admin/QrCustomizer";
 import { getBySlug } from "@/lib/properties";
 
 export const metadata: Metadata = {
@@ -90,54 +91,35 @@ export default async function EditPropertyPage({
           <p className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/60">
             Share
           </p>
-          <div className="mt-4 flex flex-col gap-6 md:flex-row md:items-center">
-            <div className="flex-1">
+          <div className="mt-4">
+            <a
+              href={publicUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="break-all font-mono text-[13px] text-ink underline underline-offset-4"
+            >
+              {publicUrl}
+            </a>
+            <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[11px] uppercase tracking-[0.24em]">
               <a
-                href={publicUrl}
+                href={`/property/${property.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="break-all font-mono text-[13px] text-ink underline underline-offset-4"
+                className="text-ink underline-offset-4 hover:underline"
               >
-                {publicUrl}
+                View page
               </a>
-              <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[11px] uppercase tracking-[0.24em]">
-                <a
-                  href={`/property/${property.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-ink underline-offset-4 hover:underline"
-                >
-                  View page
-                </a>
-                <a
-                  href={`/property/${property.slug}/qr`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-ink underline-offset-4 hover:underline"
-                >
-                  View QR
-                </a>
-                <a
-                  href={`/property/${property.slug}/qr?size=2048&transparent=1&download=1`}
-                  className="text-ink underline-offset-4 hover:underline"
-                >
-                  Download PNG (2048px, no bg)
-                </a>
-                <a
-                  href={`/property/${property.slug}/qr?format=svg&transparent=1&download=1`}
-                  className="text-ink underline-offset-4 hover:underline"
-                >
-                  Download SVG (vector, no bg)
-                </a>
-              </p>
-            </div>
-            <div className="shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/property/${property.slug}/qr`}
-                alt={`QR code for ${property.address}`}
-                className="h-36 w-36 border border-ink/10"
-              />
+              <a
+                href={`/property/${property.slug}/qr`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink underline-offset-4 hover:underline"
+              >
+                View QR
+              </a>
+            </p>
+            <div className="mt-6">
+              <QrCustomizer slug={property.slug} />
             </div>
           </div>
         </section>
@@ -159,6 +141,7 @@ export default async function EditPropertyPage({
             description: property.description ?? "",
             photo_url: property.photo_url ?? "",
             open_house_at: isoToCentralInput(property.open_house_at),
+            open_house_end: isoToCentralInput(property.open_house_end),
             lender_name: property.lender_name ?? "",
             lender_photo_url: property.lender_photo_url ?? "",
             lender_contact: property.lender_contact ?? "",

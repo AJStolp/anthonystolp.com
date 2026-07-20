@@ -24,8 +24,10 @@ export const PropertyInput = z.object({
   sqft: z.number().int().nonnegative().nullable().optional(),
   description: z.string().max(20000).nullable().optional(),
   photo_url: z.string().max(2048).nullable().optional(),
-  // ISO-8601 timestamp string, e.g. "2026-08-01T17:00:00Z".
+  // ISO-8601 timestamp strings, e.g. "2026-08-01T15:00:00Z". open_house_at is
+  // the start; open_house_end is optional and renders a range.
   open_house_at: z.string().max(40).nullable().optional(),
+  open_house_end: z.string().max(40).nullable().optional(),
   // Optional lender slot — renders on the page only when populated.
   lender_name: z.string().max(160).nullable().optional(),
   lender_photo_url: z.string().max(2048).nullable().optional(),
@@ -50,6 +52,7 @@ export type PropertyRow = {
   description: string | null;
   photo_url: string | null;
   open_house_at: string | null;
+  open_house_end: string | null;
   lender_name: string | null;
   lender_photo_url: string | null;
   lender_contact: string | null;
@@ -59,7 +62,7 @@ export type PropertyRow = {
 };
 
 const SELECT =
-  "slug,status,address,city,state,postal_code,price,beds,baths,sqft,description,photo_url,open_house_at,lender_name,lender_photo_url,lender_contact,agent_id,created_at,updated_at";
+  "slug,status,address,city,state,postal_code,price,beds,baths,sqft,description,photo_url,open_house_at,open_house_end,lender_name,lender_photo_url,lender_contact,agent_id,created_at,updated_at";
 
 // Publicly viewable statuses (closed listings drop off the site).
 const PUBLIC_STATUSES = ["coming_soon", "active"];
@@ -100,6 +103,19 @@ export async function getPublicBySlug(
     .maybeSingle();
   if (error || !data) return null;
   return data as PropertyRow;
+}
+
+// Lightweight existence check (selects only the slug) — used by the QR route,
+// which needs to confirm the property exists but not read any of its fields.
+export async function slugExists(slug: string): Promise<boolean> {
+  const supabase = trySupabase();
+  if (!supabase) return false;
+  const { data, error } = await supabase
+    .from("properties")
+    .select("slug")
+    .eq("slug", slug)
+    .maybeSingle();
+  return !error && !!data;
 }
 
 export async function getBySlug(slug: string): Promise<PropertyRow | null> {
@@ -145,6 +161,7 @@ export async function createProperty(
       description: input.description ?? null,
       photo_url: input.photo_url ?? null,
       open_house_at: input.open_house_at ?? null,
+      open_house_end: input.open_house_end ?? null,
       lender_name: input.lender_name ?? null,
       lender_photo_url: input.lender_photo_url ?? null,
       lender_contact: input.lender_contact ?? null,

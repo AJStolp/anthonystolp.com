@@ -51,18 +51,40 @@ function formatPrice(n: number | null): string | null {
   }).format(n);
 }
 
-function formatOpenHouse(iso: string | null): string | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
+const CENTRAL = "America/Chicago";
+
+function fmtDate(d: Date): string {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone: CENTRAL,
+  }).format(d);
+}
+
+function fmtTime(d: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Chicago",
+    timeZone: CENTRAL,
   }).format(d);
+}
+
+// "Saturday, August 1, 10:00 AM to 11:30 AM" (or just the start when no end).
+function formatOpenHouse(
+  startIso: string | null,
+  endIso: string | null,
+): string | null {
+  if (!startIso) return null;
+  const start = new Date(startIso);
+  if (Number.isNaN(start.getTime())) return null;
+
+  const base = `${fmtDate(start)}, ${fmtTime(start)}`;
+  if (endIso) {
+    const end = new Date(endIso);
+    if (!Number.isNaN(end.getTime())) return `${base} to ${fmtTime(end)}`;
+  }
+  return base;
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -81,7 +103,7 @@ export default async function PropertyPage({
   if (!p) notFound();
 
   const price = formatPrice(p.price);
-  const openHouse = formatOpenHouse(p.open_house_at);
+  const openHouse = formatOpenHouse(p.open_house_at, p.open_house_end);
   const locality = [p.city, p.state].filter(Boolean).join(", ");
   const stats = (
     [
