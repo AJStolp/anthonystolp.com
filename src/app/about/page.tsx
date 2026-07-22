@@ -35,7 +35,7 @@ export default function AboutPage() {
 
           <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-3">
             <div className="md:col-span-1">
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-b from-sky-200 to-cream-deep">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-ink">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/anthony-headshot.png"
