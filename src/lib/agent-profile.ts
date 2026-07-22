@@ -12,6 +12,7 @@ export type AgentProfile = {
   shortName: string;               // "Anthony"
   brokerage: string;               // "ExSell Experts at Epique Realty"
   phone: string;                   // "(262) 885-3310"
+  mobilePhone: string;             // "(262) 483-7932" — direct cell, shown on the digital business card / vCard
   websiteDomain: string;           // "anthonystolp.com"
   fromEmail: string;               // Resend sender, verified domain
   replyToEmail: string;            // where replies route
@@ -29,6 +30,7 @@ const AJ_PROFILE: AgentProfile = {
   shortName: "Anthony",
   brokerage: "ExSell Experts at Epique Realty",
   phone: "(262) 885-3310",
+  mobilePhone: "(262) 483-7932",
   websiteDomain: "anthonystolp.com",
   fromEmail: process.env.LEAD_FROM_EMAIL ?? "hello@anthonystolp.com",
   replyToEmail: process.env.LEAD_TO_EMAIL ?? "anthony@exsellexperts.com",
