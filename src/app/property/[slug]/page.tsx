@@ -3,12 +3,21 @@ import { notFound } from "next/navigation";
 import { getPublicBySlug, getPublicSlugs } from "@/lib/properties";
 import { PropertySignInForm } from "@/components/PropertySignInForm";
 import { getAgentProfile } from "@/lib/agent-profile";
+import { Footer } from "@/components/Footer";
 
 // Public property page: showcase + open-house sign-in. ISR so edits (price,
 // status, open-house time) refresh without a redeploy.
 export const revalidate = 300;
 
 type RouteParams = Promise<{ slug: string }>;
+
+// Trim `s` to at most `max` chars on a word boundary, adding an ellipsis if cut.
+function trimAtWord(s: string, max: number): string {
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${cut.slice(0, lastSpace > 0 ? lastSpace : max).trimEnd()}…`;
+}
 
 export async function generateStaticParams() {
   const slugs = await getPublicSlugs();
@@ -24,15 +33,23 @@ export async function generateMetadata({
   const p = await getPublicBySlug(slug);
   if (!p) return { title: "Property not found" };
   const title = `${p.address} | Open House`;
-  const description =
-    p.description?.slice(0, 160) ?? `Open house at ${p.address}.`;
+  const loc = [p.city, p.state].filter(Boolean).join(", ");
+  const bedsBaths = [
+    p.beds != null ? `${p.beds} bed` : null,
+    p.baths != null ? `${p.baths} bath` : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const description = p.description
+    ? trimAtWord(p.description, 160)
+    : `${p.address}${loc ? `, ${loc}` : ""}.${bedsBaths ? ` ${bedsBaths}.` : ""} Open house details and quick sign-in.`;
   return {
     title,
     description,
     openGraph: {
       title,
       description,
-      images: p.photo_url ? [p.photo_url] : undefined,
+      images: p.photo_url ? [{ url: p.photo_url, alt: p.address }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
@@ -127,7 +144,79 @@ export default async function PropertyPage({
         contact: `${dl.title}, ${dl.company} · NMLS #${dl.nmls} · Call or text ${dl.phone}`,
       };
 
+  // Listing structured data: Residence + Offer (price) + Event (open house).
+  const SITE = "https://anthonystolp.com";
+  const propUrl = `${SITE}/property/${p.slug}`;
+  const photoAbs = p.photo_url
+    ? p.photo_url.startsWith("http")
+      ? p.photo_url
+      : `${SITE}${p.photo_url}`
+    : undefined;
+  const postalAddress = {
+    "@type": "PostalAddress",
+    streetAddress: p.address,
+    addressLocality: p.city ?? undefined,
+    addressRegion: p.state ?? undefined,
+    postalCode: p.postal_code ?? undefined,
+    addressCountry: "US",
+  };
+  const graph: Record<string, unknown>[] = [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE },
+        { "@type": "ListItem", position: 2, name: p.address, item: propUrl },
+      ],
+    },
+    {
+      "@type": "SingleFamilyResidence",
+      name: p.address,
+      url: propUrl,
+      ...(photoAbs ? { image: photoAbs } : {}),
+      address: postalAddress,
+      ...(p.beds != null ? { numberOfBedrooms: p.beds } : {}),
+      ...(p.baths != null ? { numberOfBathroomsTotal: p.baths } : {}),
+      ...(p.sqft != null
+        ? {
+            floorSize: {
+              "@type": "QuantitativeValue",
+              value: p.sqft,
+              unitText: "sqft",
+            },
+          }
+        : {}),
+      ...(p.price != null
+        ? {
+            offers: {
+              "@type": "Offer",
+              price: p.price,
+              priceCurrency: "USD",
+              availability: "https://schema.org/InStock",
+            },
+          }
+        : {}),
+    },
+  ];
+  if (p.open_house_at) {
+    graph.push({
+      "@type": "Event",
+      name: `Open House: ${p.address}`,
+      startDate: p.open_house_at,
+      ...(p.open_house_end ? { endDate: p.open_house_end } : {}),
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+      location: { "@type": "Place", name: p.address, address: postalAddress },
+    });
+  }
+  const jsonLd = { "@context": "https://schema.org", "@graph": graph };
+
   return (
+    <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+      }}
+    />
     <main className="min-h-screen bg-cream text-ink">
       {/* Hero photo */}
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-ink/5 md:aspect-[21/9]">
@@ -229,5 +318,7 @@ export default async function PropertyPage({
         </div>
       </div>
     </main>
+    <Footer />
+    </>
   );
 }
