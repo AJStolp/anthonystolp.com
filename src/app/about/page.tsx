@@ -24,7 +24,7 @@ export default function AboutPage() {
     <>
       <Nav />
       <main className="min-h-dvh bg-cream pt-28 pb-24 text-ink md:pt-36">
-        <div className="mx-auto max-w-3xl px-6 md:px-12">
+        <div className="mx-auto max-w-5xl px-6 md:px-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/65">
             About
           </p>
@@ -33,17 +33,22 @@ export default function AboutPage() {
             A local agent who works the way you want a local agent to work.
           </h1>
 
-          <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-3">
-            <div className="md:col-span-1">
-              <div className="aspect-[4/5] w-full bg-ink/5">
-                {/* Replace with your portrait at /public/images/aj.jpg */}
+          <div className="mt-12 grid grid-cols-1 items-start gap-12 md:grid-cols-2">
+            <div className="md:order-2">
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-ink">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/anthony-headshot.png"
+                  alt="Anthony Stolp, Realtor"
+                  className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto object-contain object-bottom"
+                />
               </div>
               <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-ink-soft/50">
                 Anthony Stolp · WI #114204-94
               </p>
             </div>
 
-            <div className="space-y-6 text-[15px] leading-[1.75] text-ink-soft md:col-span-2 md:text-[16px]">
+            <div className="space-y-6 text-[15px] leading-[1.75] text-ink-soft md:order-1 md:text-[16px]">
               <p>
                 I am Anthony Stolp. I am a solo agent at ExSell Experts, a team
                 under Epique Realty out of Germantown, Wisconsin. My personal
