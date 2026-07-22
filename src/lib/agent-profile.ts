@@ -22,6 +22,17 @@ export type AgentProfile = {
   serviceArea: string;             // human-readable area
   targetZips: string[];            // zips covered for market reports
   voiceNotes: string;              // brand voice rules for Claude prompts
+  // Default financing partner. Shown on every property page unless that
+  // property overrides it with its own lender fields.
+  preferredLender: {
+    name: string;
+    title: string;
+    company: string;
+    nmls: string;
+    email: string;
+    phone: string;                 // call/text line
+    cellPhone: string;
+  };
 };
 
 const AJ_PROFILE: AgentProfile = {
@@ -42,6 +53,15 @@ const AJ_PROFILE: AgentProfile = {
   targetZips: ["53012", "53092", "53097", "53024", "53074", "53080"],
   // Per-agent voice rules for any Claude-drafted content
   voiceNotes: `Calm, honest, no marketing fluff. Direct but warm, conversational, first-person. Write like a person, not a brand. "I" not "we". NEVER use em dashes (use periods or commas instead). No exclamation points except where genuinely natural. Sign off "Talk soon, Anthony" on personal correspondence.`,
+  preferredLender: {
+    name: "Daniel Bellomy",
+    title: "National Sales Manager",
+    company: "Power Lending",
+    nmls: "168320",
+    email: "dbellomy@power-lending.com",
+    phone: "(832) 925-3260",
+    cellPhone: "(949) 616-2271",
+  },
 };
 
 /**
