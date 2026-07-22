@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublicBySlug, getPublicSlugs } from "@/lib/properties";
 import { PropertySignInForm } from "@/components/PropertySignInForm";
+import { getAgentProfile } from "@/lib/agent-profile";
 
 // Public property page: showcase + open-house sign-in. ISR so edits (price,
 // status, open-house time) refresh without a redeploy.
@@ -115,6 +116,17 @@ export default async function PropertyPage({
     ] as ({ label: string; value: string } | null)[]
   ).filter((s): s is { label: string; value: string } => s !== null);
 
+  // Financing partner: use the property's own lender if it sets one, otherwise
+  // fall back to the agent's default preferred lender so every listing shows one.
+  const dl = getAgentProfile(p.agent_id).preferredLender;
+  const lender = p.lender_name
+    ? { name: p.lender_name, photoUrl: p.lender_photo_url, contact: p.lender_contact }
+    : {
+        name: dl.name,
+        photoUrl: null as string | null,
+        contact: `${dl.title}, ${dl.company} · NMLS #${dl.nmls} · Call or text ${dl.phone}`,
+      };
+
   return (
     <main className="min-h-screen bg-cream text-ink">
       {/* Hero photo */}
@@ -188,27 +200,25 @@ export default async function PropertyPage({
             </div>
           )}
 
-          {p.lender_name && (
-            <div className="mt-12 flex items-center gap-5 border-t border-ink/10 pt-8">
-              {p.lender_photo_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.lender_photo_url}
-                  alt={p.lender_name}
-                  className="h-16 w-16 rounded-full object-cover"
-                />
+          <div className="mt-12 flex items-center gap-5 border-t border-ink/10 pt-8">
+            {lender.photoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={lender.photoUrl}
+                alt={lender.name}
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            )}
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.28em] text-ink/50">
+                Financing partner
+              </p>
+              <p className="mt-1 text-lg font-medium">{lender.name}</p>
+              {lender.contact && (
+                <p className="text-[14px] text-ink/60">{lender.contact}</p>
               )}
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.28em] text-ink/50">
-                  Financing partner
-                </p>
-                <p className="mt-1 text-lg font-medium">{p.lender_name}</p>
-                {p.lender_contact && (
-                  <p className="text-[14px] text-ink/60">{p.lender_contact}</p>
-                )}
-              </div>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Sign-in */}
