@@ -16,7 +16,7 @@ export function TrustStrip() {
           </span>
         </Item>
         <Divider />
-        <Item label="Turnaround">24 hour valuations</Item>
+        <Item label="Response">Same-day replies</Item>
       </div>
     </section>
   );

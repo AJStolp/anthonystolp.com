@@ -29,7 +29,7 @@ export function Hero() {
         />
         {/* Tint stack: a flat dark wash + a left-side gradient so the
             content side has more contrast while the image stays readable on the right. */}
-        <div className="absolute inset-0 bg-ink/55" />
+        <div className="absolute inset-0 bg-ink/40" />
         <div className="absolute inset-0 bg-gradient-to-r from-ink/45 via-ink/10 to-transparent" />
       </div>
 
