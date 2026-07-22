@@ -5,7 +5,7 @@ import { getAgentProfile } from "@/lib/agent-profile";
 import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
-  title: "Anthony Stolp · Save my contact",
+  title: "Save my contact",
   description:
     "Anthony Stolp, Realtor with ExSell Experts at Epique Realty, serving Ozaukee County, Wisconsin. Save my contact or reach me directly.",
   alternates: { canonical: "/card" },

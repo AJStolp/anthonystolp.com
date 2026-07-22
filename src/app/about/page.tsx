@@ -6,7 +6,7 @@ import { OG_IMAGES } from "@/lib/og";
 import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 
 export const metadata: Metadata = {
-  title: "About Anthony Stolp · Ozaukee County Realtor",
+  title: "About · Ozaukee County Realtor",
   description:
     "Solo real estate agent serving Ozaukee County, Wisconsin. Cedarburg, Thiensville, Mequon, Grafton, Port Washington, Saukville. Honest pricing, no scripts.",
   alternates: { canonical: "/about" },

@@ -9,9 +9,14 @@ export function TrustStrip() {
         <Divider />
         <Item label="Brokerage">ExSell Experts | Epique Realty</Item>
         <Divider />
-        <Item label="Service area">Ozaukee · Washington · Waukesha · Sheboygan</Item>
+        <Item label="Service area">
+          Ozaukee · Washington · Waukesha · Sheboygan
+          <span className="mt-0.5 block text-[11px] text-ink-soft/55">
+            Statewide when you need me
+          </span>
+        </Item>
         <Divider />
-        <Item label="Turnaround">24 hour valuations</Item>
+        <Item label="Response">Same-day replies</Item>
       </div>
     </section>
   );
