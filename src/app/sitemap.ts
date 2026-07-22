@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listAll } from "@/lib/niche-pages";
+import { getPublicSlugs } from "@/lib/properties";
 import { HOME_VALUE_ENABLED } from "@/lib/feature-flags";
 
 const SITE_URL = "https://anthonystolp.com";
@@ -20,6 +21,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.7,
     }));
+
+  const propertySlugs = await getPublicSlugs().catch(() => []);
+  const propertyEntries: MetadataRoute.Sitemap = propertySlugs.map((slug) => ({
+    url: `${SITE_URL}/property/${slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
 
   const homeValueEntry: MetadataRoute.Sitemap = HOME_VALUE_ENABLED
     ? [
@@ -53,6 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     },
     ...nicheEntries,
+    ...propertyEntries,
     {
       url: `${SITE_URL}/privacy`,
       lastModified: now,
