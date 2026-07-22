@@ -33,8 +33,8 @@ export default function AboutPage() {
             A local agent who works the way you want a local agent to work.
           </h1>
 
-          <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-5">
-            <div className="md:col-span-2">
+          <div className="mt-12 grid grid-cols-1 items-start gap-12 md:grid-cols-2">
+            <div className="md:order-2">
               <div className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-ink">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -48,7 +48,7 @@ export default function AboutPage() {
               </p>
             </div>
 
-            <div className="space-y-6 text-[15px] leading-[1.75] text-ink-soft md:col-span-3 md:text-[16px]">
+            <div className="space-y-6 text-[15px] leading-[1.75] text-ink-soft md:order-1 md:text-[16px]">
               <p>
                 I am Anthony Stolp. I am a solo agent at ExSell Experts, a team
                 under Epique Realty out of Germantown, Wisconsin. My personal
