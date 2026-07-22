@@ -35,8 +35,13 @@ export default function AboutPage() {
 
           <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-3">
             <div className="md:col-span-1">
-              <div className="aspect-[4/5] w-full bg-ink/5">
-                {/* Replace with your portrait at /public/images/aj.jpg */}
+              <div className="relative aspect-[4/5] w-full overflow-hidden bg-gradient-to-b from-sky-200 to-cream-deep">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/anthony-headshot.png"
+                  alt="Anthony Stolp, Realtor"
+                  className="absolute inset-x-0 bottom-0 mx-auto h-[94%] w-auto object-contain object-bottom"
+                />
               </div>
               <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-ink-soft/50">
                 Anthony Stolp · WI #114204-94
