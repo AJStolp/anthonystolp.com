@@ -70,12 +70,12 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#approach" className="transition-colors hover:text-ink">
+                <a href="/#approach" className="transition-colors hover:text-ink">
                   Approach
                 </a>
               </li>
               <li>
-                <a href="#contact" className="transition-colors hover:text-ink">
+                <a href="/#contact" className="transition-colors hover:text-ink">
                   Contact
                 </a>
               </li>
@@ -85,12 +85,13 @@ export function Footer() {
 
         {/* Huge wordmark */}
         <div className="relative mt-20 md:mt-28">
-          <h2
+          <div
+            aria-hidden="true"
             className="font-display text-ink leading-none tracking-[-0.045em] font-bold"
             style={{ fontSize: "clamp(2.5rem, 8vw, 7rem)" }}
           >
-            HOMEWARD
-          </h2>
+            ANTHONY STOLP
+          </div>
         </div>
 
         {/* Small credits — AJ's other projects + partner shoutouts */}

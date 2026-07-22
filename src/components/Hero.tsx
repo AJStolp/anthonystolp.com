@@ -42,13 +42,13 @@ export function Hero() {
         <h1 className="mt-6 max-w-3xl font-display text-[clamp(2.25rem,5vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.025em] text-cream">
           {HOME_VALUE_ENABLED
             ? "What is your home worth?"
-            : "Your Premier Team for Wisconsin Real Estate Excellence."}
+            : "Your partner for Wisconsin real estate."}
         </h1>
 
         <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-cream/90 md:text-[16px]">
           {HOME_VALUE_ENABLED
             ? "A real range from a local agent, sent within 24 hours. No Zestimate guesses, no marketing fluff. Just an honest number based on what is actually selling in your neighborhood."
-            : "A team that knows Wisconsin cold, answers when you call, and handles every move like it is our only one. No scripts. No fluff. Just real estate done right."}
+            : "You work directly with me, backed by the ExSell Experts team. No scripts, no fluff, just straight answers from someone who works the Ozaukee County north shore every week."}
         </p>
 
         {HOME_VALUE_ENABLED ? (

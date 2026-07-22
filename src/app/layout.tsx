@@ -4,6 +4,7 @@ import "./globals.css";
 import { LenisProvider } from "@/components/LenisProvider";
 import { Pixels } from "@/components/Pixels";
 import { TrackingInit } from "@/components/TrackingInit";
+import { OG_IMAGES } from "@/lib/og";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -60,11 +61,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: `${SITE_NAME} · ${TAGLINE}`,
     description: DESCRIPTION,
+    images: OG_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
     title: `${SITE_NAME} · ${TAGLINE}`,
     description: DESCRIPTION,
+    images: OG_IMAGES,
   },
   robots: {
     index: true,

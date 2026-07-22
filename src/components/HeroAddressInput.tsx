@@ -137,7 +137,7 @@ export function HeroAddressInput({ onDark = false }: Props) {
       if (data.leadId) params.set("leadId", data.leadId);
       router.push(`/home-value?${params.toString()}`);
     } catch {
-      setError("Network error — try again");
+      setError("Network error. Try again.");
       setSubmitting(false);
     }
   };
