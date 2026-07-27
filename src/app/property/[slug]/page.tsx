@@ -137,11 +137,17 @@ export default async function PropertyPage({
   // fall back to the agent's default preferred lender so every listing shows one.
   const dl = getAgentProfile(p.agent_id).preferredLender;
   const lender = p.lender_name
-    ? { name: p.lender_name, photoUrl: p.lender_photo_url, contact: p.lender_contact }
+    ? {
+        name: p.lender_name,
+        photoUrl: p.lender_photo_url,
+        contact: p.lender_contact,
+        applyUrl: null as string | null,
+      }
     : {
         name: dl.name,
         photoUrl: null as string | null,
         contact: `${dl.title}, ${dl.company} · NMLS #${dl.nmls} · Call or text ${dl.phone}`,
+        applyUrl: dl.applyUrl,
       };
 
   // Listing structured data: Residence + Offer (price) + Event (open house).
@@ -305,6 +311,16 @@ export default async function PropertyPage({
               <p className="mt-1 text-lg font-medium">{lender.name}</p>
               {lender.contact && (
                 <p className="text-[14px] text-ink/60">{lender.contact}</p>
+              )}
+              {lender.applyUrl && (
+                <a
+                  href={lender.applyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-ink/70 underline underline-offset-4 transition-colors hover:text-ink"
+                >
+                  Start your pre-approval
+                </a>
               )}
             </div>
           </div>
