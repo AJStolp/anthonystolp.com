@@ -32,6 +32,7 @@ export type AgentProfile = {
     email: string;
     phone: string;                 // call/text line
     cellPhone: string;
+    applyUrl: string;              // his branded loan application, opens in a new tab
   };
 };
 
@@ -61,6 +62,8 @@ const AJ_PROFILE: AgentProfile = {
     email: "dbellomy@power-lending.com",
     phone: "(832) 925-3260",
     cellPhone: "(949) 616-2271",
+    applyUrl:
+      "https://canopymortgage.nanolos.com/loan-application/#/config/start?organization=DanielBellomy2227",
   },
 };
 
