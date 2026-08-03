@@ -4,8 +4,18 @@ import { getSupabase } from "./supabase-server";
 // Slug must be URL-safe and stable; lowercase letters, digits, hyphens.
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export const PropertyStatus = z.enum(["coming_soon", "active", "closed"]);
+export const PropertyStatus = z.enum([
+  "coming_soon",
+  "active",
+  "pending",
+  "sold",
+  "closed",
+]);
 export type PropertyStatus = z.infer<typeof PropertyStatus>;
+
+// Terminal but still published: the listing is no longer available, yet the
+// page stays up as proof and swaps its open-house sign-in for a sell CTA.
+export const SOLD_STATUSES: readonly PropertyStatus[] = ["pending", "sold"];
 
 export const PropertyInput = z.object({
   slug: z
@@ -65,7 +75,7 @@ const SELECT =
   "slug,status,address,city,state,postal_code,price,beds,baths,sqft,description,photo_url,open_house_at,open_house_end,lender_name,lender_photo_url,lender_contact,agent_id,created_at,updated_at";
 
 // Publicly viewable statuses (closed listings drop off the site).
-const PUBLIC_STATUSES = ["coming_soon", "active"];
+const PUBLIC_STATUSES = ["coming_soon", "active", "pending", "sold"];
 
 // Defensive helper: at build time on Vercel, Supabase env vars may be missing
 // (e.g. preview deploys without DB access). SSG pages call these functions;

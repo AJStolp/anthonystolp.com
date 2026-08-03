@@ -25,7 +25,7 @@ bunx playwright test                            # e2e — dev server must ALREAD
 bunx playwright test -g "hero renders"          # single test by title
 bunx playwright test --project=chromium-mobile  # one viewport; desktop + mobile both run by default
 
-bunx supabase db execute --file supabase/migrations/00NN_x.sql   # apply a migration
+bunx supabase db query --linked --file supabase/migrations/00NN_x.sql   # apply a migration
 ```
 
 No lint script, no ESLint or Prettier config. Type checking happens through `bun run build`.
@@ -97,7 +97,7 @@ Both passes must succeed for `status: "ready"`; otherwise `"draft"` for human in
 
 Push to `main` deploys to Vercel. **Merge is release**, and this site takes live traffic and live ad spend.
 
-Migrations are separate and manual: `bunx supabase db execute`. A merge that assumes new schema will break production until it is applied, so apply first.
+Migrations are separate and manual: `bunx supabase db query --linked`. Needs `supabase login` first; without `--linked` the CLI targets a local Docker Postgres. A merge that assumes new schema will break production until it is applied, so apply first.
 
 Feature flag changes need a redeploy because they are inlined at build time.
 

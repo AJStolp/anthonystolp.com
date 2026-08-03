@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Status = "coming_soon" | "active" | "closed";
+type Status = "coming_soon" | "active" | "pending" | "sold" | "closed";
 
 type FormState = {
   slug: string;
@@ -177,6 +177,8 @@ export function PropertyForm({ mode, initial, slug: editSlug }: Props) {
         >
           <option value="coming_soon">Coming Soon</option>
           <option value="active">Active</option>
+          <option value="pending">Sale Pending (page stays up)</option>
+          <option value="sold">Sold (page stays up)</option>
           <option value="closed">Closed (hidden from site)</option>
         </select>
       </Row>
