@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublicBySlug, getPublicSlugs } from "@/lib/properties";
+import { getPublicBySlug, getPublicSlugs, SOLD_STATUSES } from "@/lib/properties";
 import { PropertySignInForm } from "@/components/PropertySignInForm";
 import { getAgentProfile } from "@/lib/agent-profile";
+import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
 import { Footer } from "@/components/Footer";
 
 // Public property page: showcase + open-house sign-in. ISR so edits (price,
@@ -32,7 +34,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const p = await getPublicBySlug(slug);
   if (!p) return { title: "Property not found" };
-  const title = `${p.address} | Open House`;
+  const sold = SOLD_STATUSES.includes(p.status);
+  const title = `${p.address} | ${sold ? STATUS_LABEL[p.status] : "Open House"}`;
   const loc = [p.city, p.state].filter(Boolean).join(", ");
   const bedsBaths = [
     p.beds != null ? `${p.beds} bed` : null,
@@ -42,7 +45,11 @@ export async function generateMetadata({
     .join(", ");
   const description = p.description
     ? trimAtWord(p.description, 160)
-    : `${p.address}${loc ? `, ${loc}` : ""}.${bedsBaths ? ` ${bedsBaths}.` : ""} Open house details and quick sign-in.`;
+    : `${p.address}${loc ? `, ${loc}` : ""}.${bedsBaths ? ` ${bedsBaths}.` : ""} ${
+        sold
+          ? "See the details and what it took to get here."
+          : "Open house details and quick sign-in."
+      }`;
   return {
     title,
     description,
@@ -108,6 +115,8 @@ function formatOpenHouse(
 const STATUS_LABEL: Record<string, string> = {
   coming_soon: "Coming Soon",
   active: "Active",
+  pending: "Sale Pending",
+  sold: "Sold",
   closed: "Closed",
 };
 
@@ -121,7 +130,12 @@ export default async function PropertyPage({
   if (!p) notFound();
 
   const price = formatPrice(p.price);
-  const openHouse = formatOpenHouse(p.open_house_at, p.open_house_end);
+  // Pending/sold listings are no longer available: the open house is moot and
+  // the price is history, so it gets labelled rather than shown bare.
+  const sold = SOLD_STATUSES.includes(p.status);
+  const openHouse = sold
+    ? null
+    : formatOpenHouse(p.open_house_at, p.open_house_end);
   const locality = [p.city, p.state].filter(Boolean).join(", ");
   const stats = (
     [
@@ -197,13 +211,15 @@ export default async function PropertyPage({
               "@type": "Offer",
               price: p.price,
               priceCurrency: "USD",
-              availability: "https://schema.org/InStock",
+              availability: sold
+                ? "https://schema.org/SoldOut"
+                : "https://schema.org/InStock",
             },
           }
         : {}),
     },
   ];
-  if (p.open_house_at) {
+  if (p.open_house_at && !sold) {
     graph.push({
       "@type": "Event",
       name: `Open House: ${p.address}`,
@@ -260,9 +276,18 @@ export default async function PropertyPage({
           )}
 
           {price && (
-            <p className="mt-8 font-display text-4xl font-semibold tracking-[-0.02em]">
-              {price}
-            </p>
+            <div className="mt-8">
+              {sold && (
+                <p className="text-[11px] uppercase tracking-[0.28em] text-ink/50">
+                  List price
+                </p>
+              )}
+              <p
+                className={`font-display text-4xl font-semibold tracking-[-0.02em] ${sold ? "mt-2" : ""}`}
+              >
+                {price}
+              </p>
+            </div>
           )}
 
           {stats.length > 0 && (
@@ -326,10 +351,50 @@ export default async function PropertyPage({
           </div>
         </div>
 
-        {/* Sign-in */}
+        {/* Sign-in, or a sell CTA once the listing is off the market. The QR
+            codes and NFC cards keep pointing here, so the page has to keep
+            asking for something. */}
         <div className="md:col-span-5">
           <div className="md:sticky md:top-12">
-            <PropertySignInForm propertySlug={p.slug} />
+            {sold ? (
+              <div className="border border-cream/15 bg-ink p-8 text-cream md:p-10">
+                <p className="text-[11px] uppercase tracking-[0.28em] text-cream/50">
+                  Thinking about selling?
+                </p>
+                <p className="mt-4 font-display text-2xl font-semibold leading-[1.2] tracking-[-0.02em]">
+                  This one did not sit on the market.
+                </p>
+                <p className="mt-5 text-[15px] leading-[1.7] text-cream/70">
+                  What a home sells for, and how fast, comes down to how it is
+                  priced against what buyers are actually paying right now.
+                  Start with an honest read on your number and the comparable
+                  sales behind it.
+                </p>
+                <Link
+                  href={
+                    HOME_VALUE_ENABLED
+                      ? `/home-value?utm_source=property&utm_campaign=${p.slug}`
+                      : sellFallbackHref({
+                          utm_source: "property",
+                          utm_campaign: p.slug,
+                        })
+                  }
+                  className="group mt-8 inline-flex items-center justify-center gap-3 border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                >
+                  {HOME_VALUE_ENABLED
+                    ? "Get my home value"
+                    : "Talk to me about selling"}
+                  <span
+                    aria-hidden
+                    className="transition-transform group-hover:translate-x-1"
+                  >
+                    →
+                  </span>
+                </Link>
+              </div>
+            ) : (
+              <PropertySignInForm propertySlug={p.slug} />
+            )}
           </div>
         </div>
       </div>

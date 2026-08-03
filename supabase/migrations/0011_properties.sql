@@ -4,6 +4,7 @@
 -- open-house sign-in form. Sign-ins flow through /api/lead into funnel_leads
 -- (tagged with property_slug) and are pushed to Lofty as new leads.
 -- Toggling status unpublishes without deleting state (closed → off the site).
+-- See 0013 for the pending/sold statuses, which stay published.
 
 create table if not exists public.properties (
   slug             text primary key,

@@ -1,8 +1,12 @@
 -- Seed: 521 Alta Loma Dr, Thiensville — first open-house property.
 -- Idempotent: re-running updates the row in place.
 --
--- Open house 2026-08-01 10:00–11:30 America/Chicago (CDT = UTC-5) → 15:00Z–16:30Z.
--- photo_url points at a file to drop in public/properties/ (URL-only for now;
+-- 2026-08-02: went under contract. Status is 'pending' (accepted offer, not
+-- yet closed), which keeps the page published with the open-house sign-in
+-- swapped for a sell CTA. Price is the current public MLS list price after
+-- the Sunday adjustment; the contract price is deliberately not published.
+-- Open-house timestamps are cleared now that the event has passed.
+-- photo_url points at a file in public/properties/ (URL-only for now;
 -- S3/Storage later). Edit price/description/status here or via the admin UI.
 
 insert into public.properties (
@@ -11,19 +15,23 @@ insert into public.properties (
   open_house_at, open_house_end
 ) values (
   '521-alta-loma',
-  'coming_soon',
+  'pending',
   '521 Alta Loma Dr',
   'Thiensville',
   'WI',
   '53092',
-  495000,
+  450000,
   3,
   2,
   1556,
-  'Welcome to 521 Alta Loma Dr, a well-kept 3 bedroom, 2 bath ranch in the heart of Thiensville. With 1,556 square feet of easy single-level living, mature shade trees, and an attached garage, it sits in one of Ozaukee County''s most walkable villages. You are minutes from downtown Thiensville''s shops and restaurants, the Milwaukee River, and the Mequon-Thiensville School District. Coming soon. Contact Anthony Stolp to schedule your first look.',
+  'Under contract. 521 Alta Loma Dr went live on a Thursday and had an accepted offer by Sunday.
+
+A well-kept 3 bedroom, 2 bath ranch in the heart of Thiensville, with 1,556 square feet of easy single-level living, mature shade trees, and an attached garage. It sits in one of Ozaukee County''s most walkable villages, minutes from downtown Thiensville''s shops and restaurants, the Milwaukee River, and the Mequon-Thiensville School District.
+
+Thinking about selling in Ozaukee County? Start with an honest read on what your home is worth today. Pricing is what moves a listing, and I will show you the comparable sales behind the number rather than just handing you a figure.',
   '/properties/521-alta-loma.jpg',
-  '2026-08-01T15:00:00Z',
-  '2026-08-01T16:30:00Z'
+  null,
+  null
 )
 on conflict (slug) do update set
   status        = excluded.status,

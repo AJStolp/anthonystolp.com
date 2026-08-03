@@ -4,7 +4,7 @@ This project uses **bun**. The lockfile is `bun.lock`. Always use bun, never npm
 
 - Install: `bun install`
 - Run scripts: `bun run build`, `bun run dev`, `bun run start`
-- One-off binaries: `bunx <pkg>` (e.g. `bunx supabase db execute --file ...`)
+- One-off binaries: `bunx <pkg>` (e.g. `bunx supabase db query --linked --file ...`)
 
 Do not run `npm install` / `npm run *` — it can create a conflicting `package-lock.json` and pull a different dependency tree than `bun.lock`. If a `package-lock.json` ever appears, it was a mistake: delete it.
 

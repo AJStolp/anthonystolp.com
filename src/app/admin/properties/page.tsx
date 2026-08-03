@@ -13,6 +13,8 @@ export const dynamic = "force-dynamic";
 const STATUS_LABEL: Record<string, string> = {
   coming_soon: "Coming Soon",
   active: "Active",
+  pending: "Sale Pending",
+  sold: "Sold",
   closed: "Closed",
 };
 
