@@ -115,6 +115,22 @@ export async function getPublicBySlug(
   return data as PropertyRow;
 }
 
+// Most recently updated pending/sold listings, for the home-page results band.
+// Ordered by updated_at because that is when the status was flipped, which is
+// the moment the result actually happened.
+export async function getRecentResults(limit = 3): Promise<PropertyRow[]> {
+  const supabase = trySupabase();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("properties")
+    .select(SELECT)
+    .in("status", SOLD_STATUSES)
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return data as PropertyRow[];
+}
+
 // Lightweight existence check (selects only the slug) — used by the QR route,
 // which needs to confirm the property exists but not read any of its fields.
 export async function slugExists(slug: string): Promise<boolean> {
