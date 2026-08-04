@@ -1,10 +1,15 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { TrustStrip } from "@/components/TrustStrip";
+import { RecentResults } from "@/components/RecentResults";
 import { Approach } from "@/components/Approach";
 import { MarketReportSubscribe } from "@/components/MarketReportSubscribe";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
+
+// RecentResults reads properties from Supabase, so the home page is now ISR
+// rather than fully static: a status flip in /admin shows up within the window.
+export const revalidate = 300;
 
 const SITE_URL = "https://anthonystolp.com";
 
@@ -81,6 +86,7 @@ export default function Home() {
         <Nav />
         <Hero />
         <TrustStrip />
+        <RecentResults />
         <Approach />
         <MarketReportSubscribe />
         <LeadForm />

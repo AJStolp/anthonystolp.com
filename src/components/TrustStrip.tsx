@@ -1,12 +1,10 @@
-import Link from "next/link";
-
 export function TrustStrip() {
   return (
     <section
       aria-label="Credibility"
       className="border-y border-ink/10 bg-cream"
     >
-      <div className="mx-auto flex max-w-6xl flex-col gap-y-3 px-6 py-6 md:flex-row md:items-center md:justify-between md:gap-6 md:px-12">
+      <div className="mx-auto flex max-w-5xl flex-col gap-y-3 px-6 py-6 md:flex-row md:items-center md:justify-between md:gap-6 md:px-12">
         <Item label="Licensed">WI Real Estate License #114204-94</Item>
         <Divider />
         <Item label="Brokerage">ExSell Experts | Epique Realty</Item>
@@ -15,18 +13,6 @@ export function TrustStrip() {
           Ozaukee · Washington · Waukesha · Sheboygan
           <span className="mt-0.5 block text-[11px] text-ink-soft/55">
             Statewide when you need me
-          </span>
-        </Item>
-        <Divider />
-        <Item label="Recent result">
-          <Link
-            href="/property/521-alta-loma"
-            className="underline decoration-ink/20 underline-offset-4 transition-colors hover:decoration-ink"
-          >
-            Under contract in 3 days
-          </Link>
-          <span className="mt-0.5 block text-[11px] text-ink-soft/55">
-            Thiensville ranch
           </span>
         </Item>
         <Divider />
