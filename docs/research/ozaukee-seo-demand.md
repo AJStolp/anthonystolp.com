@@ -14,7 +14,9 @@ The single fact that decides it: `anthonystolp.com` was registered **2026-05-13*
 
 The secondary fact that decides it: the demand is genuinely tiny. Ozaukee County recorded roughly **1,114 total home sales in 2025** across every agent, every brokerage, every price point. That is about 93 transactions a month county-wide. There is no keyword in this county worth six months of winter effort.
 
-There is one real exception, and it is not a keyword. See "The one thing worth doing now" below.
+Two exceptions survive that reasoning, and neither is a keyword to rank for. The **Port Washington data center** story, section 6, and **claiming the agent-review directory profiles**, which rank on the directory's authority rather than on this domain's and therefore work today. Both are in section 10.
+
+Independent SERP checking also confirmed the floor: **`anthonystolp.com` appeared in zero of 25 target queries across three search engines.** Nothing is at risk of being lost by deprioritizing, because nothing is currently ranking.
 
 ---
 
@@ -35,6 +37,9 @@ What I used instead, and its confidence:
 | Direct fetch of the live site, sitemap, and page bodies | What exists today and how thin it is | Certain |
 | Google Search Central spam and AI-features documentation | Google's stated policy, quoted verbatim with last-updated dates | Certain as to what Google claims |
 | Published studies: Ahrefs, Semrush, Pew Research | Ranking timelines and AI Overview behavior, with sample sizes and dates | Moderate, and they disagree with each other where noted |
+| **Brave Search HTML scrape, 20 of 25 target queries** | Ordered organic domains from an **independent crawl index**, not a Google mirror | High for ordering, moderate as a Google proxy |
+
+**Google's own SERP could not be observed directly.** Google serves a JavaScript-only shell to a scraper. Bing returned a shell with zero result blocks, Mojeek served a challenge, Ecosia returned 403, DuckDuckGo rate limited after one query. So **AI Overviews, featured snippets, People Also Ask, and local pack presence are unverified**, and every claim about them below is labeled as inference. Confirming them needs a real browser session, which is a cheap follow-up.
 
 No paid backlink or keyword tool (Ahrefs, Semrush, Moz) was accessible. Every number below is either directly measured, quoted from a primary document, or explicitly labeled as derived.
 
@@ -101,27 +106,69 @@ That block is the most important data in this report. **The entire standard loca
 
 **Trap 1: home value intent is real but brand-owned.** `what is my home worth` returns ten suggestions and every one appends a brand or a tool: zillow, redfin, realtor.com, chase, calculator, by address. Home-value intent in this county is enormous relative to everything else, and it is expressed as a **navigational query to a competitor**. A searcher typing "what is my home worth zillow" cannot be intercepted by ranking. The home value funnel is a good asset. SEO is not how it gets fed.
 
-**Trap 2: "Ozaukee County real estate" does not mean real estate.** Six of the ten suggestions under that stem are `tax lookup`, `tax records`, `real estate taxes`, `tax parcel`, `tax portal`, `tax bills`. People typing that phrase are trying to find their property tax bill on the county website. A page ranking for it would capture traffic with **zero commercial value**. The same pattern holds for school district queries: `mequon thiensville school` returns ten suggestions and all ten are administrative, calendar, jobs, supply list, staff directory. Nobody searching those is buying a house.
+**Trap 2: "Ozaukee County real estate" does not mean real estate.** Six of the ten suggestions under that stem are `tax lookup`, `tax records`, `real estate taxes`, `tax parcel`, `tax portal`, `tax bills`. People typing that phrase are trying to find their property tax bill on the county website. A page ranking for it would capture traffic with **zero commercial value**.
+
+One qualification added after the SERP work, because it cuts the other way. Tax **lookup** intent is worthless, but tax **explainer** intent is not the same query, and its SERP is completely undefended: `Cedarburg WI property taxes` and `Ozaukee County property tax rate` return zero portals, zero brokerages, and zero agents in the top 12, leaving municipal sites and scrapers like ownwell and factsbycity. There are also real facts worth owning. Ozaukee County cut its rate from **$1.25 to $1.15 per $1,000 for 2026**, and Cedarburg's effective rate is **1.26% in the Ozaukee County portion versus 0.68% in the Washington County portion**, which is a genuine decision input for a buyer choosing a street. That is a legitimate, winnable, portal-free topic. It is still spring work, not winter work, because it needs a domain old enough to rank.
+
+The same pattern holds for school district queries: `mequon thiensville school` returns ten suggestions and all ten are administrative, calendar, jobs, supply list, staff directory. Nobody searching those is buying a house.
 
 ---
 
 ## 2. Who holds page one
 
-For buyer-inventory terms, the answer is total and uniform. An unfiltered search for Cedarburg homes for sale returned, in order: **RE/MAX, Zillow, Homes.com, Coldwell Banker, Shorewest, Shorewest again, Homes.com again, Coldwell Banker Realty, Redfin**. Nine of nine results were national portals or large brokerages. **Zero independent agent sites appeared at any position.**
+**Baseline: `anthonystolp.com` appeared in zero of 25 queries, across three independent engines.** Even a direct brand search for "Anthony Stolp realtor Wisconsin" returned an unrelated `anthonystoll.com` and a people-search scraper. The site is currently invisible for every term researched. That is expected at 84 days, and it is the floor everything below builds from.
 
-Method caveat: this is a search-API result set, which is a close proxy for the organic SERP but not a literal screenshot of one, and it carries no personalization or local-pack context. For a claim this lopsided, nine of nine, the proxy is good enough. For a marginal call it would not be.
+### Buyer inventory: locked, and it is structural
 
-This is structural, not incidental. These sites have the listing data, the domain authority, the crawl frequency, and a page for every city in America. Autocomplete confirms users have internalized it: `cedarburg homes for sale zillow` and `shorewest mequon homes for sale` are themselves suggested queries. Users are not searching for a page, they are searching for a **destination they already trust**.
+Brave Search (independent crawl index) top-12 organic, for `homes for sale in Cedarburg WI`:
 
-**Terms the portals do not defend.** This is the deliverable, and the list is short:
+> zillow, shorewest, redfin, coldwellbankerhomes, firstweber, coldwellbanker, trulia, homes.com, remax, powersrealty, exprealty, forsalebyowner
 
-1. **Wisconsin-specific transaction process and life-event content.** `wisconsin offer to purchase`, `wisconsin seller disclosure`, `selling a house in wisconsin`, and the situational cluster around divorce, inheritance, foreclosure, and downsizing. Portals publish generic national explainers. They do not publish Wisconsin-form-specific, Wisconsin-statute-aware content, because it does not scale to 50 states profitably. These SERPs contain law firms, the Wisconsin REALTORS Association, state agencies, and blogs, not Zillow.
+A DuckDuckGo cross-check on the same query returned **10 of 10 national portals**. A separate search-API pass returned **9 of 9** portals and large brokerages. Three independent engines, same answer.
 
-2. **Hyper-local civic and news events.** The Port Washington data center. See section 6. Portals have no mechanism to cover a local zoning referendum.
+Zillow holds **slot 1 on all five town queries**. The only local operators that break in (Powers Realty, Klapperich) do so at slot 8 or lower and are established multi-agent brokerages, not solo agents.
 
-3. **A single specific listing AJ has.** `/property/521-alta-loma` type pages, and `cedarburg open houses` which returned only three thin suggestions. Tiny volume, but a term where a real page about a real property genuinely competes.
+This is structural, not incidental. These sites have the listing data, the domain authority, the crawl frequency, and a page for every city in America. Autocomplete confirms users have internalized it: `cedarburg homes for sale zillow` and `shorewest mequon homes for sale` are themselves suggested queries. Users are not searching for a page, they are searching for **a destination they already trust**.
 
-Everything else on page one belongs to companies with a thousand times this domain's authority, permanently.
+**One crack:** `waterfront homes for sale Ozaukee County` returned only Zillow and Redfin from the entire portal set. No Realtor.com, Trulia, Homes.com, Shorewest, First Weber, or Compass anywhere in the top 12. The rest were niche lake and land verticals plus small local brokerages. It is the single buyer-inventory query with a real opening, and it is the one that matters least for a site with no IDX.
+
+### Terms the portals do not defend
+
+This is the deliverable. It is longer than I expected before seeing independent-index data.
+
+**Tier 1, portals essentially absent from the top 12:**
+
+| Query | What holds it instead |
+|---|---|
+| `Cedarburg WI property taxes` | **Zero portals, zero brokerages, zero agents.** Municipal gov sites plus low-quality scrapers (ownwell, geostat, factsbycity, countyoffice) |
+| `Ozaukee County property tax rate` | **Zero portals.** Aggregators, gov, one local news story |
+| `moving to Cedarburg WI` | **Zero portals.** Two solo agent blogs already at slots 2 and 5 |
+| `Cedarburg vs Mequon which is better` | **One portal, at slot 11.** Hudl (high school sports) and two driving-distance calculators hold real slots |
+| `Wisconsin seller disclosure requirements` | **Zero major portals.** Out-of-state content farms (listwithclever, houzeo, ibuyer) plus legal publishers |
+| `sell my house fast Port Washington WI` | **Zero portals, zero brokerages** in the top 11. Entirely cash-buyer affiliates |
+
+**Tier 2, one or two portal slots, and small local sites already proven to rank:**
+
+`best neighborhoods in Mequon WI` (one portal, three separate small agent sites ranking), `living in Grafton WI` (a Compass-affiliated small team at slot 8), `best realtor Ozaukee County` (**Zillow absent entirely**, two small independent brokerages inside the top 6), `Cedarburg historic district homes` (Wikipedia and gov own it).
+
+**Two exploitable weaknesses worth naming.** Zillow ranks for `Cedarburg historic district homes` with a page literally titled "Historic Downtown, Cedarburg WI Real Estate, **0 Homes For Sale**". Redfin holds slots via thin faceted URLs like `/amenity/two+additional+bedrooms`. Those are pages holding position on domain authority alone with near-zero relevance, which is the classic condition under which genuinely useful local content displaces them.
+
+**The ranking bar is measurable, and it is reachable.** Two ranking competitors were fetched and measured. `theizhimangroup.com/neighborhoods/cedarburg` runs roughly 2,500 to 3,000 words with census demographics, walkability scores, 20-plus local points of interest, six embedded listings, and lead forms. `brynnwollrealtor.com`, a **solo agent with no brokerage branding**, runs roughly 2,200 words with 12 headings and an FAQ block. That is the entire cost of entry. It is eight times the depth of the current 320-word city pages.
+
+### The open-SERP trap, and how to reconcile it with section 1
+
+Here is the tension this report has to resolve honestly, because the two research streams appear to contradict.
+
+Section 1 established that `moving to cedarburg`, `best neighborhoods in mequon`, and `cedarburg vs mequon` return **zero Google autocomplete suggestions**. This section establishes that those same SERPs are **wide open**, with portals absent and solo agents already ranking.
+
+Both are true, and the second is caused by the first. **A SERP is open because nothing valuable is there.** When Google is serving a high-school sports site and two driving-distance calculators for `Cedarburg vs Mequon`, that is not an underserved market, it is an index with almost nothing to rank because almost nobody asks. An open SERP with no demand behind it is an empty room, not an opportunity.
+
+Two honest qualifications in the other direction:
+
+- **An autocomplete null is not proof of zero volume.** It proves the query sits below Google's suggestion threshold. A term with 20 or 40 searches a month can be real and still never be suggested. The correct reading is "small", not "nothing".
+- **Competitors are investing there anyway.** Several solo agents have built 2,200-word pages on these exact topics. That is weak evidence someone has data I do not, and equally consistent with those agents following the same generic playbook this report is criticizing. I cannot distinguish the two without Search Console.
+
+The resulting position: these terms are **cheap spring content, not winter priorities**. They are rankable and portal-free, which is real. They are also low-volume and slow, which is why they lose to the two actions in section 10 that pay off without needing a ranking at all.
 
 ---
 
@@ -226,7 +273,7 @@ The honest summary: the fastest thing SEO can do for this site is rank a page ab
 
 ---
 
-## 6. The one thing worth doing now: the Port Washington data center
+## 6. The content play worth doing now: the Port Washington data center
 
 This is the single genuine finding that cuts against the verdict, and it is not really an SEO play, it is a local authority play that happens to rank.
 
@@ -299,6 +346,12 @@ What is left, once the folklore is stripped out, is a mechanism Google does docu
 
 The one genuinely defensible asymmetry: classic ranking rewards accumulated domain authority and link equity, which an 84-day-old domain cannot have. Citation, whatever its mechanism, cannot be purely authority-driven, because answer engines routinely cite obscure sources when those sources hold a fact that exists nowhere else. **That is the only lever available here, and it argues for original local data rather than for restating what Zillow already publishes.**
 
+### One observable proxy, and what it implies
+
+I could not observe AI Overviews on these queries directly. But there is a usable proxy: the property-tax and home-value queries each resolve to **a single crisp numeric fact**, for example the Ozaukee rate cut from $1.25 to $1.15 per $1,000 for 2026, or Cedarburg's 1.26% versus 0.68% split across two counties. Queries with one clean numeric answer are the class Google most often answers directly, whether via a snippet, a knowledge panel, or an AI Overview.
+
+The implication is not "avoid those topics". It is that if AJ publishes that content, it should be structured so that **his site is the cited source** rather than an uncredited input, and he should expect the traffic to be worth less than the citation. That reinforces the section 10 framing: publish for authority, not for sessions.
+
 ### Where the evidence is thin, stated plainly
 
 I have **no sourced position** on whether schema markup causally increases AI citation (Google explicitly says no special schema is needed, industry claims otherwise, no controlled study found), on the correlation strength between classic rankings and AI citations, or on whether entity signals matter more for AI answers than for ranking. Treat this whole section as directionally sound, not as a specification, and treat anyone selling AEO services against it as selling something undocumented.
@@ -309,19 +362,25 @@ I have **no sourced position** on whether schema markup causally increases AI ci
 
 Ranked by expected value inside a six-month horizon, which is a combination of achievability, real demand, and whether the site can serve the intent. Volume columns are **ordinal from Google Suggest**, not measured, and are labeled as such.
 
-| # | Term or cluster | Demand signal | Portal-defended? | Site can serve it? | Time to rank | Verdict |
+| # | Term or cluster | Demand signal | Portals hold it? | Site can serve it? | Time to rank | Verdict |
 |---|---|---|---|---|---|---|
-| 1 | **Port Washington data center, housing and land angle** | 10 deep suggestions on the topic, **zero on the housing angle** | **No.** News outlets only | Yes, fully | Weeks | **Build now.** Only genuinely open position |
-| 2 | **Selling an inherited house in Wisconsin** | Real, statewide | No | Yes, feeds home value funnel | 6-12 mo | **Already built. Deepen it** |
-| 3 | **Selling a house during divorce in Wisconsin** | Real, statewide | No | Yes | 6-12 mo | **Already built. Deepen it** |
-| 4 | Selling before foreclosure in Wisconsin | Real, statewide | No | Yes | 6-12 mo | Already built, keep |
-| 5 | Downsizing in Wisconsin | Real, statewide | No | Yes | 6-12 mo | Already built, keep |
-| 6 | Wisconsin Offer to Purchase, explained | 10 deep suggestions | No | Yes, educational only | 6-12 mo | Add, with care. Much of the intent is FSBO |
-| 7 | Wisconsin seller disclosure report | 6 suggestions | No | Yes, educational only | 6-12 mo | Add |
-| 8 | Specific listing addresses, `/property/[slug]` | Tiny but perfectly matched | No | Yes | Days | Keep doing this |
-| 9 | `cedarburg open houses` and town open house terms | 3 thin suggestions | No | Yes, system exists | Weeks | Low volume, near-zero cost. Keep |
+| 1 | **Port Washington data center, housing and land angle** | 10 deep suggestions on the topic, **zero on the housing angle** | **No.** News outlets only | Yes, fully | Weeks | **Build now.** Only genuinely open position with live demand |
+| 2 | **`best realtor Ozaukee County` and agent directories** | Thin as a query, but the SERP is real | **Zillow absent entirely.** FastExpert, Yelp, HomeLight, RateMyAgent own it | Yes, **off-site** | Days | **Do now.** The lever is claiming profiles, not writing pages. Does not depend on domain age |
+| 3 | **Selling an inherited house in Wisconsin** | Real, statewide | No | Yes, feeds home value funnel | 6-12 mo | **Already built at 795 words. Deepen it** |
+| 4 | **Selling a house during divorce in Wisconsin** | Real, statewide | No | Yes | 6-12 mo | **Already built. Deepen it** |
+| 5 | Selling before foreclosure in Wisconsin | Real, statewide | No | Yes | 6-12 mo | Already built, keep |
+| 6 | Downsizing in Wisconsin | Real, statewide | No | Yes | 6-12 mo | Already built, keep |
+| 7 | **Wisconsin seller disclosure requirements** | 6 suggestions | **Confirmed zero major portals.** Out-of-state content farms only | Yes, educational only | 6-12 mo | Add. Must educate, not advise, and route specifics to an attorney |
+| 8 | Wisconsin Offer to Purchase, explained | 10 deep suggestions | No | Yes, educational only | 6-12 mo | Add, with care. Much of the intent is FSBO, which is anti-agent |
+| 9 | Specific listing addresses, `/property/[slug]` | Tiny but perfectly matched | No | Yes | Days | Keep doing this |
+| 10 | **Ozaukee and Cedarburg property tax explainer** | High lookup volume, **wrong intent**, but real buyer-decision value | **Confirmed zero portals, zero agents** | Yes | 6-12 mo | Spring. Genuine content gap, weak commercial intent |
+| 11 | `waterfront homes for sale Ozaukee County` | Modest | **Only Zillow and Redfin.** No Realtor.com, Trulia, Homes.com, Shorewest | **No, needs IDX** | 6-12 mo | The one open buyer term, and the site cannot serve it |
+| 12 | `moving to Cedarburg`, `best neighborhoods in Mequon`, `living in Grafton`, `Cedarburg vs Mequon` | **Zero to near-zero autocomplete** | **No. Wide open**, solo agents already rank | Yes | 6-12 mo | **Cheap spring content, not winter work.** See the open-SERP trap in section 2 |
+| 13 | `cedarburg open houses` and town open house terms | 3 thin suggestions | No | Yes, system exists | Weeks | Low volume, near-zero cost. Keep |
 
-Terms 2 through 5 already exist and need depth and links, not new pages. **The correct move is not to build more pages. It is to build fewer, better ones.**
+Items 3 through 6 already exist and need **depth and links, not new pages**. The measured ranking bar for this county is roughly 2,200 to 3,000 words; the current life-event pages sit at 795. **The correct move is not to build more pages. It is to build fewer, deeper ones.**
+
+Item 2 deserves emphasis because it is the only row that is both winter-appropriate and independent of domain authority. Directory profiles rank on the directory's authority, not AJ's, so they work at 84 days exactly as well as at 5 years.
 
 ---
 
@@ -334,12 +393,17 @@ Explicitly, with the reason:
 | `[town] homes for sale`, all seven towns | Portals hold 9 of 9 results. Site has no IDX and cannot serve the intent. Unwinnable and unservable |
 | `[town] home value`, all seven towns | Google Suggest returns **nothing** for these. The demand does not exist |
 | `what is my home worth [town]` | **Zero suggestions.** The real query is `what is my home worth zillow`, which is navigational to a competitor |
-| `mequon realtor`, `cedarburg real estate agent`, `best realtor in ozaukee` | Two of three return **nothing**. Agent-hire search demand does not exist in this county |
-| `ozaukee county real estate` | 6 of 10 suggestions are property **tax lookup**. Commercially worthless traffic |
+| **On-site pages** targeting `mequon realtor`, `cedarburg real estate agent`, `best realtor in ozaukee` | Two of three return **nothing** in autocomplete, and the SERP is owned by review directories, not by content. **Claim the directory profiles instead**, see item 2 in section 8 |
+| `ozaukee county real estate` | 6 of 10 suggestions are property **tax lookup**. Commercially worthless traffic. Note the tax *explainer* is a different query, see section 1 |
 | `[town] school district` content | All 10 suggestions are administrative: calendar, jobs, supply list. Not buyers |
-| `moving to [town]`, `best neighborhoods in [town]`, `[town] vs [town]` | **All return zero.** The standard agent-SEO content playbook has no demand behind it here |
-| `[town] housing market`, `ozaukee county home prices` | Zero and near-zero. **The market report pipeline is an email asset, not an SEO asset** |
+| `[town] housing market`, `ozaukee county home prices` | Zero and near-zero autocomplete. **The market report pipeline is an email asset, not an SEO asset** |
+| `sell my house fast [town]` | Zero portals, but the SERP is entirely cash-buyer affiliates. Distressed intent, poor listing conversion, and competing means competing on "we buy houses" ad economics |
+| `what to expect selling a house in Wisconsin` | Zero portals, but listwithclever holds 3 slots and HomeLight 2, with heavy backlink profiles. **Harder than the other informational terms despite looking similar** |
 | Building any more templated geo pages | Compounds existing doorway-pattern risk for terms already established as unwinnable or empty |
+
+**Deprioritize rather than stop.** These are genuinely open SERPs with genuinely small demand, so they are spring content at best, and they should not be confused with the list above:
+
+`moving to [town]`, `best neighborhoods in [town]`, `[town] vs [town]`, `living in [town]`, `[town] historic district homes`, `[town] property taxes`. All return zero or near-zero autocomplete, and all have portal-free SERPs where solo agents already rank. Cheap to win, small to own. See the open-SERP trap in section 2 for why the openness is a symptom rather than an opportunity.
 
 ---
 
@@ -347,13 +411,19 @@ Explicitly, with the reason:
 
 One recommendation, with the reasoning.
 
-**Treat SEO as a spring channel. Spend winter hours elsewhere. Do exactly three small SEO things now, none of which needs a ranking to pay off.**
+**Treat SEO as a spring channel. Spend winter hours elsewhere. Do exactly four small things now, none of which needs this domain to rank.**
+
+That last clause is the filter. Every action below pays off at 84 days of domain age, which is precisely why it is on the list and why writing more city pages is not.
 
 1. **Get the link from the broker page.** Verified: exsellexperts.com/anthony-stolp/ links out to Facebook, X, LinkedIn, Instagram, and Google Maps, and to no other external site. It does not link to anthonystolp.com. It is one email, it is free, it is topically perfect, and it is the highest-value single action available. Do it this week.
 
-2. **Publish the data center housing piece.** Not for the ranking. For the drone footage, the local-news links, the reason to be the person in the county who has actually done the analysis, and the fact that the position is empty. This is the only place where original data creates something no portal or AI can source elsewhere.
+2. **Claim the agent-review directory profiles.** `best realtor Ozaukee County` is owned by FastExpert, Yelp, HomeLight, RateMyAgent, and Agent Pronto, with **Zillow absent entirely**. Those profiles rank on the directory's authority, not on AJ's, so they work today rather than in 2027. This is the highest-leverage winter SEO action available and it involves writing no pages at all. Pair it with the Google Business Profile, see the caveat below.
 
-3. **Fix the doorway exposure before it compounds.** Fourteen templated geo pages at 44% duplication, targeting terms that are either unwinnable or have zero demand, carry real downside and no upside. Either differentiate them properly or collapse them into a few substantive pages, and point buyer-inventory intent at the broker's IDX where it can actually be served. This removes a risk rather than chasing a gain. It is a decision for AJ, not a change to make unilaterally, and it should become its own issue.
+3. **Publish the data center housing piece.** Not for the ranking. For the drone footage, the local-news links, the reason to be the person in the county who has actually done the analysis, and the fact that the position is empty. This is the only place where original data creates something no portal or AI can source elsewhere.
+
+4. **Fix the doorway exposure before it compounds.** Fourteen templated geo pages at 44% duplication, targeting terms that are either unwinnable or have zero demand, carry real downside and no upside. Either differentiate them properly, and the measured bar is 2,200 to 3,000 words rather than 320, or collapse them into a few substantive pages and point buyer-inventory intent at the broker's IDX where it can actually be served. This removes a risk rather than chasing a gain. It is a decision for AJ, not a change to make unilaterally, and it should become its own issue.
+
+**Unverified but likely, and worth checking before acting on item 2.** The agent-hire SERPs are topped by Yelp, FastExpert, HomeLight, RateMyAgent, U.S. News, and Agent Pronto. That aggregator signature is the pattern Google normally pairs with a **local pack** above the fold, which would push organic results down and make the **Google Business Profile the higher-leverage asset than any on-site page**. I could not confirm this, because Google serves a JavaScript-only shell to a scraper. Confirming it takes one real browser session and would sharpen item 2 considerably.
 
 Explicitly **not** recommended: writing an `llms.txt`, adding schema for AI citation, or buying AEO services. The evidence says the first is unused, the second is disclaimed by Google itself, and the third is sold against undocumented criteria.
 
@@ -370,3 +440,5 @@ Everything else waits for spring. When spring comes, the leverage is Family C, n
 - Whether the county-level 1,114 sales figure is WRA or GMAR sourced. It appeared in reporting; the WRA December 2025 release itself publishes state and regional totals, not county detail. The order of magnitude is not in doubt.
 - Whether consolidating the geo pages would cost anything currently ranking. Search Console answers this in minutes.
 - Whether epiquerealty.com links to the domain. Unverified, search budget exhausted.
+- **AI Overviews, featured snippets, People Also Ask, and local pack presence on all 25 queries.** Unverified, because Google serves a JavaScript-only shell to a scraper and every alternative engine either rate limited or returned a challenge. This is the largest single gap in the report and it is **cheap to close with one real browser session**. It matters most for the agent-hire queries, where a local pack would change the recommendation from on-site content to Google Business Profile.
+- Whether the solo agents already ranking for `moving to Cedarburg` and `best neighborhoods in Mequon` are seeing real traffic, or are simply executing the same generic playbook this report argues against. Search Console on their side would answer it; I can only observe that they rank, not that it pays.
