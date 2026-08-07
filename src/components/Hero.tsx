@@ -112,24 +112,26 @@ function FeaturedCard({ p }: { p: PropertyRow }) {
   return (
     <Link
       href={`/property/${p.slug}`}
-      className="group relative block overflow-hidden bg-ink/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-cream"
+      className="group relative block overflow-hidden rounded-[20px] bg-ink/5 shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-cream"
     >
       {p.photo_url ? (
         // Plain img so any URL (local /public now, S3 later) renders without
         // per-host next/image config. Optimization can come with S3.
+        // object-top biases the crop toward the house rather than the lawn.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={p.photo_url}
           alt={p.address}
-          className="aspect-[4/3] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+          className="aspect-[4/3] w-full object-cover object-[center_38%] transition-transform duration-700 group-hover:scale-[1.03]"
         />
       ) : (
         <div className="aspect-[4/3] w-full" />
       )}
 
       {/* Floating label panel — the whole point of the card is to make the
-          newest result legible above the fold. */}
-      <div className="absolute left-4 top-4 max-w-[78%] bg-cream px-5 py-4 md:left-6 md:top-6">
+          newest result legible above the fold. Translucent so it reads as
+          layered over the photo rather than pasted on top of it. */}
+      <div className="absolute left-4 top-4 max-w-[78%] rounded-[10px] bg-cream/90 px-5 py-4 shadow-[0_6px_20px_-8px_rgba(26,28,28,0.35)] backdrop-blur-md md:left-6 md:top-6">
         <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-accent">
           {where}
         </p>
@@ -149,7 +151,7 @@ function FeaturedCard({ p }: { p: PropertyRow }) {
 
 function FallbackFrame() {
   return (
-    <div className="relative aspect-[4/3] w-full overflow-hidden bg-ink/5">
+    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[20px] bg-ink/5 shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)]">
       <Image
         src="/images/hero-wisco.png"
         alt="Wisconsin lakefront home at dusk, autumn foliage and lit interior"

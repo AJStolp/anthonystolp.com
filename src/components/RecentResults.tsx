@@ -32,7 +32,9 @@ function meta(p: PropertyRow): string {
 
 function Photo({ p, className }: { p: PropertyRow; className: string }) {
   return (
-    <div className={`relative overflow-hidden bg-ink/5 ${className}`}>
+    <div
+      className={`relative overflow-hidden rounded-[20px] bg-ink/5 shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 group-hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] ${className}`}
+    >
       {p.photo_url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -43,7 +45,7 @@ function Photo({ p, className }: { p: PropertyRow; className: string }) {
       ) : (
         <div className="h-full w-full" />
       )}
-      <span className="absolute left-4 top-4 bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-cream">
+      <span className="absolute left-4 top-4 rounded-[10px] bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-cream">
         {STATUS_LABEL[p.status] ?? p.status}
       </span>
     </div>
