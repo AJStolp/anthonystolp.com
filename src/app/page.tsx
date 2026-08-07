@@ -6,9 +6,10 @@ import { Approach } from "@/components/Approach";
 import { MarketReportSubscribe } from "@/components/MarketReportSubscribe";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
+import { getRecentResults } from "@/lib/properties";
 
-// RecentResults reads properties from Supabase, so the home page is now ISR
-// rather than fully static: a status flip in /admin shows up within the window.
+// The hero card reads properties from Supabase, so the home page is ISR rather
+// than fully static: a status flip in /admin shows up within the window.
 export const revalidate = 300;
 
 const SITE_URL = "https://anthonystolp.com";
@@ -67,7 +68,11 @@ const jsonLd = {
   ],
 };
 
-export default function Home() {
+export default async function Home() {
+  // One query feeds both surfaces: the hero features the newest result and the
+  // band shows the rest, so the same listing never appears twice.
+  const [featured, ...rest] = await getRecentResults(4);
+
   return (
     <>
       <a href="#main" className="skip-link">
@@ -84,9 +89,9 @@ export default function Home() {
           }}
         />
         <Nav />
-        <Hero />
+        <Hero featured={featured ?? null} />
         <TrustStrip />
-        <RecentResults />
+        <RecentResults results={rest} />
         <Approach />
         <MarketReportSubscribe />
         <LeadForm />

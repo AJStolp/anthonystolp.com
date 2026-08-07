@@ -1,10 +1,5 @@
 import Link from "next/link";
-import { getRecentResults, type PropertyRow } from "@/lib/properties";
-
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Sale Pending",
-  sold: "Sold",
-};
+import { STATUS_LABEL, type PropertyRow } from "@/lib/properties";
 
 function formatPrice(n: number | null): string | null {
   if (n == null) return null;
@@ -48,15 +43,16 @@ function Photo({ p, className }: { p: PropertyRow; className: string }) {
       ) : (
         <div className="h-full w-full" />
       )}
-      <span className="absolute left-4 top-4 bg-ink px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-cream">
+      <span className="absolute left-4 top-4 bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-cream">
         {STATUS_LABEL[p.status] ?? p.status}
       </span>
     </div>
   );
 }
 
-export async function RecentResults() {
-  const results = await getRecentResults(3);
+// Presentational: the home page fetches once and hands the hero the newest
+// result, so this band renders only what the hero is not already showing.
+export function RecentResults({ results }: { results: PropertyRow[] }) {
   if (results.length === 0) return null;
 
   const single = results.length === 1;

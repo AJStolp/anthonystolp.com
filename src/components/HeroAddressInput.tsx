@@ -13,13 +13,7 @@ import { Honeypot } from "@/components/Honeypot";
 
 const DEBOUNCE_MS = 220;
 
-type Props = {
-  // When true, the surrounding hero is dark — restyle non-input affordances
-  // (error text, mapbox-offline fallback) so they remain legible.
-  onDark?: boolean;
-};
-
-export function HeroAddressInput({ onDark = false }: Props) {
+export function HeroAddressInput() {
   const router = useRouter();
   const inputId = useId();
   const listboxId = useId();
@@ -145,9 +139,7 @@ export function HeroAddressInput({ onDark = false }: Props) {
   if (!isMapboxConfigured()) {
     return (
       <div className="mt-8 max-w-xl">
-        <p
-          className={`text-[12px] ${onDark ? "text-cream/85" : "text-accent"}`}
-        >
+        <p className="text-[12px] text-accent">
           Address lookup is offline. Use the home-value form directly.
         </p>
       </div>
@@ -229,14 +221,7 @@ export function HeroAddressInput({ onDark = false }: Props) {
       </div>
 
       {error ? (
-        <p
-          role="alert"
-          className={`mt-3 text-[12px] tracking-[0.04em] ${
-            onDark
-              ? "rounded bg-ink/70 px-3 py-1.5 text-cream backdrop-blur-sm"
-              : "text-accent"
-          }`}
-        >
+        <p role="alert" className="mt-3 text-[12px] tracking-[0.04em] text-accent">
           {error}
         </p>
       ) : null}
