@@ -17,6 +17,13 @@ export type PropertyStatus = z.infer<typeof PropertyStatus>;
 // page stays up as proof and swaps its open-house sign-in for a sell CTA.
 export const SOLD_STATUSES: readonly PropertyStatus[] = ["pending", "sold"];
 
+// Public-facing label for a result status. Shared by the hero featured card
+// and the recent-results band, which must agree on the wording.
+export const STATUS_LABEL: Record<string, string> = {
+  pending: "Sale Pending",
+  sold: "Sold",
+};
+
 export const PropertyInput = z.object({
   slug: z
     .string()
