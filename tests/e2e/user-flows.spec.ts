@@ -4,28 +4,56 @@ import { test, expect } from "@playwright/test";
 const STAMP = `pw-${Date.now()}`;
 const email = (suffix: string) => `${STAMP}+${suffix}@anthonystolp.com`;
 
+// Set by tests/e2e/global-setup.ts, which probes the running server rather
+// than trusting .env.local — the flag is inlined at build time, so only the
+// server can say whether the home-value funnel is actually live.
+const HOME_VALUE_LIVE = process.env.HOME_VALUE_LIVE === "true";
+const NEEDS_HOME_VALUE =
+  "home-value funnel is flagged off on this server (NEXT_PUBLIC_HOME_VALUE_ENABLED)";
+
 test.describe("Anonymous visitor — home page", () => {
   test("hero renders + nav + key copy", async ({ page, viewport }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /what is your home worth/i })).toBeVisible();
+    // The hero headline swaps with the flag; both branches must render.
+    await expect(
+      page.getByRole("heading", {
+        name: HOME_VALUE_LIVE
+          ? /what is your home worth/i
+          : /your partner for wisconsin real estate/i,
+      }),
+    ).toBeVisible();
     // "Ozaukee County" appears in hero eyebrow AND TrustStrip — first() is intentional.
     await expect(page.getByText(/Ozaukee County/i).first()).toBeVisible();
     await expect(page.getByText(/WI Real Estate License/i)).toBeVisible();
     // Nav: desktop shows links inline; mobile collapses them behind a hamburger.
+    // The Sell link is always labelled "Sell" — only its href moves with the
+    // flag — so match the label, not the destination.
     const isDesktop = (viewport?.width ?? 0) >= 768;
     if (isDesktop) {
-      await expect(page.getByRole("link", { name: /home value/i }).first()).toBeVisible();
+      await expect(page.getByRole("link", { name: /^sell$/i }).first()).toBeVisible();
       await expect(page.getByRole("link", { name: /about/i }).first()).toBeVisible();
     } else {
       await expect(page.getByRole("button", { name: /toggle menu/i })).toBeVisible();
       // Open it and verify the links are then reachable.
       await page.getByRole("button", { name: /toggle menu/i }).click();
-      await expect(page.getByRole("link", { name: /home value/i }).first()).toBeVisible();
+      await expect(page.getByRole("link", { name: /^sell$/i }).first()).toBeVisible();
       await expect(page.getByRole("link", { name: /about/i }).first()).toBeVisible();
     }
   });
 
+  test("hero featured card links to the newest result", async ({ page }) => {
+    await page.goto("/");
+    const card = page.locator('a[href^="/property/"]').first();
+    await expect(card).toBeVisible();
+    // The floating panel carries the status and the call to action.
+    await expect(card.getByText(/sale pending|sold/i).first()).toBeVisible();
+    await expect(card.getByText(/see the listing/i)).toBeVisible();
+    await card.click();
+    await page.waitForURL(/\/property\//);
+  });
+
   test("hero address autocomplete → /home-value", async ({ page }) => {
+    test.skip(!HOME_VALUE_LIVE, NEEDS_HOME_VALUE);
     test.setTimeout(30_000);
     await page.goto("/");
 
@@ -128,6 +156,7 @@ test.describe("Funnel submissions (real DB writes)", () => {
 
 test.describe("Niche landing pages", () => {
   test("sell-intent niche CTA → /home-value with UTM", async ({ page }) => {
+    test.skip(!HOME_VALUE_LIVE, NEEDS_HOME_VALUE);
     await page.goto("/search/cedarburg-home-value");
     await expect(page.getByRole("heading", { name: /what is your cedarburg home worth/i })).toBeVisible();
     await page.getByRole("link", { name: /get my home value/i }).click();
@@ -157,6 +186,7 @@ test.describe("Static pages", () => {
   });
 
   test("/home-value bndryiq iframe is present", async ({ page }) => {
+    test.skip(!HOME_VALUE_LIVE, NEEDS_HOME_VALUE);
     await page.goto("/home-value");
     const frame = page.locator('iframe[title*="home value" i], iframe[src*="bndryiq"]');
     await expect(frame).toHaveAttribute("src", /bndryiq/, { timeout: 12_000 });
@@ -165,10 +195,15 @@ test.describe("Static pages", () => {
 
 test.describe("Admin", () => {
   test("/admin redirects to login, login lands on /admin/leads", async ({ page }) => {
+    // Never hardcode the admin password here — this repo is public. It comes
+    // from ADMIN_PASSWORD, loaded by tests/e2e/global-setup.ts.
+    const password = process.env.ADMIN_PASSWORD;
+    test.skip(!password, "ADMIN_PASSWORD is not set in the environment");
+
     await page.goto("/admin");
     await page.waitForURL(/\/admin\/login/);
     await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
-    await page.getByLabel(/password/i).fill("TreeWalker!0420");
+    await page.getByLabel(/password/i).fill(password!);
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL(/\/admin\/leads/);
     await expect(page.getByRole("heading", { name: /^leads$/i })).toBeVisible();
