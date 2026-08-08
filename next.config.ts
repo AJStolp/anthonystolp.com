@@ -16,7 +16,11 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://images.unsplash.com https://api.mapbox.com https://www.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://connect.facebook.net",
   "font-src 'self' data:",
-  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://analytics.ahrefs.com https://connect.facebook.net https://www.facebook.com https://api.mapbox.com https://*.supabase.co",
+  // GA4 does not send everything to google-analytics.com. It also beacons
+  // page_view and conversion hits to analytics.google.com, the doubleclick
+  // stats host, and google.com/g/collect. Those three were being blocked,
+  // which is silent: no error surfaces anywhere except the browser console.
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.google.com https://www.googletagmanager.com https://analytics.ahrefs.com https://connect.facebook.net https://www.facebook.com https://api.mapbox.com https://*.supabase.co",
   "frame-src 'self' https://www.facebook.com https://td.doubleclick.net",
 ].join("; ");
 
