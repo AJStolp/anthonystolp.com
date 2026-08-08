@@ -195,10 +195,15 @@ test.describe("Static pages", () => {
 
 test.describe("Admin", () => {
   test("/admin redirects to login, login lands on /admin/leads", async ({ page }) => {
+    // Never hardcode the admin password here — this repo is public. It comes
+    // from ADMIN_PASSWORD, loaded by tests/e2e/global-setup.ts.
+    const password = process.env.ADMIN_PASSWORD;
+    test.skip(!password, "ADMIN_PASSWORD is not set in the environment");
+
     await page.goto("/admin");
     await page.waitForURL(/\/admin\/login/);
     await expect(page.getByRole("heading", { name: /sign in/i })).toBeVisible();
-    await page.getByLabel(/password/i).fill("TreeWalker!0420");
+    await page.getByLabel(/password/i).fill(password!);
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL(/\/admin\/leads/);
     await expect(page.getByRole("heading", { name: /^leads$/i })).toBeVisible();
