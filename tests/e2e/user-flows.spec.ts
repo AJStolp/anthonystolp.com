@@ -227,7 +227,11 @@ test.describe("Paid-click attribution", () => {
       })
       .toBe(true);
   }
-  async function submitContactAndCaptureBody(page: import("@playwright/test").Page) {
+  // Stub /api/lead and hand back the POST body the surface actually sent.
+  async function captureLeadPost(
+    page: import("@playwright/test").Page,
+    submit: () => Promise<void>,
+  ) {
     let body: Record<string, unknown> = {};
     await page.route("**/api/lead", async (route) => {
       body = JSON.parse(route.request().postData() ?? "{}");
@@ -237,7 +241,11 @@ test.describe("Paid-click attribution", () => {
         body: JSON.stringify({ ok: true, leadId: "00000000-0000-0000-0000-000000000000" }),
       });
     });
+    await submit();
+    return body;
+  }
 
+  async function submitContact(page: import("@playwright/test").Page) {
     const contact = page.locator("section#contact");
     await contact.scrollIntoViewIfNeeded();
     await contact.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
@@ -247,8 +255,10 @@ test.describe("Paid-click attribution", () => {
     await expect(contact.getByRole("heading", { name: /got it/i })).toBeVisible({
       timeout: 15_000,
     });
-    return body;
   }
+
+  const submitContactAndCaptureBody = (page: import("@playwright/test").Page) =>
+    captureLeadPost(page, () => submitContact(page));
 
   test("gclid survives navigation away from the landing page", async ({ page }) => {
     await landOnAd(page, "/?gclid=pw-click-1&utm_source=google&utm_medium=cpc");
@@ -260,6 +270,7 @@ test.describe("Paid-click attribution", () => {
     const body = await submitContactAndCaptureBody(page);
     expect(body.click).toMatchObject({ gclid: "pw-click-1" });
     expect(body.utm).toMatchObject({ source: "google", medium: "cpc" });
+    expect(body.visitorId).toBeTruthy();
     // The landing page is preserved, not overwritten by the converting page.
     expect(body.landingPage).toContain("gclid=pw-click-1");
   });
@@ -288,5 +299,83 @@ test.describe("Paid-click attribution", () => {
     expect((await submitContactAndCaptureBody(page)).click).toMatchObject({
       msclkid: "pw-bing-1",
     });
+  });
+
+  // Per-surface coverage. The helper lives in one file, but each funnel builds
+  // its own POST body, so each has to be checked separately — #54 was exactly
+  // this class of bug, where three surfaces silently dropped visitorId.
+
+  test("market-report subscribe carries click id + visitorId", async ({ page }) => {
+    await landOnAd(page, "/?gclid=pw-surface-mr");
+    await page.goto("/about");
+    await page.goto("/");
+
+    const body = await captureLeadPost(page, async () => {
+      const section = page.locator("section#market-report");
+      await section.scrollIntoViewIfNeeded();
+      await section.locator("#mr-email").fill(email("surface-mr"));
+      await section.locator("#mr-zip").selectOption("53012");
+      await section.locator("#mr-terms").check();
+      await section.getByRole("button", { name: /send me the report/i }).click();
+      await expect(
+        page.getByRole("heading", { name: /you are on the list/i }),
+      ).toBeVisible({ timeout: 15_000 });
+    });
+    expect(body.click).toMatchObject({ gclid: "pw-surface-mr" });
+    expect(body.visitorId).toBeTruthy();
+  });
+
+  test("SearchGate carries click id + visitorId", async ({ page }) => {
+    await landOnAd(page, "/?gclid=pw-surface-sg");
+    await page.goto("/about");
+    await page.goto("/");
+    // Submitting navigates off-site; stop that so the test stays local.
+    await page.route("https://exsellexperts.com/**", (route) => route.abort());
+
+    const body = await captureLeadPost(page, async () => {
+      await page.getByRole("button", { name: /browse active listings/i }).click();
+      const modal = page.getByRole("dialog");
+      await expect(modal).toBeVisible();
+      await modal.getByLabel(/^email$/i).fill(email("surface-sg"));
+      await modal.getByLabel(/^timeframe$/i).selectOption("1-3mo");
+      await modal.getByLabel(/i agree to the/i).check();
+      // The page unloads on success, so wait for the request rather than a
+      // success state that may never paint.
+      const posted = page.waitForRequest(
+        (r) => r.url().endsWith("/api/lead") && r.method() === "POST",
+        { timeout: 10_000 },
+      );
+      await modal.getByRole("button", { name: /see active listings/i }).click();
+      await posted;
+    });
+    expect(body.click).toMatchObject({ gclid: "pw-surface-sg" });
+    expect(body.visitorId).toBeTruthy();
+  });
+
+  test("open-house sign-in carries click id + visitorId", async ({ page }) => {
+    await landOnAd(page, "/?gclid=pw-surface-oh");
+    await page.goto("/property/521-alta-loma");
+
+    // The sign-in form only renders for coming_soon/active listings; pending and
+    // sold swap it for a sell CTA. With no active listing in the table there is
+    // nothing to sign into, so this surface stays honestly unproven rather than
+    // being faked with a throwaway listing on a live site.
+    const signIn = page.getByRole("button", { name: /^sign in$/i });
+    test.skip(
+      (await signIn.count()) === 0,
+      "no active listing on the site to sign in to",
+    );
+
+    const body = await captureLeadPost(page, async () => {
+      await page.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
+      await page.getByLabel(/^email$/i).fill(email("surface-oh"));
+      await page.getByLabel(/i agree to the/i).check();
+      await signIn.click();
+      await expect(
+        page.getByRole("heading", { name: /thanks for stopping by/i }),
+      ).toBeVisible({ timeout: 15_000 });
+    });
+    expect(body.click).toMatchObject({ gclid: "pw-surface-oh" });
+    expect(body.visitorId).toBeTruthy();
   });
 });
