@@ -1,11 +1,18 @@
-// Marketing attribution for lead-capture forms. Returns a payload that mirrors
-// the shape /api/lead expects, so the caller can spread it directly into a
-// fetch body.
+// Identity and marketing attribution for lead-capture forms. Returns a payload
+// that mirrors the shape /api/lead expects, so the caller can spread it
+// directly into a fetch body.
+//
+// visitorId rides along deliberately. /api/lead only backfills a lead's earlier
+// tracking_events when the payload carries one, and three funnels used to
+// forget it (see #54). Returning it here means any surface that spreads
+// attribution is stitched, and a new funnel cannot silently omit it.
 //
 // Attribution is persisted to a cookie on first touch rather than read from the
 // live URL at form time. A visitor who lands on /?gclid=… and then navigates
 // before converting has no query string left by the time the form mounts, so
 // reading window.location there loses the click entirely.
+
+import { getOrCreateVisitorId } from "./visitor";
 
 const COOKIE_NAME = "anthonystolp_attr";
 // Google drops an offline conversion uploaded more than 90 days after the
@@ -39,6 +46,7 @@ export type Attribution = {
   click?: ClickIds;
   referrer?: string;
   landingPage?: string;
+  visitorId?: string;
 };
 
 // Called once per page load from TrackingInit. Writes the cookie only when this
@@ -66,6 +74,9 @@ export function captureAttribution(): Attribution {
     click: fromUrl.click ?? stored?.click,
     referrer: stored?.referrer ?? (document.referrer || undefined),
     landingPage: stored?.landingPage ?? window.location.href,
+    // Minting rather than reading: TrackingInit has already run by form time,
+    // so this is virtually always a read, but it must never come back empty.
+    visitorId: getOrCreateVisitorId(),
   };
 }
 
