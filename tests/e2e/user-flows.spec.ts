@@ -211,3 +211,82 @@ test.describe("Admin", () => {
     await expect(page.getByRole("link", { name: /^reports$/i })).toBeVisible();
   });
 });
+
+test.describe("Paid-click attribution", () => {
+  // These assert the client payload only: /api/lead is stubbed so the suite can
+  // exercise the ad landing path repeatedly without writing rows or sending mail.
+
+  // page.goto resolves on the load event, which can precede hydration — and the
+  // cookie is written by an effect. Wait for the write itself rather than the
+  // navigation, or a cold dev-server compile races the assertion.
+  async function landOnAd(page: import("@playwright/test").Page, url: string) {
+    await page.goto(url);
+    await expect
+      .poll(() => page.evaluate(() => document.cookie.includes("anthonystolp_attr")), {
+        timeout: 15_000,
+      })
+      .toBe(true);
+  }
+  async function submitContactAndCaptureBody(page: import("@playwright/test").Page) {
+    let body: Record<string, unknown> = {};
+    await page.route("**/api/lead", async (route) => {
+      body = JSON.parse(route.request().postData() ?? "{}");
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true, leadId: "00000000-0000-0000-0000-000000000000" }),
+      });
+    });
+
+    const contact = page.locator("section#contact");
+    await contact.scrollIntoViewIfNeeded();
+    await contact.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
+    await contact.getByLabel(/^email$/i).fill(email("click"));
+    await contact.getByLabel(/i agree to the/i).check();
+    await contact.getByRole("button", { name: /^send$/i }).click();
+    await expect(contact.getByRole("heading", { name: /got it/i })).toBeVisible({
+      timeout: 15_000,
+    });
+    return body;
+  }
+
+  test("gclid survives navigation away from the landing page", async ({ page }) => {
+    await landOnAd(page, "/?gclid=pw-click-1&utm_source=google&utm_medium=cpc");
+    // Leave the landing page: the query string is gone from here on, which is
+    // exactly the case that used to drop attribution entirely.
+    await page.goto("/about");
+    await page.goto("/#contact");
+
+    const body = await submitContactAndCaptureBody(page);
+    expect(body.click).toMatchObject({ gclid: "pw-click-1" });
+    expect(body.utm).toMatchObject({ source: "google", medium: "cpc" });
+    // The landing page is preserved, not overwritten by the converting page.
+    expect(body.landingPage).toContain("gclid=pw-click-1");
+  });
+
+  test("a later clean page load does not clear the stored click", async ({ page }) => {
+    await landOnAd(page, "/?gclid=pw-click-2");
+    await page.goto("/");
+
+    const body = await submitContactAndCaptureBody(page);
+    expect(body.click).toMatchObject({ gclid: "pw-click-2" });
+  });
+
+  test("a newer click overwrites the stored one", async ({ page }) => {
+    await landOnAd(page, "/?gclid=pw-click-old&utm_campaign=old");
+    await landOnAd(page, "/?gclid=pw-click-new&utm_campaign=new");
+
+    const body = await submitContactAndCaptureBody(page);
+    // Last touch: Google credits the most recent click, so the stored id yields.
+    expect(body.click).toMatchObject({ gclid: "pw-click-new" });
+    expect(body.utm).toMatchObject({ campaign: "new" });
+  });
+
+  test("non-Google click ids are captured too", async ({ page }) => {
+    await landOnAd(page, "/?msclkid=pw-bing-1");
+    await page.goto("/#contact");
+    expect((await submitContactAndCaptureBody(page)).click).toMatchObject({
+      msclkid: "pw-bing-1",
+    });
+  });
+});

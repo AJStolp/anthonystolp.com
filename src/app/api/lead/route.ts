@@ -25,6 +25,21 @@ const utmSchema = z
   })
   .optional();
 
+// Paid-click identifiers stamped on the landing URL by the ad platform. Google
+// sends wbraid/gbraid instead of gclid on iOS-privacy traffic, so all three are
+// carried separately. clickAt is when the click was first seen: Google drops an
+// offline conversion uploaded more than 90 days after the click.
+const clickSchema = z
+  .object({
+    gclid: z.string().max(256).optional(),
+    wbraid: z.string().max(256).optional(),
+    gbraid: z.string().max(256).optional(),
+    msclkid: z.string().max(256).optional(),
+    fbclid: z.string().max(256).optional(),
+    clickAt: z.string().datetime().optional(),
+  })
+  .optional();
+
 const schema = z.object({
   // Pass leadId to update an existing row (used by /home-value step 2).
   leadId: z.string().uuid().optional(),
@@ -79,6 +94,7 @@ const schema = z.object({
 
   // Attribution / context
   utm: utmSchema,
+  click: clickSchema,
   referrer: z.string().max(2048).optional(),
   landingPage: z.string().max(2048).optional(),
 });
@@ -286,6 +302,12 @@ async function persistLead(
     utm_campaign: lead.utm?.campaign ?? null,
     utm_term: lead.utm?.term ?? null,
     utm_content: lead.utm?.content ?? null,
+    gclid: lead.click?.gclid ?? null,
+    wbraid: lead.click?.wbraid ?? null,
+    gbraid: lead.click?.gbraid ?? null,
+    msclkid: lead.click?.msclkid ?? null,
+    fbclid: lead.click?.fbclid ?? null,
+    click_at: lead.click?.clickAt ?? null,
     referrer: lead.referrer ?? null,
     landing_page: lead.landingPage ?? null,
     user_agent: ctx.userAgent ?? null,
@@ -363,6 +385,10 @@ async function sendNotificationEmail(lead: LeadInput): Promise<boolean> {
   rows.push(["SMS opt-in", lead.smsConsent ? "Yes" : "No"]);
   if (lead.utm?.source) rows.push(["UTM source", lead.utm.source]);
   if (lead.utm?.campaign) rows.push(["UTM campaign", lead.utm.campaign]);
+  // Name the platform alongside the id — a bare click id says nothing about
+  // which network sent it.
+  const click = Object.entries(lead.click ?? {}).find(([k, v]) => k !== "clickAt" && v);
+  if (click) rows.push(["Paid click", `${click[0]}=${click[1]}`]);
   if (lead.referrer) rows.push(["Referrer", lead.referrer]);
 
   const text = [
