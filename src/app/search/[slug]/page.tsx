@@ -249,10 +249,8 @@ export default async function NichePage({ params }: { params: RouteParams }) {
       areaServed: page.geo ?? "Southeast Wisconsin",
       address: {
         "@type": "PostalAddress",
-        streetAddress: "W193N10980 Kleinmann Dr",
-        addressLocality: "Germantown",
+        addressLocality: "Cedarburg",
         addressRegion: "WI",
-        postalCode: "53022",
         addressCountry: "US",
       },
       parentOrganization: {
