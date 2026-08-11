@@ -32,7 +32,7 @@ const jsonLd = {
       },
       address: {
         "@type": "PostalAddress",
-        addressLocality: "Germantown",
+        addressLocality: "Cedarburg",
         addressRegion: "WI",
         addressCountry: "US",
       },
@@ -53,7 +53,13 @@ const jsonLd = {
         identifier: "114204-94",
       },
       knowsLanguage: "en",
-      sameAs: ["https://unchonk.com", "https://polarlightsimaging.com"],
+      // Entity corroboration only: these must be real-estate identities for the
+      // same person, or they tell the knowledge graph AJ is a different business.
+      // Add the Google Business Profile and Zillow/Realtor.com URLs as claimed.
+      sameAs: [
+        "https://exsellexperts.com/anthony-stolp/",
+        "https://www.homes.com/real-estate-agents/anthony-stolp/kq5sqyc/",
+      ],
     },
     {
       "@type": "WebSite",
