@@ -34,7 +34,7 @@ export default async function LeadsPage({
   let query = supabase
     .from("funnel_leads")
     .select(
-      "id,source,funnel_step,status,name,email,phone,address,timeframe,intent,message,notes,utm_source,utm_campaign,ai_draft,created_at,status_changed_at",
+      "id,source,funnel_step,status,name,email,phone,address,timeframe,intent,message,notes,utm_source,utm_campaign,gclid,wbraid,gbraid,msclkid,fbclid,ai_draft,created_at,status_changed_at",
     )
     .order("created_at", { ascending: false })
     .limit(100);

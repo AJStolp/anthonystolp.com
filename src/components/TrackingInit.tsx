@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { persistAttribution } from "@/lib/attribution";
 import { track } from "@/lib/track";
 import { getOrCreateVisitorId } from "@/lib/visitor";
 
@@ -16,6 +17,9 @@ export function TrackingInit() {
 
   useEffect(() => {
     getOrCreateVisitorId();
+    // Runs before the page_view below, so an ad click is banked even if the
+    // visitor navigates away from the landing page before converting.
+    persistAttribution();
   }, []);
 
   useEffect(() => {

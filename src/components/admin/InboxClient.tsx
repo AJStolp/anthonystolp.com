@@ -17,6 +17,11 @@ export type LeadRow = {
   notes: string | null;
   utm_source: string | null;
   utm_campaign: string | null;
+  gclid: string | null;
+  wbraid: string | null;
+  gbraid: string | null;
+  msclkid: string | null;
+  fbclid: string | null;
   ai_draft: string | null;
   created_at: string;
   status_changed_at: string | null;
@@ -140,6 +145,17 @@ function LeadCard({
 
   const created = new Date(lead.created_at);
   const relative = relativeTime(created);
+  // Only one click id is ever set per lead, but which one depends on the
+  // network and (for Google) whether the click came from iOS-privacy traffic.
+  const paidClick = (
+    [
+      ["gclid", lead.gclid],
+      ["wbraid", lead.wbraid],
+      ["gbraid", lead.gbraid],
+      ["msclkid", lead.msclkid],
+      ["fbclid", lead.fbclid],
+    ] as const
+  ).find(([, value]) => value);
 
   return (
     <li className="border border-ink/10 bg-cream-deep/30 p-5 md:p-6">
@@ -263,6 +279,11 @@ function LeadCard({
             )}
             {lead.utm_campaign && (
               <Meta label="UTM campaign">{lead.utm_campaign}</Meta>
+            )}
+            {paidClick && (
+              <Meta label="Paid click">
+                <span className="break-all">{`${paidClick[0]}=${paidClick[1]}`}</span>
+              </Meta>
             )}
             <Meta label="Submitted">{created.toLocaleString()}</Meta>
           </dl>
