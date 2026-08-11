@@ -2,13 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SearchGate } from "@/components/SearchGate";
 import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
-
-type Theme = "ink" | "cream";
 
 const SEARCH_REDIRECT_URL =
   "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=search-cta";
@@ -17,52 +15,54 @@ const services: {
   n: string;
   word: string;
   short: string;
-  body: string;
+  points: string[];
+  cta: string;
   image: string;
   href: string;
-  theme: Theme;
 }[] = [
   {
     n: "01",
     word: "Buy",
     short: "Buy without overpaying.",
-    body:
-      "Inspections, appraisal, negotiation. I take care of the heavy lifting so you can focus on the move.",
+    points: [
+      "Inspection coordination",
+      "Appraisal and financing timeline",
+      "Offer strategy and negotiation",
+    ],
+    cta: "Learn more",
     image: "/images/services/buy.webp",
     href: "/buy",
-    theme: "cream",
   },
   {
     n: "02",
     word: "Sell",
     short: "Sell on your terms.",
-    body:
-      "Honest pricing, real staging, and photography that actually sells. A process built to bring the right buyer to your door faster.",
+    points: [
+      "Pricing built on local comps",
+      "Staging and prep guidance",
+      "Photography that sells",
+    ],
+    cta: HOME_VALUE_ENABLED ? "Get your value" : "Learn more",
     image: "/images/services/home.jpeg",
     href: HOME_VALUE_ENABLED ? "/home-value" : SELL_FALLBACK_HREF,
-    theme: "ink",
   },
   {
     n: "03",
     word: "Search",
     short: "Find the one that fits.",
-    body:
-      "Every active listing across Greater Milwaukee, in one place. Filter, save, and come back when something catches your eye.",
+    points: [
+      "Every active MLS listing",
+      "Filter by town, price, and beds",
+      "Save the ones you like",
+    ],
+    cta: "Browse listings",
     image: "/images/services/aerial.jpeg",
     href: SEARCH_REDIRECT_URL,
-    theme: "cream",
   },
 ];
 
-// Cream and ink as space-separated RGB triplets (for use inside rgb(... / alpha))
-const CREAM_RGB = "250 248 242";
-const INK_RGB = "26 28 28";
-
 export function Approach() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const blindRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const backdropRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [searchGateOpen, setSearchGateOpen] = useState(false);
 
   useEffect(() => {
@@ -70,82 +70,21 @@ export function Approach() {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      gsap.from(".svc-fade", {
-        y: 40,
-        opacity: 0,
-        duration: 1.0,
-        ease: "expo.out",
-        stagger: 0.1,
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
+      gsap.fromTo(
+        ".svc-fade",
+        { y: 32, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.9,
+          ease: "expo.out",
+          stagger: 0.09,
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top 75%",
+          },
         },
-      });
-
-      // All blinds start closed; all backdrops start hidden.
-      blindRefs.current.forEach((blind) => {
-        if (blind) gsap.set(blind, { scaleY: 1, transformOrigin: "top" });
-      });
-      backdropRefs.current.forEach((bd) => {
-        if (bd) gsap.set(bd, { opacity: 0 });
-      });
-      // Initial text color = whatever each inactive row needs for contrast.
-      rowRefs.current.forEach((row, i) => {
-        if (!row) return;
-        const isInk = services[i].theme === "ink";
-        row.style.setProperty("--row-text-rgb", isInk ? CREAM_RGB : INK_RGB);
-      });
-
-      // Single coordinator: the row containing the viewport center is "active".
-      // Active row blind opens + dark alpha backdrop fades in; text flips cream.
-      let prevActive = -2;
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: "top bottom",
-        end: "bottom top",
-        onUpdate: () => {
-          const vCenter = window.innerHeight / 2;
-          let activeIdx = -1;
-          rowRefs.current.forEach((row, i) => {
-            if (!row) return;
-            const r = row.getBoundingClientRect();
-            if (r.top <= vCenter && r.bottom >= vCenter) activeIdx = i;
-          });
-          if (activeIdx === prevActive) return;
-          prevActive = activeIdx;
-          rowRefs.current.forEach((row, i) => {
-            if (!row) return;
-            const isActive = i === activeIdx;
-            const isInk = services[i].theme === "ink";
-
-            // Text color: active = always cream (over dark backdrop); inactive = contrasts with blind
-            const useInkText = !isActive && !isInk;
-            row.style.setProperty(
-              "--row-text-rgb",
-              useInkText ? INK_RGB : CREAM_RGB,
-            );
-
-            const blind = blindRefs.current[i];
-            if (blind) {
-              gsap.to(blind, {
-                scaleY: isActive ? 0 : 1,
-                duration: 0.55,
-                ease: "power2.out",
-                overwrite: true,
-              });
-            }
-            const backdrop = backdropRefs.current[i];
-            if (backdrop) {
-              gsap.to(backdrop, {
-                opacity: isActive ? 1 : 0,
-                duration: 0.55,
-                ease: "power2.out",
-                overwrite: true,
-              });
-            }
-          });
-        },
-      });
+      );
     }, sectionRef);
 
     return () => ctx.revert();
@@ -156,120 +95,100 @@ export function Approach() {
       id="approach"
       ref={sectionRef}
       aria-labelledby="approach-heading"
-      className="relative w-full bg-cream text-ink"
+      className="border-b border-ink/10 bg-cream"
     >
-      <h2 id="approach-heading" className="sr-only">
-        How I work with buyers and sellers
-      </h2>
-      {/* Service rows — alternating ink/cream themed blinds */}
-      <div>
-        {services.map((s, i) => {
-          const isInk = s.theme === "ink";
-          const isExternal = s.href.startsWith("http");
-          const isSearchGate = s.word === "Search";
-          return (
-          <div
-            key={s.word}
-            ref={(el) => {
-              rowRefs.current[i] = el;
-            }}
-            className="relative min-h-[520px] overflow-hidden md:min-h-[640px]"
-          >
-            {/* Background image — spans full row width */}
-            <div className="pointer-events-none absolute inset-0">
-              <Image
-                src={s.image}
-                alt=""
-                fill
-                sizes="100vw"
-                className="object-cover opacity-65"
-              />
-            </div>
+      <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
+        <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/55">
+          How I work
+        </p>
+        <h2
+          id="approach-heading"
+          className="mt-3 max-w-xl font-display text-[clamp(1.75rem,3vw,2.5rem)] font-semibold leading-[1.15] tracking-[-0.02em]"
+        >
+          Three ways to start.
+        </h2>
 
-            {/* Blind — color set by row's theme; retracts when row is active */}
-            <div
-              ref={(el) => {
-                blindRefs.current[i] = el;
-              }}
-              aria-hidden
-              className={`pointer-events-none absolute inset-0 will-change-transform ${
-                isInk ? "bg-ink" : "bg-cream"
-              }`}
-            />
-
-            {/* Content — text color flips via --row-text-rgb; ink/alpha backdrop appears on reveal */}
-            <a
-              href={s.href}
-              target={isExternal && !isSearchGate ? "_blank" : undefined}
-              rel={isExternal && !isSearchGate ? "noopener noreferrer" : undefined}
-              onClick={
-                isSearchGate
-                  ? (e) => {
-                      e.preventDefault();
-                      setSearchGateOpen(true);
-                    }
-                  : undefined
-              }
-              className="svc-fade group relative z-10 grid grid-cols-1 items-center gap-8 px-6 py-14 md:grid-cols-12 md:px-16 md:py-20 lg:px-24"
-            >
-              <div className="md:col-span-5">
-                <div className="relative inline-block max-w-md px-5 py-5">
-                  {/* Reveal-only backdrop */}
-                  <div
-                    ref={(el) => {
-                      backdropRefs.current[i] = el;
-                    }}
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 bg-ink/55 backdrop-blur-sm"
-                  />
-                  <div className="relative" style={{ transition: "color 0.4s ease" }}>
-                    <p
-                      className="text-[11px] font-medium uppercase tracking-[0.32em]"
-                      style={{ color: "rgb(var(--row-text-rgb) / 0.55)" }}
-                    >
-                      {s.n}
-                    </p>
-                    <p
-                      className="mt-4 font-display text-lg font-medium leading-snug tracking-[-0.01em] md:text-xl"
-                      style={{ color: "rgb(var(--row-text-rgb))" }}
-                    >
-                      {s.short}
-                    </p>
-                    <p
-                      className="mt-3 hidden text-[14px] leading-[1.7] md:block"
-                      style={{ color: "rgb(var(--row-text-rgb) / 0.78)" }}
-                    >
-                      {s.body}
-                    </p>
+        <div className="mt-10 grid grid-cols-1 gap-6 md:mt-12 md:grid-cols-3 md:gap-8">
+          {services.map((s) => {
+            const isSearchGate = s.word === "Search";
+            const isExternal = s.href.startsWith("http");
+            return (
+              <a
+                key={s.word}
+                href={s.href}
+                target={isExternal && !isSearchGate ? "_blank" : undefined}
+                rel={
+                  isExternal && !isSearchGate ? "noopener noreferrer" : undefined
+                }
+                onClick={
+                  isSearchGate
+                    ? (e) => {
+                        e.preventDefault();
+                        setSearchGateOpen(true);
+                      }
+                    : undefined
+                }
+                className="svc-fade group flex flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-cream"
+              >
+                {/* Photo — badge straddles the lower edge, so it lives outside
+                    the overflow-hidden wrapper that clips the hover zoom. */}
+                <div className="relative w-full">
+                  <div className="aspect-[4/3] w-full overflow-hidden bg-ink/5">
+                    <Image
+                      src={s.image}
+                      alt=""
+                      width={640}
+                      height={480}
+                      sizes="(min-width: 768px) 33vw, 100vw"
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                    />
                   </div>
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-5 left-6 grid h-10 w-10 place-items-center rounded-full bg-ink text-[11px] font-semibold tracking-[0.08em] text-white ring-4 ring-white"
+                  >
+                    {s.n}
+                  </span>
                 </div>
-              </div>
 
-              <div className="flex items-center justify-between md:col-span-7">
-                <span
-                  className="font-display font-semibold leading-none tracking-[-0.045em] underline underline-offset-[0.18em] decoration-1 transition-colors"
-                  style={{
-                    fontSize: "clamp(3.25rem, 10vw, 9rem)",
-                    color: "rgb(var(--row-text-rgb))",
-                    textDecorationColor: "rgb(var(--row-text-rgb) / 0.4)",
-                  }}
-                >
-                  {s.word}
-                </span>
-                <ArrowRight
-                  className="h-10 w-10 shrink-0 transition-all duration-300 group-hover:translate-x-2 md:h-14 md:w-14"
-                  style={{ color: "rgb(var(--row-text-rgb) / 0.65)" }}
-                  strokeWidth={1.25}
-                />
-              </div>
-            </a>
-          </div>
-          );
-        })}
+                <div className="flex flex-1 flex-col px-6 pb-6 pt-9">
+                  <h3 className="font-display text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink">
+                    {s.word}
+                  </h3>
+                  <p className="mt-2 text-[15px] leading-[1.6] text-ink/70">
+                    {s.short}
+                  </p>
+
+                  <ul className="mt-5 space-y-2.5 border-t border-ink/10 pt-5">
+                    {s.points.map((point) => (
+                      <li
+                        key={point}
+                        className="flex items-start gap-2.5 text-[13px] leading-[1.5] text-ink-soft"
+                      >
+                        <Check
+                          aria-hidden
+                          className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent"
+                          strokeWidth={2.5}
+                        />
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <span className="mt-6 inline-flex items-center gap-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-ink/70 transition-colors group-hover:text-accent">
+                    {s.cta}
+                    <ArrowRight
+                      aria-hidden
+                      className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1"
+                      strokeWidth={2}
+                    />
+                  </span>
+                </div>
+              </a>
+            );
+          })}
+        </div>
       </div>
-
-      {/* Cream bottom band */}
-      <div className="h-24 md:h-32" />
 
       <SearchGate
         open={searchGateOpen}
@@ -279,4 +198,3 @@ export function Approach() {
     </section>
   );
 }
-
