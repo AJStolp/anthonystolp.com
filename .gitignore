@@ -51,3 +51,12 @@ next-env.d.ts
 .claude/skills/
 .claude/settings.local.json
 skills-lock.json
+
+# session handoffs — durable across restarts, never committed (see CLAUDE.md)
+docs/handoffs/
+
+# agent worktrees — machine-local scratch copies of the repo
+.claude/worktrees/
+
+# supabase CLI link state — contains a pooler connection URL, repo is public
+supabase/.temp/
