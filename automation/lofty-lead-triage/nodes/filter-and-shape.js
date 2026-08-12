@@ -76,10 +76,13 @@ const mailAddress = (l) => {
   return street && city && zip ? `${street}, ${city}, ${st || 'WI'} ${zip}` : null;
 };
 
-const shape = (l, bucket) => {
+const shape = (l, bucket, ref) => {
   const addr = mailAddress(l);
   return {
-    lead_id: String(l.leadId),
+    // Short join key. Do NOT send the real 16-digit leadId to the model: it mangles long
+    // numeric ids when echoing them back (seen live: a 16-digit id returned as 10 digits),
+    // which breaks the join and makes the lead vanish from the digest entirely.
+    ref,
     name: `${l.firstName || ''} ${l.lastName || ''}`.trim() || attr(l, 'Owner Name 1') || '(no name)',
     // What kind of record: Expired | Canceled | FSBO. Drives the whole conversation.
     listing_status: attr(l, 'Status') || null,
@@ -121,7 +124,7 @@ const shape = (l, bucket) => {
 // POND: unseen, in WI, in drivable region, contactable, reachable, still unclaimed.
 const pondNew = pond
   .filter(l => l.assignedUserId === -1 && isWI(l) && nearZip(l) && hasContact(l) && reachable(l) && !seen.has(String(l.leadId)))
-  .map(l => ({ shaped: shape(l, 'pond'), bucket: 'pond', phone: phone(l), email: email(l) }));
+  .map((l, i) => ({ shaped: shape(l, 'pond', i), bucket: 'pond', lead_id: String(l.leadId), phone: phone(l), email: email(l) }));
 
 // PIPELINE: leads already claimed by me. Once per day only (first successful run at/after
 // 7am), so the 30-min cadence doesn't re-email the whole book every half hour. The
@@ -131,7 +134,7 @@ let mine = [];
 if (hour >= 7 && sd.pipelineEmailedDate !== todayStr) {
   mine = pipe
     .filter(l => String(l.assignedUserId) === String(cfg.myUserId) && reachable(l))
-    .map(l => ({ shaped: shape(l, 'pipeline'), bucket: 'pipeline', phone: phone(l), email: email(l) }));
+    .map((l, i) => ({ shaped: shape(l, 'pipeline', 100000 + i), bucket: 'pipeline', lead_id: String(l.leadId), phone: phone(l), email: email(l) }));
 }
 
 // Safety cap so a giant bulk import can't truncate the model output. pondNew is already
@@ -145,7 +148,8 @@ if (!all.length) return []; // nothing new -> no email, no Anthropic call
 
 const rawById = {};
 const batch = all.map(x => {
-  rawById[x.shaped.lead_id] = {
+  rawById[String(x.shaped.ref)] = {
+    lead_id: x.lead_id,
     bucket: x.bucket,
     location: x.shaped.location,
     phone: x.phone,
@@ -217,12 +221,13 @@ const SYSTEM = [
   '',
   'Respond with ONLY a JSON array, no preamble, no markdown, no code fences. Each element:',
   '{',
-  '  "lead_id": "string (echo back exactly as received)",',
+  '  "ref": integer (echo back the ref you were given, exactly. This is how the lead is',
+  '     identified. Never invent, shorten or renumber it.),',
   '  "name": "string",',
   '  "tier": "A | B | C | SKIP",',
   '  "score": 0-100,',
   '  "why_approachable": "one plain sentence stating the public facts that make contact reasonable',
-  '     — what they listed at, with whom, and that it did not sell. Facts only, no persuasion.",',
+  '     what they listed at, with whom, and that it did not sell. Facts only, no persuasion.",',
   '  "headline": "the property in under 12 words, e.g. \'3bd/2ba Grafton ranch, listed $329k, owned 11 yrs\'",',
   '  "assessment": "two or three sentences on what this owner\'s situation likely is and why the',
   '     listing probably failed. Name the evidence. Say plainly when you are inferring.",',

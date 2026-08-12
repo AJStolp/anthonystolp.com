@@ -22,11 +22,22 @@ const today = $now.toFormat('yyyy-LL-dd');
 const skipped = parsed.filter(p => String(p.tier || '').toUpperCase() === 'SKIP').length;
 if (skipped) console.log(`Dropped ${skipped} SKIP leads (own brokerage / uncontactable)`);
 
-const kept = parsed.filter(p => String(p.tier || '').toUpperCase() !== 'SKIP');
+let kept = parsed.filter(p => String(p.tier || '').toUpperCase() !== 'SKIP');
+
+// Join on the short `ref` we handed the model, never on leadId: it mangles long numeric ids
+// when echoing them (seen live: a 16-digit id came back as 10 digits). A row we cannot join
+// has no property data, no working Claim/Lofty link and no bucket, so it would render in
+// NEITHER digest section and vanish. Drop it loudly instead. Because it never reaches this
+// node's output, "Mark Emailed Seen" does not commit it, so the lead is retried next run
+// rather than lost.
+const orphans = kept.filter(p => !raw[String(p.ref)]);
+if (orphans.length) console.log(`WARNING: ${orphans.length} scored lead(s) had an unresolvable ref and were skipped; they stay un-seen and will be retried. refs: ${orphans.map(o => o.ref).join(', ')}`);
+kept = kept.filter(p => !!raw[String(p.ref)]);
+
 kept.sort((a, b) => (b.score || 0) - (a.score || 0));
 
 return kept.map(p => {
-  const r = raw[String(p.lead_id)] || {};
+  const r = raw[String(p.ref)];
   return { json: {
     date: today,
     tier: p.tier || '',
@@ -52,7 +63,7 @@ return kept.map(p => {
     list_office: r.list_office || '',
     mls_number: r.mls_number || '',
     mail_address: r.mail_address || '',
-    lead_id: String(p.lead_id),
+    lead_id: String(r.lead_id),
     location: r.location || '',
     phone: r.phone || '',
     email: r.email || ''
