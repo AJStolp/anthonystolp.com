@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { track } from "@/lib/track";
 import {
   captureAttribution,
   type Attribution,
@@ -104,6 +105,15 @@ export function LeadForm() {
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Something went wrong. Try again?");
+      }
+      const data = (await res.json().catch(() => ({}))) as { accepted?: boolean };
+      // Gate on `accepted`: the honeypot also answers 200, and a bot counting
+      // as a conversion is worse than a missed one.
+      if (data.accepted) {
+        track({
+          event: "contact_form_lead",
+          properties: { intent: values.intent },
+        });
       }
       setSubmitted(true);
       reset();

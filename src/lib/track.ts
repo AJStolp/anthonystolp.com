@@ -34,6 +34,14 @@ export type TrackEvent =
     })
   | (BaseFields & { event: "home_value_view" })
   | (BaseFields & {
+      event: "contact_form_lead";
+      properties: { intent?: string };
+    })
+  | (BaseFields & {
+      event: "open_house_lead";
+      properties: { propertySlug: string; hasAgent?: string };
+    })
+  | (BaseFields & {
       event: "home_value_lead";
       properties: { hasEstimate: boolean; timeframe?: string };
     })
@@ -92,6 +100,8 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "home_value_lead":
     case "search_gate_lead":
     case "market_report_lead":
+    case "contact_form_lead":
+    case "open_house_lead":
       window.gtag?.("event", name, props);
       window.fbq?.("trackCustom", name, props);
       window.fbq?.("track", "Lead", props);

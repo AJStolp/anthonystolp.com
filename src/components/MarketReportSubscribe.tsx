@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { z } from "zod";
 import { captureAttribution } from "@/lib/attribution";
+import { track } from "@/lib/track";
 import { getOrCreateVisitorId } from "@/lib/visitor";
 import { Honeypot } from "@/components/Honeypot";
 
@@ -66,6 +67,11 @@ export function MarketReportSubscribe() {
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Something went wrong");
+      }
+      const data = (await res.json().catch(() => ({}))) as { accepted?: boolean };
+      // See LeadForm: the honeypot answers 200 too, so gate on `accepted`.
+      if (data.accepted) {
+        track({ event: "market_report_lead", properties: { zip } });
       }
       setDone(true);
     } catch (err) {

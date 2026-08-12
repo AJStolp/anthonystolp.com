@@ -379,3 +379,103 @@ test.describe("Paid-click attribution", () => {
     expect(body.visitorId).toBeTruthy();
   });
 });
+
+test.describe("Conversion events", () => {
+  // track.ts hands funnel events to window.gtag, which pushes them onto
+  // dataLayer. That push is the only path by which a lead becomes a conversion
+  // in GA4 / Google Ads, so assert on dataLayer rather than on the POST.
+
+  async function submitWithStubbedLead(
+    page: import("@playwright/test").Page,
+    body: Record<string, unknown>,
+    submit: () => Promise<void>,
+  ) {
+    await page.route("**/api/lead", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(body),
+      }),
+    );
+    await submit();
+  }
+
+  async function conversionEvents(page: import("@playwright/test").Page) {
+    return page.evaluate(() =>
+      (((window as unknown as { dataLayer?: unknown[] }).dataLayer ?? []) as unknown[])
+        .map((entry) => (entry as Record<number, unknown>)[1])
+        .filter((name): name is string => typeof name === "string"),
+    );
+  }
+
+  async function submitContactForm(page: import("@playwright/test").Page) {
+    const contact = page.locator("section#contact");
+    await contact.scrollIntoViewIfNeeded();
+    await contact.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
+    await contact.getByLabel(/^email$/i).fill(email("conv"));
+    await contact.getByLabel(/i agree to the/i).check();
+    await contact.getByRole("button", { name: /^send$/i }).click();
+    await expect(contact.getByRole("heading", { name: /got it/i })).toBeVisible({
+      timeout: 15_000,
+    });
+  }
+
+  test("contact form fires contact_form_lead", async ({ page }) => {
+    await page.goto("/#contact");
+    // gtag only loads when NEXT_PUBLIC_GA4_ID is set; without it there is no
+    // dataLayer to assert against and the event is silently dropped by design.
+    await expect
+      .poll(() => page.evaluate(() => typeof (window as unknown as { gtag?: unknown }).gtag), {
+        timeout: 15_000,
+      })
+      .toBe("function");
+
+    await submitWithStubbedLead(
+      page,
+      { ok: true, leadId: "00000000-0000-0000-0000-000000000000", accepted: true },
+      () => submitContactForm(page),
+    );
+    expect(await conversionEvents(page)).toContain("contact_form_lead");
+  });
+
+  test("market-report subscribe fires market_report_lead", async ({ page }) => {
+    await page.goto("/");
+    await expect
+      .poll(() => page.evaluate(() => typeof (window as unknown as { gtag?: unknown }).gtag), {
+        timeout: 15_000,
+      })
+      .toBe("function");
+
+    await submitWithStubbedLead(
+      page,
+      { ok: true, leadId: "00000000-0000-0000-0000-000000000000", accepted: true },
+      async () => {
+        const section = page.locator("section#market-report");
+        await section.scrollIntoViewIfNeeded();
+        await section.locator("#mr-email").fill(email("conv-mr"));
+        await section.locator("#mr-zip").selectOption("53012");
+        await section.locator("#mr-terms").check();
+        await section.getByRole("button", { name: /send me the report/i }).click();
+        await expect(
+          page.getByRole("heading", { name: /you are on the list/i }),
+        ).toBeVisible({ timeout: 15_000 });
+      },
+    );
+    expect(await conversionEvents(page)).toContain("market_report_lead");
+  });
+
+  test("the honeypot's silent 200 fires no conversion", async ({ page }) => {
+    await page.goto("/#contact");
+    await expect
+      .poll(() => page.evaluate(() => typeof (window as unknown as { gtag?: unknown }).gtag), {
+        timeout: 15_000,
+      })
+      .toBe("function");
+
+    // Exactly what src/lib/bot-defense.ts returns on a trip: a bare ok, no
+    // `accepted`. The form still shows success — that is the point of the trap —
+    // but a bot must never land in the conversion data Smart Bidding learns from.
+    await submitWithStubbedLead(page, { ok: true }, () => submitContactForm(page));
+    expect(await conversionEvents(page)).not.toContain("contact_form_lead");
+  });
+});
