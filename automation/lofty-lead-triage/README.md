@@ -58,6 +58,34 @@ Schedule (every 15 min, America/Chicago)
 
 ---
 
+## What the scoring actually reads (rewritten 2026-08-12)
+
+The pond is fed almost entirely by **"my +plus leads"** — expired, canceled and FSBO *listing
+records*, not website inquiries. Those records carry **none** of Lofty's intent fields:
+`buyingTimeFrame`, `sellingTimeFrame`, `houseToSell`, `preQual`, `fthb` and `leadInquiry` are
+empty on 100% of them, and `lastVisit` is a `1970-01-01` placeholder. The original prompt scored
+on exactly those fields, so the model had nothing to discriminate on and confabulated its
+reasoning: scores looked confident and meant nothing.
+
+Everything worth judging lives in `customAttributes` instead: list `Price`, `Assessed Value`,
+`Estimated Value`, `Owner Occupied`, `Sale Date`/`Sale Amount` (tenure and equity), `List Agent`
+and `List Office` (who failed to sell it), beds/baths/sqft/year, and the previous agent's own
+listing `Remarks`. `Filter & Shape` parses those, and the prompt scores on them.
+
+Consequences worth knowing:
+- **No urgency.** These listings expired weeks or months ago, so speed-to-lead is irrelevant.
+  Nothing in the digest should imply "call today".
+- **Honest tiers.** The prompt is explicitly told a batch may contain zero A leads. It no longer
+  forces an A/B/C spread.
+- **Tier `SKIP`** drops own-brokerage (Epique / ExSell) listings and fully uncontactable records
+  in `Parse & Sort`. These are dropped permanently, since `Mark Emailed Seen` commits them.
+- **Weak leads are rendered as a count, not suppressed.** Only A/B get a card; C leads still
+  appear as "N more triaged and set aside", so nothing vanishes silently.
+- **Keep `maxPerRun` at 25 or below.** Output runs ~300 tokens per lead; a larger batch risks
+  the n8n HTTP timeout. Leads over the cap are triaged on the next run, not lost.
+
+---
+
 ## One-time setup
 
 ### 1. Create n8n credentials
@@ -230,4 +258,10 @@ post it publicly. Rotate `claimSecret` in both workflows if a link leaks.
 ## Files
 - `lofty-lead-triage-daily.json` — importable n8n workflow (triage + digest, every 15 min).
 - `lofty-claim-webhook.json` — importable n8n workflow handling the Claim now button.
+- `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
+- `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
+- `nodes/build-digest-email.js` — paste-ready body of the **Build Digest Email** code node.
 - `README.md` — this file.
+
+The three `nodes/*.js` files are the source of truth for those node bodies. The workflow JSON
+carries its own copies, so after editing a node file, paste it into the n8n editor to deploy.
