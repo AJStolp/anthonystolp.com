@@ -63,18 +63,33 @@ const greeting = first ? `Hi ${first},` : 'Hello,';
 
 // Fixed, reviewed copy. Deliberately NOT model-generated: 452.136 bars advertising a
 // property the firm holds no listing on, and these listings have expired so nobody holds
-// them. The card solicits the listing and never describes the house as being for sale.
-// House style: no em dashes, educate rather than advise.
+// them. The card solicits nothing and never describes the house as being for sale.
+//
+// Positioning is researched, not improvised. See docs/research/expired-listing-messaging.md.
+// The short version: an expired seller may hear from five agents the same morning and has
+// heard the standard opener "fifty times", so any card that asks for the listing is
+// indistinguishable from the pile. NAR puts honesty and trustworthiness as the second most
+// cited reason sellers choose an agent, so the differentiator is refusing the ask and
+// offering the honest read instead. The "not writing to ask for the listing" line is the
+// whole strategy and must stay in the second sentence, before they stop reading.
+//
+// The card OFFERS the diagnosis, it never contains it. Telling someone in writing that their
+// home was overpriced, unsolicited, reads as an insult rather than help.
+// House style: no em dashes, educate rather than advise, never give legal or tax advice.
 const message = [
   greeting,
-  `I saw that your ${city} home recently came off the market without selling.`,
-  `If you are still open to moving, I would be glad to walk you through what is happening in the ${city} market right now and what it would take to get it sold this time.`,
-  `No pressure and no obligation. Just reply or give me a call.`,
+  `Your ${city} home came off the market recently. I am not writing to ask for the listing.`,
+  `I went through what happened with it, what it was priced against and what actually sold nearby. If that would be useful, I will send it over. No charge and no obligation, whether you list again this year, next year or never.`,
+  `If you would rather just tell me what you were hoping to do, I would like to hear that instead.`,
   ``,
-  `${cfg.agentName || 'Anthony Stolp'}`,
-  `${firm}`,
+  // Firm name rides on the NAME line, not buried at the bottom: 452.136(2)(b) requires it
+  // clear and conspicuous. The card design must carry it too; a handwritten signature block
+  // alone does not satisfy "conspicuous". The licensee line is NAR Article 12, which requires
+  // AJ's status as a real estate professional to be readily apparent. Wisconsin itself does
+  // not require the salesperson's name; NAR does.
+  `${cfg.agentName || 'Anthony Stolp'}, ${firm}`,
   `${cfg.agentPhone || ''}`,
-  `WI Licensed Real Estate Salesperson ${cfg.agentLicense || ''}`.trim()
+  `WI licensed real estate salesperson ${cfg.agentLicense || ''}`.trim()
 ].filter(l => l !== null && l !== undefined).join('\n');
 
 const recipient = {
@@ -96,6 +111,11 @@ const payload = {
   // is the deliberate act that makes this workflow start spending money.
   preview: String(cfg.previewOnly) !== 'false'
 };
+// Drives response measurement. docs/research/direct-mail-costs-and-compliance.md §6.5:
+// every piece should land on a tracked destination, and the site's /n/[token] offline
+// attribution mints anthonystolp_vid and resolves offline context. Without this the
+// response rate is guessed rather than measured. Optional: omitted if unset.
+if (cfg.qrcodeUrl && !/PUT_|YOUR_/.test(String(cfg.qrcodeUrl))) payload.qrcode_url = cfg.qrcodeUrl;
 if (cfg.returnName) {
   payload.return_name = cfg.returnName;
   payload.return_address = cfg.returnAddress;
