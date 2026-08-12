@@ -27,9 +27,40 @@ if (pondResp.code || pondResp.message) console.log('Pond response note:', pondRe
 // Dedup state (seen ids) is committed AFTER a successful send (see "Mark Emailed Seen"),
 // so a failed run or the per-run cap never makes a lead silently disappear.
 
+const mailAddress = (l) => {
+  const street = attr(l, 'Owner Street Address') || l.streetAddress;
+  const city = attr(l, 'Owner City') || l.city;
+  const zip = attr(l, 'Owner Zip') || l.zipCode;
+  const st = attr(l, 'Owner State') || l.state;
+  return street && city && zip ? `${street}, ${city}, ${st || 'WI'} ${zip}` : null;
+};
+
 const phone = l => Array.isArray(l.phones) && l.phones.length ? l.phones[0] : null;
-const email = l => Array.isArray(l.emails) && l.emails.length ? l.emails[0] : null;
-const hasContact = l => !!(phone(l) || email(l));
+
+// These are skip-traced addresses, so a lead often carries several. Roughly 1 in 7 is a
+// WORKPLACE or SCHOOL address (seen live: ashleyfurniture.com, essentiahealth.org,
+// rwbaird.com, uwec.edu, and a k12.wi.us school district). Contacting someone's employer
+// inbox about their failed home sale is the worst possible first impression, so only a
+// personal address is ever surfaced as a contact. Allowlist rather than blocklist: an
+// unrecognised domain is treated as work, because a false positive just means we mail
+// them instead, while a false negative means emailing someone's boss's server.
+const CONSUMER_EMAIL_DOMAINS = new Set([
+  'gmail.com', 'googlemail.com', 'yahoo.com', 'ymail.com', 'rocketmail.com', 'yahoo.co.uk',
+  'hotmail.com', 'outlook.com', 'live.com', 'msn.com', 'aol.com', 'icloud.com', 'me.com',
+  'mac.com', 'protonmail.com', 'proton.me', 'juno.com', 'netzero.net', 'earthlink.net',
+  'webtv.net', 'comcast.net', 'att.net', 'sbcglobal.net', 'ameritech.net', 'charter.net',
+  'spectrum.net', 'verizon.net', 'bellsouth.net', 'cox.net', 'frontier.com', 'centurytel.net',
+  'mchsi.com', 'tds.net', 'wi.rr.com', 'new.rr.com', 'milwpc.com', 'execpc.com', 'core.com',
+  'wispark.com', 'bright.net', 'gmx.com', 'mail.com', 'zoho.com', 'fastmail.com'
+]);
+const emailDomain = e => { const d = String(e || '').split('@')[1]; return d ? d.toLowerCase().trim() : null; };
+const isPersonalEmail = e => { const d = emailDomain(e); return !!d && CONSUMER_EMAIL_DOMAINS.has(d); };
+const email = l => (Array.isArray(l.emails) ? l.emails : []).find(isPersonalEmail) || null;
+const workEmailsSuppressed = l => (Array.isArray(l.emails) ? l.emails : []).filter(e => e && !isPersonalEmail(e)).length;
+
+// Mail is the primary channel now, so a lead with a good mailing address is workable even
+// with no phone and no personal email. Gate on any usable route, not just phone/email.
+const hasContact = l => !!(phone(l) || email(l) || mailAddress(l));
 const DEAD_STAGES = new Set(['Do Not Contact', 'Closed', 'Archived', 'Trash']);
 const reachable = l => !DEAD_STAGES.has(String(l.stage || '')) && !(l.cannotCall && l.cannotEmail && l.cannotText);
 const isWI = l => String(l.state || '').toUpperCase() === 'WI';
@@ -67,13 +98,6 @@ const equity = (l) => {
   const now = num(attr(l, 'Estimated Value')) || num(attr(l, 'Assessed Value'));
   const paid = num(attr(l, 'Sale Amount'));
   return now && paid ? Math.round(now - paid) : null;
-};
-const mailAddress = (l) => {
-  const street = attr(l, 'Owner Street Address') || l.streetAddress;
-  const city = attr(l, 'Owner City') || l.city;
-  const zip = attr(l, 'Owner Zip') || l.zipCode;
-  const st = attr(l, 'Owner State') || l.state;
-  return street && city && zip ? `${street}, ${city}, ${st || 'WI'} ${zip}` : null;
 };
 
 const shape = (l, bucket, ref) => {
@@ -116,6 +140,7 @@ const shape = (l, bucket, ref) => {
     // Reachability
     has_phone: !!phone(l),
     has_email: !!email(l),
+    work_emails_suppressed: workEmailsSuppressed(l),
     lofty_score: typeof l.score === 'number' ? l.score : null,
     added_to_pond: l.createTime || null
   };
@@ -199,6 +224,9 @@ const SYSTEM = [
   '  reason a listing dies. A list price well above estimated value is a specific, useful angle.',
   '- listing_remarks is the previous agent\'s own marketing copy. Read it for what the house is and',
   '  how it was sold. Thin or careless remarks suggest weak marketing, which is an opening.',
+  '- work_emails_suppressed counts addresses dropped for being workplace or school domains.',
+  '  Anthony never contacts people at work. If it is >0 and has_email is false, the lead is',
+  '  mail-only no matter how many addresses the record appears to carry.',
   '- mailable matters: mail is Anthony\'s primary channel. A lead with no mailing address is much',
   '  less useful even if otherwise good.',
   '- lofty_score is Lofty\'s own number. It clusters narrowly and means little — use it only to',
