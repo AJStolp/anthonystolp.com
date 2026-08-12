@@ -255,7 +255,12 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, leadId });
+  // `accepted` separates a genuine submission from the honeypot's silent 200,
+  // which returns a bare { ok: true }. Clients gate their conversion event on
+  // it so a bot tripping the trap never counts as a conversion. Deliberately
+  // not keyed off leadId: a lead whose Supabase write failed still reached the
+  // inbox by email and is still a real conversion.
+  return NextResponse.json({ ok: true, leadId, accepted: true });
 }
 
 // ── Persistence ────────────────────────────────────────────────────────────

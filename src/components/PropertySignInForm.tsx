@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { captureAttribution, type Attribution } from "@/lib/attribution";
+import { track } from "@/lib/track";
 import { Honeypot } from "@/components/Honeypot";
 
 const HAS_AGENT = ["no", "yes", "agent"] as const;
@@ -67,6 +68,14 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Something went wrong. Try again?");
+      }
+      const data = (await res.json().catch(() => ({}))) as { accepted?: boolean };
+      // See LeadForm: the honeypot answers 200 too, so gate on `accepted`.
+      if (data.accepted) {
+        track({
+          event: "open_house_lead",
+          properties: { propertySlug, hasAgent: values.hasAgent },
+        });
       }
       setSubmitted(true);
       reset();
