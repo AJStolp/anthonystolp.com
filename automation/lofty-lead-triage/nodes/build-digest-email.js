@@ -21,6 +21,18 @@ const claimBtn = i => (i.bucket === 'pond' && cfg.claimBaseUrl && cfg.claimSecre
   ? `<a href="${cfg.claimBaseUrl}/lofty-claim?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.claimSecret || '')}" style="display:inline-block;background:#1a7f37;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Claim now &rarr;</a>`
   : '';
 
+// One-tap postcard, handled by the companion lofty-mailer-webhook workflow. Same guard as
+// the Claim now button, so it simply does not render until that workflow is deployed and
+// configured. Shown for any lead with a mailing address, including A tier: AJ works A by
+// phone, but there is no reason to withhold the option.
+//
+// Dedup and the weekly cap are enforced by the WEBHOOK, not here. n8n static data is
+// per-workflow, so this workflow cannot know what has already been mailed. Tapping an
+// already-mailed lead is harmless and returns an "already mailed" page.
+const mailBtn = i => (i.mail_address && cfg.mailBaseUrl && cfg.mailSecret && !/PUT_|YOUR_/.test(String(cfg.mailBaseUrl)) && !/PUT_|YOUR_/.test(String(cfg.mailSecret)))
+  ? `<a href="${cfg.mailBaseUrl}/lofty-mail?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.mailSecret || '')}" style="display:inline-block;background:#6639ba;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Send postcard &rarr;</a>`
+  : '';
+
 // One line of hard property facts, only the parts we actually have.
 const facts = i => {
   const f = [];
@@ -56,7 +68,7 @@ const card = i => {
     + (i.outreach_angle ? `<div style="margin:3px 0;font-size:13px"><strong>Angle:</strong> ${esc(i.outreach_angle)}</div>` : '')
     + (i.confidence ? `<div style="margin:3px 0;font-size:12px;color:#8c959f">confidence: ${esc(i.confidence)}</div>` : '')
     + (c.length ? `<div style="margin:5px 0;font-size:13px">${c.join(' &middot; ')}</div>` : `<div style="margin:5px 0;font-size:13px;color:#8c959f">no phone or email on file</div>`)
-    + `<div style="margin:8px 0 1px">${claimBtn(i)}`
+    + `<div style="margin:8px 0 1px">${claimBtn(i)}${mailBtn(i)}`
     + `<a href="https://crm.lofty.com/admin/home/detail?leadId=${esc(i.lead_id)}" style="display:inline-block;background:#0969da;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;padding:5px 12px;border-radius:5px">Open in Lofty &rarr;</a></div>`
     + `</div>`;
 };

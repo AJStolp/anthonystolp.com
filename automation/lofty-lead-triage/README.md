@@ -207,6 +207,63 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 
 ---
 
+## Send postcard button (one-tap direct mail)
+
+`lofty-mailer-webhook.json` is a separate workflow, like the claim webhook, so a mailer fault
+can never break the digest. The digest renders a **Send postcard** button on any card with a
+mailing address; tapping it mails one postcard through [thanks.io](https://thanks.io).
+
+**Nothing sends autonomously.** Every piece is one deliberate tap, because every piece carries
+AJ's real estate license.
+
+### Guards, in the order they fire
+
+| Guard | Refuses when | Commits? |
+|---|---|---|
+| Shared secret | `mailSecret` is a placeholder, or the link's token does not match | no |
+| Lead id | missing or non-numeric | no |
+| Dedup | this owner was already mailed (`mailedLeadIds`) | no |
+| Weekly cap | `weeklyMailCap` reached (default 15) | no |
+| Firm name | `firmNameAsLicensed` still a placeholder — see blocker below | no |
+| **Licensed state** | property is outside `licensedState` (default WI) | no |
+| Address | no complete mailing address on the Lofty record | no |
+| Front image | `postcardFrontImageUrl` still a placeholder | no |
+
+Nothing commits until thanks.io accepts the send, mirroring `Mark Emailed Seen` in the triage
+workflow. A refusal, a vendor error, or a cap hit therefore never burns the lead or a slot, so
+it can simply be tapped again later. **Hitting the cap does not consume the lead** — that is the
+"queue and wait" behaviour, achieved by not consuming anything.
+
+Dedup lives in this workflow rather than the digest because n8n static data is per-workflow and
+the triage workflow cannot read it. The button therefore always renders and the webhook is the
+authority; a second tap is harmless.
+
+### `previewOnly` defaults to `true`
+
+thanks.io's `preview: true` renders the card and returns image URLs **without mailing or
+charging**. The config ships with `previewOnly: "true"`, so the whole path can be exercised
+safely. Setting it to `"false"` is the deliberate act that makes this workflow start spending
+money.
+
+### Blockers before the first real send
+
+1. **Issue #40 — the exact licensed firm name.** [Wis. Stat. 452.136](https://docs.legis.wisconsin.gov/statutes/statutes/452/136)
+   requires the firm name *exactly as printed on the license*, clearly shown as a business.
+   `firmNameAsLicensed` ships as a placeholder and the workflow refuses to send until it is
+   replaced. `src/lib/agent-profile.ts` says `"ExSell Experts at Epique Realty"`, which is a
+   team-plus-firm construction and may not be the licensed string.
+2. **thanks.io account, API key and funded credits.** AJ's to create.
+3. **AJ approves the template copy and front image.**
+
+### Copy is a fixed template, not model-generated
+
+452.136 also bars advertising a property the firm holds no listing on, and these listings have
+expired so nobody holds them. The card solicits the listing and never describes the house as
+being for sale. A reviewed template cannot drift across that line; per-send generated copy can.
+The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is the one talking.
+
+---
+
 ## Claim now button (one-tap)
 
 Each pond lead in the digest carries a **Claim now** button (next to **Open in Lofty**).
@@ -258,9 +315,12 @@ post it publicly. Rotate `claimSecret` in both workflows if a link leaks.
 ## Files
 - `lofty-lead-triage-daily.json` — importable n8n workflow (triage + digest, every 15 min).
 - `lofty-claim-webhook.json` — importable n8n workflow handling the Claim now button.
+- `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
+- `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
 - `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
 - `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
 - `nodes/build-digest-email.js` — paste-ready body of the **Build Digest Email** code node.
+- `nodes/mailer-{verify-and-cap,build-postcard,record-sent}.js` — bodies for the mailer workflow.
 - `README.md` — this file.
 
 The three `nodes/*.js` files are the source of truth for those node bodies. The workflow JSON
