@@ -58,6 +58,34 @@ Schedule (every 15 min, America/Chicago)
 
 ---
 
+## What the scoring actually reads (rewritten 2026-08-12)
+
+The pond is fed almost entirely by **"my +plus leads"** — expired, canceled and FSBO *listing
+records*, not website inquiries. Those records carry **none** of Lofty's intent fields:
+`buyingTimeFrame`, `sellingTimeFrame`, `houseToSell`, `preQual`, `fthb` and `leadInquiry` are
+empty on 100% of them, and `lastVisit` is a `1970-01-01` placeholder. The original prompt scored
+on exactly those fields, so the model had nothing to discriminate on and confabulated its
+reasoning: scores looked confident and meant nothing.
+
+Everything worth judging lives in `customAttributes` instead: list `Price`, `Assessed Value`,
+`Estimated Value`, `Owner Occupied`, `Sale Date`/`Sale Amount` (tenure and equity), `List Agent`
+and `List Office` (who failed to sell it), beds/baths/sqft/year, and the previous agent's own
+listing `Remarks`. `Filter & Shape` parses those, and the prompt scores on them.
+
+Consequences worth knowing:
+- **No urgency.** These listings expired weeks or months ago, so speed-to-lead is irrelevant.
+  Nothing in the digest should imply "call today".
+- **Honest tiers.** The prompt is explicitly told a batch may contain zero A leads. It no longer
+  forces an A/B/C spread.
+- **Tier `SKIP`** drops own-brokerage (Epique / ExSell) listings and fully uncontactable records
+  in `Parse & Sort`. These are dropped permanently, since `Mark Emailed Seen` commits them.
+- **Weak leads are rendered as a count, not suppressed.** Only A/B get a card; C leads still
+  appear as "N more triaged and set aside", so nothing vanishes silently.
+- **Keep `maxPerRun` at 25 or below.** Output runs ~300 tokens per lead; a larger batch risks
+  the n8n HTTP timeout. Leads over the cap are triaged on the next run, not lost.
+
+---
+
 ## One-time setup
 
 ### 1. Create n8n credentials
@@ -179,6 +207,67 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 
 ---
 
+## Send postcard button (one-tap direct mail)
+
+`lofty-mailer-webhook.json` is a separate workflow, like the claim webhook, so a mailer fault
+can never break the digest. The digest renders a **Send postcard** button on any card with a
+mailing address; tapping it mails one postcard through [thanks.io](https://thanks.io).
+
+**Nothing sends autonomously.** Every piece is one deliberate tap, because every piece carries
+AJ's real estate license.
+
+### Guards, in the order they fire
+
+| Guard | Refuses when | Commits? |
+|---|---|---|
+| Shared secret | `mailSecret` is a placeholder, or the link's token does not match | no |
+| Lead id | missing or non-numeric | no |
+| Dedup | this owner was already mailed (`mailedLeadIds`) | no |
+| Weekly cap | `weeklyMailCap` reached (default 15) | no |
+| Firm name | `firmNameAsLicensed` still a placeholder — see blocker below | no |
+| **Licensed state** | property is outside `licensedState` (default WI) | no |
+| Address | no complete mailing address on the Lofty record | no |
+| Front image | `postcardFrontImageUrl` still a placeholder | no |
+
+Nothing commits until thanks.io accepts the send, mirroring `Mark Emailed Seen` in the triage
+workflow. A refusal, a vendor error, or a cap hit therefore never burns the lead or a slot, so
+it can simply be tapped again later. **Hitting the cap does not consume the lead** — that is the
+"queue and wait" behaviour, achieved by not consuming anything.
+
+Dedup lives in this workflow rather than the digest because n8n static data is per-workflow and
+the triage workflow cannot read it. The button therefore always renders and the webhook is the
+authority; a second tap is harmless.
+
+### `previewOnly` defaults to `true`
+
+thanks.io's `preview: true` renders the card and returns image URLs **without mailing or
+charging**. The config ships with `previewOnly: "true"`, so the whole path can be exercised
+safely. Setting it to `"false"` is the deliberate act that makes this workflow start spending
+money.
+
+### Blockers before the first real send
+
+1. **Issue #40 — the exact licensed firm name.** [Wis. Stat. 452.136](https://docs.legis.wisconsin.gov/statutes/statutes/452/136)
+   requires the firm name *exactly as printed on the license*, clearly shown as a business.
+   `firmNameAsLicensed` ships as a placeholder and the workflow refuses to send until it is
+   replaced. `src/lib/agent-profile.ts` says `"ExSell Experts at Epique Realty"`, which is a
+   team-plus-firm construction and may not be the licensed string.
+2. **thanks.io account, API key and funded credits.** AJ's to create.
+3. **AJ approves the template copy and front image.**
+
+Not a blocker, but ask in the same message as #40: whether Epique requires pre-approval of
+marketing pieces. 452.136(2)(b) requires advertising in the name of and under the supervision
+of the firm, but does **not** mandate per-piece broker sign-off. That is brokerage policy.
+
+### Copy is a fixed template, not model-generated
+
+452.136 also bars advertising a property the firm holds no listing on, and these listings have
+expired so nobody holds them. The card solicits the listing and never describes the house as
+being for sale. A reviewed template cannot drift across that line; per-send generated copy can.
+The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is the one talking.
+
+---
+
 ## Claim now button (one-tap)
 
 Each pond lead in the digest carries a **Claim now** button (next to **Open in Lofty**).
@@ -230,4 +319,13 @@ post it publicly. Rotate `claimSecret` in both workflows if a link leaks.
 ## Files
 - `lofty-lead-triage-daily.json` — importable n8n workflow (triage + digest, every 15 min).
 - `lofty-claim-webhook.json` — importable n8n workflow handling the Claim now button.
+- `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
+- `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
+- `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
+- `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
+- `nodes/build-digest-email.js` — paste-ready body of the **Build Digest Email** code node.
+- `nodes/mailer-{verify-and-cap,build-postcard,record-sent}.js` — bodies for the mailer workflow.
 - `README.md` — this file.
+
+The three `nodes/*.js` files are the source of truth for those node bodies. The workflow JSON
+carries its own copies, so after editing a node file, paste it into the n8n editor to deploy.

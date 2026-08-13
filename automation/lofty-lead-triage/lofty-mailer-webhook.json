@@ -1,0 +1,456 @@
+{
+  "name": "lofty-mailer-webhook",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Chicago",
+    "saveManualExecutions": true
+  },
+  "pinData": {},
+  "nodes": [
+    {
+      "id": "c3000000-0000-4a00-9000-000000000001",
+      "name": "Mail Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        300
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "lofty-mail",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "c3000000-0000-4a00-9000-00000000dead"
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000002",
+      "name": "Mailer Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        20,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "mc-sec",
+              "name": "mailSecret",
+              "value": "PUT_A_LONG_RANDOM_SECRET_HERE",
+              "type": "string"
+            },
+            {
+              "id": "mc-cap",
+              "name": "weeklyMailCap",
+              "value": "15",
+              "type": "string"
+            },
+            {
+              "id": "mc-prev",
+              "name": "previewOnly",
+              "value": "true",
+              "type": "string"
+            },
+            {
+              "id": "mc-firm",
+              "name": "firmNameAsLicensed",
+              "value": "PUT_FIRM_NAME_EXACTLY_AS_ON_LICENSE_CONFIRM_ISSUE_40",
+              "type": "string"
+            },
+            {
+              "id": "mc-state",
+              "name": "licensedState",
+              "value": "WI",
+              "type": "string"
+            },
+            {
+              "id": "mc-name",
+              "name": "agentName",
+              "value": "Anthony Stolp",
+              "type": "string"
+            },
+            {
+              "id": "mc-phone",
+              "name": "agentPhone",
+              "value": "(262) 885-3310",
+              "type": "string"
+            },
+            {
+              "id": "mc-lic",
+              "name": "agentLicense",
+              "value": "#114204-94",
+              "type": "string"
+            },
+            {
+              "id": "mc-size",
+              "name": "postcardSize",
+              "value": "4x6",
+              "type": "string"
+            },
+            {
+              "id": "mc-img",
+              "name": "postcardFrontImageUrl",
+              "value": "PUT_A_PUBLIC_HTTPS_IMAGE_URL_HERE",
+              "type": "string"
+            },
+            {
+              "id": "mc-rn",
+              "name": "returnName",
+              "value": "PUT_RETURN_NAME_HERE",
+              "type": "string"
+            },
+            {
+              "id": "mc-ra",
+              "name": "returnAddress",
+              "value": "PUT_RETURN_STREET_HERE",
+              "type": "string"
+            },
+            {
+              "id": "mc-rc",
+              "name": "returnCity",
+              "value": "PUT_RETURN_CITY_HERE",
+              "type": "string"
+            },
+            {
+              "id": "mc-rs",
+              "name": "returnState",
+              "value": "WI",
+              "type": "string"
+            },
+            {
+              "id": "mc-rz",
+              "name": "returnPostalCode",
+              "value": "PUT_RETURN_ZIP_HERE",
+              "type": "string"
+            },
+            {
+              "id": "mc-qr",
+              "name": "qrcodeUrl",
+              "value": "PUT_A_TRACKED_N_TOKEN_URL_HERE_OR_LEAVE_BLANK",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000003",
+      "name": "Verify, Cap & Dedup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Authorize a postcard send, then check the two guards that stop it costing money:\n// the never-mail-twice set and the weekly piece cap. Nothing is committed here. State is\n// written only after thanks.io confirms the send (see mailer-record-sent.js), so a rejected\n// or failed send never burns a lead or a slot.\n//\n// Dedup deliberately lives in THIS workflow, not the digest. n8n static data is per-workflow\n// and the triage workflow cannot read it, so the button in the email always renders and this\n// node is the authority. Tapping twice is harmless.\nconst cfg = $('Mailer Config').first().json;\nconst q = ($('Mail Webhook').first().json.query) || {};\nconst leadId = String(q.lead_id || '').trim();\nconst token = String(q.t || '');\n\nconst page = (title, body, color) => `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${title}</title></head><body style=\"font:16px/1.5 -apple-system,system-ui,Segoe UI,Arial,sans-serif;background:#f6f8fa;margin:0;padding:48px 20px;color:#1f2328\"><div style=\"max-width:460px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)\"><h1 style=\"margin:0 0 10px;font-size:20px;color:${color}\">${title}</h1><p style=\"margin:0;color:#57606a\">${body}</p></div></body></html>`;\n\nconst deny = (title, body, color) => [{ json: { ok: false, leadId, html: page(title, body, color || '#cf222e') } }];\n\n// A placeholder secret means the workflow was imported but never configured. Refuse rather\n// than authorize against a well-known string.\nconst secret = String(cfg.mailSecret || '');\nif (!secret || /PUT_|YOUR_/.test(secret)) {\n  return deny('Not configured', 'This mailer workflow has no mailSecret set. Fill in the Mailer Config node before using the Send postcard button.', '#9a6700');\n}\nif (!leadId || !/^\\d+$/.test(leadId)) return deny('Bad request', 'That link is missing a valid lead id.');\nif (token !== secret) return deny('Not authorized', 'That link is not valid. Use the Send postcard button in the digest email.');\n\nconst sd = $getWorkflowStaticData('global');\n\n// Never mail the same owner twice.\nconst mailed = new Set(Array.isArray(sd.mailedLeadIds) ? sd.mailedLeadIds : []);\nif (mailed.has(leadId)) {\n  return deny('Already mailed', 'A postcard has already gone out to this owner. Nothing was sent and you were not charged.', '#57606a');\n}\n\n// Rolling weekly cap. Because every send is approved by hand, this is a blast-radius limit\n// rather than a rationing mechanism: it stops a bug or a stuck finger from mailing the whole\n// pond. Hitting it does NOT consume the lead, so it can simply be sent next week.\nconst CAP = Math.max(1, Number(cfg.weeklyMailCap || 15));\nconst WEEK_MS = 7 * 24 * 60 * 60 * 1000;\nconst nowMs = Date.parse($now.toISO());\nlet weekStart = Number(sd.mailWeekStart || 0);\nlet weekCount = Number(sd.mailWeekCount || 0);\nif (!weekStart || (nowMs - weekStart) >= WEEK_MS) { weekStart = nowMs; weekCount = 0; }\n\nif (weekCount >= CAP) {\n  const resumes = new Date(weekStart + WEEK_MS).toISOString().slice(0, 10);\n  return deny('Weekly cap reached',\n    `You have sent ${weekCount} of ${CAP} postcards this week. Nothing was sent and you were not charged. This lead is untouched, so you can send it after the cap resets on ${resumes}.`,\n    '#9a6700');\n}\n\n// Carry the (possibly rolled over) window forward so the record step does not recompute it.\nreturn [{ json: { ok: true, leadId, weekStart, weekCount, cap: CAP } }];\n"
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000004",
+      "name": "IF Authorized",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        460,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-4",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000005",
+      "name": "Lofty: Get Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        200
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.lofty.com/v1.0/leads/{{ $json.leadId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_LOFTY_CRED_ID",
+          "name": "Lofty API"
+        }
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000006",
+      "name": "Build Postcard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        200
+      ],
+      "parameters": {
+        "jsCode": "// Build the thanks.io postcard payload from the freshly fetched Lofty lead.\n//\n// The address is re-read from Lofty rather than passed through the URL: a link in an email\n// is user-editable, and this step spends money and puts a licensed real estate advertisement\n// in someone's mailbox. Never trust the query string for anything but the lead id.\n//\n// Contract (verified against docs.thanks.io, not from memory):\n//   POST https://api.thanks.io/api/v2/send/postcard   Authorization: Bearer <token>\n//   recipients[]: { name, address, address2, city, province, postal_code, country }\n//   plus: message, size (\"4x6\"|\"6x9\"|\"6x11\"), and front_image_url OR image_template_id\n//   NOTE the recipient field is `province`, not `state`. The return-address override does\n//   use `return_state`. That asymmetry is thanks.io's, not a typo here.\nconst cfg = $('Mailer Config').first().json;\nconst auth = $('Verify, Cap & Dedup').first().json;\nconst resp = $json || {};\nconst lead = resp.lead || resp;\n\nconst page = (title, body, color) => `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${title}</title></head><body style=\"font:16px/1.5 -apple-system,system-ui,Segoe UI,Arial,sans-serif;background:#f6f8fa;margin:0;padding:48px 20px;color:#1f2328\"><div style=\"max-width:460px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)\"><h1 style=\"margin:0 0 10px;font-size:20px;color:${color}\">${title}</h1><p style=\"margin:0;color:#57606a\">${body}</p></div></body></html>`;\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst deny = (title, body, color) => [{ json: { ok: false, leadId: auth.leadId, html: page(title, body, color || '#cf222e') } }];\n\nif (!lead || !lead.leadId) return deny('Lead not found', 'Lofty did not return that lead, so nothing was sent.');\n\nconst attr = (name) => {\n  const a = (lead.customAttributes || []).find(x => x.attributeName === name);\n  const v = a && a.value;\n  return v == null || String(v).trim() === '' ? null : String(v).trim();\n};\n\n// Wis. Stat. 452.136 requires the firm name exactly as printed on the license, clearly shown\n// as a business and not a private party. Until that exact string is confirmed (issue #40)\n// this must not mail: every piece carries AJ's license.\nconst firm = String(cfg.firmNameAsLicensed || '');\nif (!firm || /PUT_|YOUR_|CONFIRM/i.test(firm)) {\n  return deny('Firm name not confirmed',\n    'firmNameAsLicensed is still a placeholder. Wisconsin requires the firm name exactly as printed on the license on every piece of advertising, so nothing was sent. Resolve issue #40 first.',\n    '#9a6700');\n}\n\nconst street = attr('Owner Street Address') || lead.streetAddress;\nconst city = attr('Owner City') || lead.city;\nconst zip = attr('Owner Zip') || lead.zipCode;\nconst state = attr('Owner State') || lead.state || 'WI';\nif (!street || !city || !zip) {\n  return deny('No mailing address', 'This lead has no complete mailing address on file, so nothing was sent and you were not charged.', '#9a6700');\n}\n\n// AJ holds a Wisconsin license only. Soliciting a listing outside it is practising real\n// estate where he is not licensed, so refuse independently of the triage filter. The digest\n// only surfaces WI leads, but this webhook re-fetches by id and a link can be old or edited,\n// so the licensed-state boundary is enforced here too rather than assumed upstream. The\n// live feed genuinely carries out-of-state records (seen: De Witt, IA).\nconst licensed = String(cfg.licensedState || 'WI').toUpperCase();\nif (String(state).toUpperCase() !== licensed) {\n  return deny('Outside your licensed state',\n    `That property is in ${esc(state)} and you are licensed in ${esc(licensed)}. Nothing was sent. Soliciting a listing outside your licensed state is not something this workflow will do.`,\n    '#cf222e');\n}\n\nconst first = (lead.firstName || (attr('Owner Name 1') || '').split(' ')[0] || '').trim();\nconst fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || attr('Owner Name 1') || 'Homeowner';\nconst greeting = first ? `Hi ${first},` : 'Hello,';\n\n// Fixed, reviewed copy. Deliberately NOT model-generated: 452.136 bars advertising a\n// property the firm holds no listing on, and these listings have expired so nobody holds\n// them. The card solicits nothing and never describes the house as being for sale.\n//\n// Positioning is researched, not improvised. See docs/research/expired-listing-messaging.md.\n// The short version: an expired seller may hear from five agents the same morning and has\n// heard the standard opener \"fifty times\", so any card that asks for the listing is\n// indistinguishable from the pile. NAR puts honesty and trustworthiness as the second most\n// cited reason sellers choose an agent, so the differentiator is refusing the ask and\n// offering the honest read instead. The \"not writing to ask for the listing\" line is the\n// whole strategy and must stay in the second sentence, before they stop reading.\n//\n// The card OFFERS the diagnosis, it never contains it. Telling someone in writing that their\n// home was overpriced, unsolicited, reads as an insult rather than help.\n// House style: no em dashes, educate rather than advise, never give legal or tax advice.\nconst message = [\n  greeting,\n  `Your ${city} home came off the market recently. I am not writing to ask for the listing.`,\n  `I went through what happened with it, what it was priced against and what actually sold nearby. If that would be useful, I will send it over. No charge and no obligation, whether you list again this year, next year or never.`,\n  `If you would rather just tell me what you were hoping to do, I would like to hear that instead.`,\n  ``,\n  // Firm name rides on the NAME line, not buried at the bottom: 452.136(2)(b) requires it\n  // clear and conspicuous. The card design must carry it too; a handwritten signature block\n  // alone does not satisfy \"conspicuous\". The licensee line is NAR Article 12, which requires\n  // AJ's status as a real estate professional to be readily apparent. Wisconsin itself does\n  // not require the salesperson's name; NAR does.\n  `${cfg.agentName || 'Anthony Stolp'}, ${firm}`,\n  `${cfg.agentPhone || ''}`,\n  `WI licensed real estate salesperson ${cfg.agentLicense || ''}`.trim()\n].filter(l => l !== null && l !== undefined).join('\\n');\n\nconst recipient = {\n  name: fullName,\n  address: street,\n  city: city,\n  province: state,      // thanks.io names the recipient state field `province`\n  postal_code: String(zip).slice(0, 10),\n  country: 'US'\n};\n\nconst payload = {\n  recipients: [recipient],\n  message,\n  size: cfg.postcardSize || '4x6',\n  front_image_url: cfg.postcardFrontImageUrl,\n  // Default TRUE in config. A preview renders the card and returns image urls WITHOUT\n  // mailing or charging, so the whole path can be exercised safely. Flipping this to false\n  // is the deliberate act that makes this workflow start spending money.\n  preview: String(cfg.previewOnly) !== 'false'\n};\n// Drives response measurement. docs/research/direct-mail-costs-and-compliance.md §6.5:\n// every piece should land on a tracked destination, and the site's /n/[token] offline\n// attribution mints anthonystolp_vid and resolves offline context. Without this the\n// response rate is guessed rather than measured. Optional: omitted if unset.\nif (cfg.qrcodeUrl && !/PUT_|YOUR_/.test(String(cfg.qrcodeUrl))) payload.qrcode_url = cfg.qrcodeUrl;\nif (cfg.returnName) {\n  payload.return_name = cfg.returnName;\n  payload.return_address = cfg.returnAddress;\n  payload.return_city = cfg.returnCity;\n  payload.return_state = cfg.returnState;\n  payload.return_postal_code = cfg.returnPostalCode;\n}\nif (!payload.front_image_url || /PUT_|YOUR_/.test(String(payload.front_image_url))) {\n  return deny('No postcard front image', 'postcardFrontImageUrl is still a placeholder, so nothing was sent. Set the front image in the Mailer Config node.', '#9a6700');\n}\n\nreturn [{ json: { ok: true, leadId: auth.leadId, weekStart: auth.weekStart, weekCount: auth.weekCount, cap: auth.cap, recipientName: fullName, mailTo: `${street}, ${city}, ${state} ${zip}`, preview: payload.preview, payload } }];\n"
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000007",
+      "name": "IF Mailable",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-7",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000008",
+      "name": "thanks.io: Send Postcard",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1340,
+        120
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.thanks.io/api/v2/send/postcard",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}"
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_THANKSIO_CRED_ID",
+          "name": "thanks.io API"
+        }
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000009",
+      "name": "Record Sent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        120
+      ],
+      "parameters": {
+        "jsCode": "// Interpret the thanks.io response and commit state ONLY on a real send.\n//\n// Three outcomes are deliberately kept apart:\n//   error   -> nothing committed, so the lead can be retried and no slot is burned\n//   preview -> nothing committed, because no mail left the building and nothing was charged\n//   sent    -> commit mailedLeadIds + the weekly counter\n// This mirrors \"Mark Emailed Seen\" in the triage workflow, which likewise commits only after\n// a successful send.\nconst built = $('Build Postcard').first().json;\nconst resp = $json || {};\n\nconst page = (title, body, color, extra) => `<!doctype html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>${title}</title></head><body style=\"font:16px/1.5 -apple-system,system-ui,Segoe UI,Arial,sans-serif;background:#f6f8fa;margin:0;padding:48px 20px;color:#1f2328\"><div style=\"max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)\"><h1 style=\"margin:0 0 10px;font-size:20px;color:${color}\">${title}</h1><p style=\"margin:0 0 8px;color:#57606a\">${body}</p>${extra || ''}</div></body></html>`;\n\nconst esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n// The HTTP node runs with neverError, so a vendor rejection arrives as a body rather than a\n// failed execution. thanks.io returns {message} on 400/403/500.\nconst failed = !!resp.message && !resp.id && !(resp.data && resp.data.previews);\nif (failed) {\n  return [{ json: { html: page('Not sent', `thanks.io rejected the request: ${esc(resp.message)}. Nothing was charged and this lead is untouched, so you can try again.`, '#cf222e') } }];\n}\n\nif (built.preview) {\n  const previews = (resp.data && Array.isArray(resp.data.previews)) ? resp.data.previews : [];\n  const imgs = previews.map(u => `<img src=\"${esc(u)}\" alt=\"postcard preview\" style=\"max-width:100%;border:1px solid #d0d7de;border-radius:6px;margin:8px 0\">`).join('');\n  return [{ json: { html: page('Preview only, nothing mailed',\n    `This is what would go to ${esc(built.recipientName)} at ${esc(built.mailTo)}. No postcard was sent and you were not charged. Set previewOnly to false in the Mailer Config node when you are ready to mail for real.`,\n    '#0969da', imgs) } }];\n}\n\n// Real send. Commit both guards now that thanks.io has accepted it.\nconst sd = $getWorkflowStaticData('global');\nconst mailed = new Set(Array.isArray(sd.mailedLeadIds) ? sd.mailedLeadIds : []);\nmailed.add(String(built.leadId));\nsd.mailedLeadIds = [...mailed].slice(-5000);\nsd.mailWeekStart = built.weekStart;\nsd.mailWeekCount = Number(built.weekCount || 0) + 1;\n\nconst remaining = Math.max(0, built.cap - sd.mailWeekCount);\nreturn [{ json: { html: page('Postcard on its way',\n  `Sending to ${esc(built.recipientName)} at ${esc(built.mailTo)}. That is ${sd.mailWeekCount} of ${built.cap} this week, ${remaining} left.`,\n  '#1a7f37',\n  `<p style=\"margin:8px 0 0;color:#8c959f;font-size:13px\">thanks.io order ${esc(resp.id || 'accepted')}. This owner will not be mailed again.</p>`) }}];\n"
+      }
+    },
+    {
+      "id": "c3000000-0000-4a00-9000-000000000010",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1780,
+        300
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Mail Webhook": {
+      "main": [
+        [
+          {
+            "node": "Mailer Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mailer Config": {
+      "main": [
+        [
+          {
+            "node": "Verify, Cap & Dedup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify, Cap & Dedup": {
+      "main": [
+        [
+          {
+            "node": "IF Authorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Authorized": {
+      "main": [
+        [
+          {
+            "node": "Lofty: Get Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lofty: Get Lead": {
+      "main": [
+        [
+          {
+            "node": "Build Postcard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Postcard": {
+      "main": [
+        [
+          {
+            "node": "IF Mailable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Mailable": {
+      "main": [
+        [
+          {
+            "node": "thanks.io: Send Postcard",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "thanks.io: Send Postcard": {
+      "main": [
+        [
+          {
+            "node": "Record Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record Sent": {
+      "main": [
+        [
+          {
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
