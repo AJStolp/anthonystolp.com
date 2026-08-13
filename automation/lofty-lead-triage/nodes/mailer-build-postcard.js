@@ -111,6 +111,19 @@ const payload = {
   // is the deliberate act that makes this workflow start spending money.
   preview: String(cfg.previewOnly) !== 'false'
 };
+// Handwriting. thanks.io's differentiator is a handwriting-style render rather than obvious
+// bulk print, which lifts the odds the card is opened at all. AJ chose this deliberately,
+// including the realism effect. All three are optional: leave a field blank and thanks.io
+// applies its own default.
+//
+// handwriting_style_id is an integer and thanks.io publishes NO list of valid ids and no
+// endpoint to fetch them, so the value has to come from their dashboard or from support.
+// Left blank it falls back to their default style rather than erroring.
+const hwStyle = parseInt(cfg.handwritingStyleId, 10);
+if (Number.isFinite(hwStyle) && hwStyle > 0) payload.handwriting_style_id = hwStyle;
+if (cfg.handwritingColor && !/PUT_|YOUR_/.test(String(cfg.handwritingColor))) payload.handwriting_color = String(cfg.handwritingColor).trim();
+if (String(cfg.handwritingRealism) === 'true') payload.handwriting_realism = true;
+
 // Drives response measurement. docs/research/direct-mail-costs-and-compliance.md §6.5:
 // every piece should land on a tracked destination, and the site's /n/[token] offline
 // attribution mints anthonystolp_vid and resolves offline context. Without this the

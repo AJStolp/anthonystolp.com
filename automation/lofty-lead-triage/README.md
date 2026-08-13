@@ -238,6 +238,18 @@ Dedup lives in this workflow rather than the digest because n8n static data is p
 the triage workflow cannot read it. The button therefore always renders and the webhook is the
 authority; a second tap is harmless.
 
+### Handwriting
+
+thanks.io renders the message in a handwriting style rather than obvious bulk print, which is
+the main reason the card gets opened. Configured via three optional fields; leave any of them
+blank and thanks.io applies its own default.
+
+| Config | Values |
+|---|---|
+| `handwritingStyleId` | integer. **thanks.io publishes no list of valid ids and no endpoint to fetch them** — take the value from their dashboard or ask support. Blank falls back to their default. |
+| `handwritingColor` | `blue`, `black`, `green`, `purple`, `red`, or a hex value like `#4287f5` |
+| `handwritingRealism` | `"true"` enables the realism effect on AI fonts. Ships enabled. |
+
 ### `previewOnly` defaults to `true`
 
 thanks.io's `preview: true` renders the card and returns image URLs **without mailing or

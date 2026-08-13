@@ -29,7 +29,8 @@ const NO_ADDR = { ...WI_LEAD, streetAddress: '', city: '', zipCode: '', customAt
 const GOOD = { mailSecret: 's3cr3t-long-random', weeklyMailCap: '3', previewOnly: 'true',
   firmNameAsLicensed: 'Epique Realty LLC', licensedState: 'WI', agentName: 'Anthony Stolp',
   agentPhone: '(262) 885-3310', agentLicense: '#114204-94', postcardSize: '4x6',
-  postcardFrontImageUrl: 'https://example.com/front.jpg' };
+  postcardFrontImageUrl: 'https://example.com/front.jpg',
+  handwritingColor: 'blue', handwritingRealism: 'true', handwritingStyleId: '' };
 
 let sd = {};
 const load = (f) => new Function('$', '$now', '$getWorkflowStaticData', '$json', 'console',
@@ -68,6 +69,17 @@ is('message carries licensed firm name', built.payload.message.includes('Epique 
 is('message carries license number', built.payload.message.includes('#114204-94'), true);
 is('message has no em dashes', /—/.test(built.payload.message), false);
 is('message does not advertise the property', /for sale|listed at|asking/i.test(built.payload.message), false);
+
+// Handwriting: opt-in, and blank fields must fall through to thanks.io's own defaults rather
+// than sending an empty or NaN value, since there is no published list of valid style ids.
+is('handwriting realism on when enabled', built.payload.handwriting_realism, true);
+is('handwriting color passed through', built.payload.handwriting_color, 'blue');
+const noStyle = build({ ...GOOD, handwritingStyleId: '' }, auth, WI_LEAD);
+is('blank style id omitted entirely', 'handwriting_style_id' in noStyle.payload, false);
+const withStyle = build({ ...GOOD, handwritingStyleId: '4' }, auth, WI_LEAD);
+is('style id coerced to integer', withStyle.payload.handwriting_style_id, 4);
+const hwOff = build({ ...GOOD, handwritingRealism: 'false' }, auth, WI_LEAD);
+is('realism omitted when disabled', 'handwriting_realism' in hwOff.payload, false);
 
 sd = {}; record(built, { data: { previews: ['https://x/p.png'] } });
 is('preview commits no send', (sd.mailedLeadIds || []).length, 0);
