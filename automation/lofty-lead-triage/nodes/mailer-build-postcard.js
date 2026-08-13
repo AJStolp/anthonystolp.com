@@ -124,6 +124,17 @@ const payload = {
 const hwStyle = parseInt(cfg.handwritingStyleId, 10);
 if (Number.isFinite(hwStyle) && hwStyle > 0) payload.handwriting_style_id = hwStyle;
 if (cfg.handwritingColor && !/PUT_|YOUR_/.test(String(cfg.handwritingColor))) payload.handwriting_color = String(cfg.handwritingColor).trim();
+
+// font_size is 'auto' | 'small' | 'medium' | 'large' and is only honoured on AI-type fonts
+// (style ids 101+). Verified on a live preview: 'auto' sizes this message large enough that
+// it crowds the card edges, while 'small' fits with clean margins on all four sides.
+if (['auto', 'small', 'medium', 'large'].includes(String(cfg.fontSize))) payload.font_size = String(cfg.fontSize);
+
+// handwriting_realism does NOT just add texture. It fabricates human imperfections, and on a
+// live render it produced a struck-through word ("came off off the market") to simulate the
+// writer correcting themselves. On a card whose whole premise is being straight with the
+// reader, a manufactured mistake is the wrong kind of authenticity, and it reads as sloppiness
+// rather than warmth. Off by default; still togglable. Only applies to AI fonts either way.
 if (String(cfg.handwritingRealism) === 'true') payload.handwriting_realism = true;
 
 // Drives response measurement. docs/research/direct-mail-costs-and-compliance.md §6.5:
