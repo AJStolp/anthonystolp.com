@@ -78,9 +78,9 @@ const greeting = first ? `Hi ${first},` : 'Hello,';
 // House style: no em dashes, educate rather than advise, never give legal or tax advice.
 const message = [
   greeting,
-  `Your ${city} home came off the market recently. I am not writing to ask for the listing.`,
-  `I went through what happened with it, what it was priced against and what actually sold nearby. If that would be useful, I will send it over. No charge and no obligation, whether you list again this year, next year or never.`,
-  `If you would rather just tell me what you were hoping to do, I would like to hear that instead.`,
+  `Your ${city} home came off the market without selling. I am not writing to ask for the listing.`,
+  `I looked at what it was priced against and what actually sold near it. Say the word and I will send it. No charge, whether you list again this year, next year or never.`,
+  `Or tell me what you were trying to do. I would rather hear that.`,
   ``,
   // Firm name rides on the NAME line, not buried at the bottom: 452.136(2)(b) requires it
   // clear and conspicuous. The card design must carry it too; a handwritten signature block

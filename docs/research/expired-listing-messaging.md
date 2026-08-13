@@ -188,17 +188,21 @@ Without it the response rate is guessed rather than measured.
 
 ## 6. Recommended copy
 
-One recommendation rather than a menu. Roughly 430 characters, which fits a 4x6 handwritten card.
+One recommendation rather than a menu. 439 characters, which fits a 4x6 handwritten card.
+
+Edited once for dead prose: every hedge that carried no information was cut, taking it from 519
+to 439 characters without losing a single fact. "If that would be useful, I will send it over"
+became "Say the word and I will send it"; "and no obligation" went because the this-year-next-
+year-or-never clause already says it better.
 
 > Hi {first},
 >
-> Your {city} home came off the market recently. I am not writing to ask for the listing.
+> Your {city} home came off the market without selling. I am not writing to ask for the listing.
 >
-> I went through what happened with it, what it was priced against and what actually sold nearby.
-> If that would be useful, I will send it over. No charge and no obligation, whether you list
-> again this year, next year or never.
+> I looked at what it was priced against and what actually sold near it. Say the word and I will
+> send it. No charge, whether you list again this year, next year or never.
 >
-> If you would rather just tell me what you were hoping to do, I would like to hear that instead.
+> Or tell me what you were trying to do. I would rather hear that.
 >
 > Anthony Stolp, {firm}
 
@@ -206,11 +210,11 @@ Why each part is there:
 
 | Line | Job |
 |---|---|
-| "came off the market recently" | Neutral and factual. Not "expired", which sounds like a verdict. |
+| "came off the market without selling" | Neutral and factual. Not "expired", which sounds like a verdict. States the fact rather than hedging with "recently". |
 | **"I am not writing to ask for the listing"** | The whole differentiator, in the second sentence, before they stop reading. Nobody else says it. |
-| "what it was priced against and what actually sold nearby" | Data, specific, and plainly deliverable. Not a vague offer of "a free market analysis". |
+| "what it was priced against and what actually sold near it" | Data, specific, and plainly deliverable. Not a vague offer of "a free market analysis". |
 | "whether you list again this year, next year or never" | Removes the implied obligation. This is the line that makes the no-ask claim credible instead of a technique. |
-| "tell me what you were hoping to do" | AJ's actual objective: learn their journey. Invites a conversation about them, not the transaction. |
+| **"I would rather hear that"** | AJ's actual objective: learn their journey. Says he would prefer their story to his own analysis, which is the relationship-first position stated rather than claimed. |
 
 Notes: no em dashes, per house style. No advice, only information, per the educate-not-advise
 rule. Firm name goes in the card **design** as well as the signature to satisfy "clear and
