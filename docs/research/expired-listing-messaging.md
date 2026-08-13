@@ -166,8 +166,15 @@ Taken from `direct-mail-costs-and-compliance.md` §4.2 and §4.7, not re-derived
 - "ExSell Experts" never without "Epique Realty", and not out-shouting it.
 - AJ's status as a real estate professional readily apparent — NAR Article 12. Wisconsin itself
   does not require the salesperson's name; NAR does.
-- **Broker pre-approval before the order is placed.** 452.136(2)(b) requires advertising under
-  the firm's supervision. This is a compliance gate, not a courtesy.
+- Advertising happens **in the name of and under the supervision of the firm** — 452.136(2)(b).
+  **Correction:** an earlier draft of this document called per-piece broker pre-approval a
+  compliance gate. It is not. The statute requires the firm's name and firm supervision; it
+  does not mandate that a broker approve each piece. Whether Epique requires that is
+  **brokerage policy**, and `direct-mail-costs-and-compliance.md` §4.7 already records that no
+  published Epique marketing policy could be found and that this is a question for the broker
+  rather than an assumption. Ask it in the same message as the firm-name question.
+  The reason brokers usually do care: exposure for a non-compliant ad runs to the firm and the
+  supervising broker, not only to the salesperson.
 - Image rights cleared. Not MLS photos by default.
 
 ### Tracking
@@ -216,7 +223,7 @@ conspicuous", which is a layout requirement the handwritten message alone cannot
 | Item | Who | Why it blocks |
 |---|---|---|
 | Exact Wisconsin licensed firm name | Broker or DSPS | Issue #40. Facial violation if wrong. Mailer refuses to send until set. |
-| Broker approval of the finished piece | Epique broker | 452.136(2)(b) supervision requirement. |
+| Whether Epique requires pre-approval of marketing pieces | Epique broker | Brokerage policy, not statute. Ask alongside the firm-name question. |
 | Front image and its rights | AJ | Not MLS photos. |
 | How old these expirations actually are | AJ, spot-check MLS numbers | Determines whether the late-window theory in §3 holds for this feed. |
 | Whether a `/n/[token]` short link or QR goes on the card | AJ | Determines if response is measured or guessed. §6.5 of the companion doc. |

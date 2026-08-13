@@ -255,6 +255,10 @@ money.
 2. **thanks.io account, API key and funded credits.** AJ's to create.
 3. **AJ approves the template copy and front image.**
 
+Not a blocker, but ask in the same message as #40: whether Epique requires pre-approval of
+marketing pieces. 452.136(2)(b) requires advertising in the name of and under the supervision
+of the firm, but does **not** mandate per-piece broker sign-off. That is brokerage policy.
+
 ### Copy is a fixed template, not model-generated
 
 452.136 also bars advertising a property the firm holds no listing on, and these listings have
