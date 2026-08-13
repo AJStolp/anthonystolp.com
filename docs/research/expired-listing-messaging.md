@@ -222,6 +222,31 @@ conspicuous", which is a layout requirement the handwritten message alone cannot
 
 ---
 
+## 6a. What the card actually looks like, from a live render
+
+Rendered through the real thanks.io API with `preview: true`, which returns finished images
+without mailing or charging. Three findings that only showed up on the render:
+
+1. **Paragraphs need blank lines.** Joining the message with single newlines produced one dense
+   unreadable block. The handwriting engine honours `\n\n` as a paragraph break, and the
+   legibility difference is large. Fixed in `nodes/mailer-build-postcard.js`; the signature
+   block still uses single newlines so it stays tight.
+2. **Handwriting style matters more than expected, and the descriptions oversell.** Style 12
+   ("Wow! Signal", described as a "neat casual script-print mix with clear forms") renders as a
+   thin loopy script that is genuinely hard to read at 439 characters. **Style 104 ("Analytic
+   Atom") is the pick**: clean handwritten print, highly legible, reads as a person rather than
+   a font.
+3. **`handwriting_realism` only applies to the AI-type styles** (ids 101 and up). On the
+   "Realistic" styles (1 to 20) the flag is a no-op. Style 104 is an AI type, so realism is
+   live there. There are 36 styles total, retrievable from `GET /handwriting-styles`, which
+   thanks.io does not document anywhere.
+
+The top half of the rendered interior is blank. That is the fold: 1650x2475 at 300dpi is
+5.5 x 8.25 inches, so the upper panel is the inside front of a top-fold card and the message
+sits on the lower writing surface. Worth confirming on the first physical piece.
+
+---
+
 ## 7. Open items requiring a human
 
 | Item | Who | Why it blocks |
