@@ -78,9 +78,9 @@ const greeting = first ? `Hi ${first},` : 'Hello,';
 // House style: no em dashes, educate rather than advise, never give legal or tax advice.
 const message = [
   greeting,
-  `Your ${city} home came off the market recently. I am not writing to ask for the listing.`,
-  `I went through what happened with it, what it was priced against and what actually sold nearby. If that would be useful, I will send it over. No charge and no obligation, whether you list again this year, next year or never.`,
-  `If you would rather just tell me what you were hoping to do, I would like to hear that instead.`,
+  `Your ${city} home came off the market without selling. I am not writing to ask for the listing.`,
+  `I looked at what it was priced against and what actually sold near it. Say the word and I will send it. No charge, whether you list again this year, next year or never.`,
+  `Or tell me what you were trying to do. I would rather hear that.`,
   ``,
   // Firm name rides on the NAME line, not buried at the bottom: 452.136(2)(b) requires it
   // clear and conspicuous. The card design must carry it too; a handwritten signature block
@@ -111,6 +111,19 @@ const payload = {
   // is the deliberate act that makes this workflow start spending money.
   preview: String(cfg.previewOnly) !== 'false'
 };
+// Handwriting. thanks.io's differentiator is a handwriting-style render rather than obvious
+// bulk print, which lifts the odds the card is opened at all. AJ chose this deliberately,
+// including the realism effect. All three are optional: leave a field blank and thanks.io
+// applies its own default.
+//
+// handwriting_style_id is an integer and thanks.io publishes NO list of valid ids and no
+// endpoint to fetch them, so the value has to come from their dashboard or from support.
+// Left blank it falls back to their default style rather than erroring.
+const hwStyle = parseInt(cfg.handwritingStyleId, 10);
+if (Number.isFinite(hwStyle) && hwStyle > 0) payload.handwriting_style_id = hwStyle;
+if (cfg.handwritingColor && !/PUT_|YOUR_/.test(String(cfg.handwritingColor))) payload.handwriting_color = String(cfg.handwritingColor).trim();
+if (String(cfg.handwritingRealism) === 'true') payload.handwriting_realism = true;
+
 // Drives response measurement. docs/research/direct-mail-costs-and-compliance.md §6.5:
 // every piece should land on a tracked destination, and the site's /n/[token] offline
 // attribution mints anthonystolp_vid and resolves offline context. Without this the
