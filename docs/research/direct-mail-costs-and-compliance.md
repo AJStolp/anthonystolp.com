@@ -442,8 +442,19 @@ postcard. It will govern the drone and AI-processed imagery strategy from Januar
 > listing firm for the property. **(b)** The firm or a licensee associated with the firm has obtained
 > **consent to advertise the property from the listing firm** for the property."
 
-AJ represented the buyer. Epique was not the listing firm. On the face of the statute, (b) is the only
-available path and it requires the listing firm's consent.
+> **CORRECTION 2026-08-14. The premise of this section was wrong for 521 Alta Loma.** AJ was the
+> **listing agent**, not the buyer's agent, so **452.136(3)(a) is satisfied outright and no consent
+> letter is required** for the September just-sold mailer. Evidence: `supabase/seed_521_alta_loma.sql`
+> records the published price as "the current public MLS list price after the Sunday adjustment", and
+> only the listing firm adjusts a public MLS list price; AJ also hosted the open house there. Issue #40
+> was rescoped on 2026-08-05 for this reason and its legal blocker is closed.
+>
+> **The rest of this section still governs any property AJ did not list**, which is the case it was
+> written for. Read it that way, and do not re-block the 521 piece on it.
+
+The original analysis, retained because it is correct for every other property, assumed AJ represented
+the buyer and that Epique was not the listing firm. Under that assumption (b) is the only available path
+and it requires the listing firm's consent.
 
 Two things that must not be glossed over:
 
