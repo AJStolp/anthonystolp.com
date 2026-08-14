@@ -76,21 +76,23 @@ const greeting = first ? `Hi ${first},` : 'Hello,';
 // The card OFFERS the diagnosis, it never contains it. Telling someone in writing that their
 // home was overpriced, unsolicited, reads as an insult rather than help.
 // House style: no em dashes, educate rather than advise, never give legal or tax advice.
+// Signature lines stay tight (single newlines); prose paragraphs are separated by BLANK
+// lines. Verified against a real thanks.io preview render: joining everything with single
+// newlines produced one dense unreadable block. The handwriting engine honours \n\n as a
+// paragraph break, and the difference in legibility is large.
+const signature = [
+  `${cfg.agentName || 'Anthony Stolp'}, ${firm}`,
+  `${cfg.agentPhone || ''}`,
+  `WI licensed real estate salesperson ${cfg.agentLicense || ''}`.trim()
+].filter(Boolean).join('\n');
+
 const message = [
   greeting,
   `Your ${city} home came off the market without selling. I am not writing to ask for the listing.`,
   `I looked at what it was priced against and what actually sold near it. Say the word and I will send it. No charge, whether you list again this year, next year or never.`,
   `Or tell me what you were trying to do. I would rather hear that.`,
-  ``,
-  // Firm name rides on the NAME line, not buried at the bottom: 452.136(2)(b) requires it
-  // clear and conspicuous. The card design must carry it too; a handwritten signature block
-  // alone does not satisfy "conspicuous". The licensee line is NAR Article 12, which requires
-  // AJ's status as a real estate professional to be readily apparent. Wisconsin itself does
-  // not require the salesperson's name; NAR does.
-  `${cfg.agentName || 'Anthony Stolp'}, ${firm}`,
-  `${cfg.agentPhone || ''}`,
-  `WI licensed real estate salesperson ${cfg.agentLicense || ''}`.trim()
-].filter(l => l !== null && l !== undefined).join('\n');
+  signature
+].join('\n\n');
 
 const recipient = {
   name: fullName,
@@ -122,6 +124,17 @@ const payload = {
 const hwStyle = parseInt(cfg.handwritingStyleId, 10);
 if (Number.isFinite(hwStyle) && hwStyle > 0) payload.handwriting_style_id = hwStyle;
 if (cfg.handwritingColor && !/PUT_|YOUR_/.test(String(cfg.handwritingColor))) payload.handwriting_color = String(cfg.handwritingColor).trim();
+
+// font_size is 'auto' | 'small' | 'medium' | 'large' and is only honoured on AI-type fonts
+// (style ids 101+). Verified on a live preview: 'auto' sizes this message large enough that
+// it crowds the card edges, while 'small' fits with clean margins on all four sides.
+if (['auto', 'small', 'medium', 'large'].includes(String(cfg.fontSize))) payload.font_size = String(cfg.fontSize);
+
+// handwriting_realism does NOT just add texture. It fabricates human imperfections, and on a
+// live render it produced a struck-through word ("came off off the market") to simulate the
+// writer correcting themselves. On a card whose whole premise is being straight with the
+// reader, a manufactured mistake is the wrong kind of authenticity, and it reads as sloppiness
+// rather than warmth. Off by default; still togglable. Only applies to AI fonts either way.
 if (String(cfg.handwritingRealism) === 'true') payload.handwriting_realism = true;
 
 // Drives response measurement. docs/research/direct-mail-costs-and-compliance.md §6.5:

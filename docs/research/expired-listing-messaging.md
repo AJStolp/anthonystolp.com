@@ -222,6 +222,48 @@ conspicuous", which is a layout requirement the handwritten message alone cannot
 
 ---
 
+## 6a. What the card actually looks like, from a live render
+
+Rendered through the real thanks.io API with `preview: true`, which returns finished images
+without mailing or charging. Three findings that only showed up on the render:
+
+1. **Paragraphs need blank lines.** Joining the message with single newlines produced one dense
+   unreadable block. The handwriting engine honours `\n\n` as a paragraph break, and the
+   legibility difference is large. Fixed in `nodes/mailer-build-postcard.js`; the signature
+   block still uses single newlines so it stays tight.
+2. **Handwriting style matters more than expected, and the descriptions oversell.** Style 12
+   ("Wow! Signal", described as a "neat casual script-print mix with clear forms") renders as a
+   thin loopy script that is genuinely hard to read at 439 characters. **Style 104 ("Analytic
+   Atom") is the pick**: clean handwritten print, highly legible, reads as a person rather than
+   a font.
+3. **`handwriting_realism` only applies to the AI-type styles** (ids 101 and up). On the
+   "Realistic" styles (1 to 20) the flag is a no-op. There are 36 styles total, retrievable
+   from `GET /handwriting-styles`, which thanks.io does not document anywhere.
+4. **Realism fabricates mistakes, so it is off.** On a live render with realism enabled, the
+   engine produced a struck-through word: "Your Milwaukee home came ~~off~~ off the market".
+   It simulates the writer correcting themselves. On a card whose entire premise is being
+   straight with the reader, a manufactured error is the wrong kind of authenticity, and to a
+   reader it simply looks like sloppiness. Off by default, still togglable.
+5. **`font_size` matters and is AI-font only.** `auto` sized this message large enough to crowd
+   the card edges; `small` fits with clean margins on all four sides. Default `small`.
+6. **The merge tokens are far richer than the OpenAPI spec suggests.** The spec documents only
+   `%FIRST_NAME%`, which led to an incorrect note in an earlier draft of this document that no
+   city token existed. The product actually offers `%FULL_NAME%`, `%FIRST_NAME%`,
+   `%LAST_NAME%`, `%COMPANY%`, `%ADDRESS%`, `%STREET_ONLY%`, `%ADDRESS2%`, **`%CITY%`**,
+   `%STATE%`, `%ZIP%`, `%CUSTOM1%` to `%CUSTOM4%`, `%ABSENTEE_STREET%`, `%CURRENT_DAY%`, plus
+   account-level `%YOUR_FULL_NAME%`, `%YOUR_FIRST_NAME%`, `%YOUR_COMPANY%`, `%YOUR_EMAIL%`,
+   `%YOUR_PHONE%`. **Trust the dashboard over the spec.**
+   Do **not** use `%YOUR_COMPANY%` for the firm name: it resolves from a dashboard profile
+   field that can be edited casually, and 452.136(2)(a) requires the name exactly as licensed.
+   An explicit, verified string is auditable. A drifting one is a facial violation on every
+   piece.
+
+The top half of the rendered interior is blank. That is the fold: 1650x2475 at 300dpi is
+5.5 x 8.25 inches, so the upper panel is the inside front of a top-fold card and the message
+sits on the lower writing surface. Worth confirming on the first physical piece.
+
+---
+
 ## 7. Open items requiring a human
 
 | Item | Who | Why it blocks |
