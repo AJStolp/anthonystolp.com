@@ -26,14 +26,26 @@ cleanup labour (Section 2.2).
 | 200 addresses | **$1.08** | $216 |
 | 1,000 addresses | **$1.04** | $1,040 |
 
-**Hard art deadline: Friday, August 28, 2026.** Finished art, purchased list, and the listing firm's
-written consent all in hand by that date. Order goes in Tuesday September 8, mails Wednesday September
-9, lands Friday September 11 through Wednesday September 16. Section 5 shows the working.
+> **CORRECTIONS 2026-08-14/15. Two items in this summary are superseded. The section bodies below
+> are otherwise sound and the postage, cost and compliance research still stands.**
+>
+> 1. **AJ was the listing agent on 521 Alta Loma, not the buyer's agent.** 452.136(3)(a) is therefore
+>    satisfied outright and **no consent letter is required**. Evidence and reasoning in the
+>    correction banner at §4.3. Issue #40 was rescoped on 2026-08-05 for this reason.
+> 2. **The list is no longer being purchased.** The mailer runs through thanks.io's Neighbor Blast,
+>    which discovers the nearest 80 households from the target address, so §2's sourcing comparison
+>    and the ProspectsPLUS! order dates below do not describe the current plan. See
+>    `docs/specs/direct-mail-pipeline.md`. §2 still governs any campaign where we supply the list.
 
-**The highest-risk item is not cost, it is Wis. Stat. 452.136(3).** AJ represented the buyer at 521 Alta
-Loma. He did not hold the listing. Wisconsin law says a firm may not advertise a property unless it is
-the listing firm or has obtained consent from the listing firm, and the statute contains **no
-post-closing carve-out**. That consent has to be requested now, not after the close. Section 4.3.
+**Hard art deadline: Friday, August 28, 2026.** Finished art in hand by that date. The order timeline
+that follows assumed a purchased list and a print vendor; see correction 2 above.
+~~Order goes in Tuesday September 8, mails Wednesday September 9, lands Friday September 11 through
+Wednesday September 16.~~ Section 5 shows the working for the superseded route.
+
+**The highest-risk item is not cost, it is Wis. Stat. 452.136(3)** — for every property AJ did not
+list. Wisconsin law says a firm may not advertise a property unless it is the listing firm or has
+obtained consent from the listing firm, and the statute contains **no post-closing carve-out**. This
+does **not** bind 521 Alta Loma, per correction 1. Section 4.3.
 
 **Second risk, newly surfaced: the MLS listing photos are probably not AJ's to use.** WRA guidance says
 MLS terms of use do not permit copying photos for "the advertising of sold property". Section 4.5.
@@ -488,13 +500,17 @@ The NAR Code of Ethics is more permissive and resolves the "can I say sold" ques
 
 Source: [NAR Code of Ethics](https://www.nar.realtor/about-nar/governing-documents/code-of-ethics).
 
-As the buyer's agent AJ **was** the cooperating broker, so under NAR he **may** claim the property sold,
-and 12-7's consent sentence is limited to sold signs **prior to** closing, which does not bite here.
-**But NAR permission does not displace 452.136(3). The state statute is stricter and controls.**
+Under the original buyer-side assumption AJ would have been the cooperating broker, so under NAR he
+**may** claim the property sold, and 12-7's consent sentence is limited to sold signs **prior to**
+closing, which would not bite. **But NAR permission does not displace 452.136(3). The state statute is
+stricter and controls.** That ordering still holds and is the durable point of this subsection.
 
-**The clean resolution costs one email.** Ask the listing firm for written consent to reference the
-property in post-closing marketing. Get it before September 4. It moots the interpretive question
-entirely and costs nothing.
+**On 521 specifically none of this is reached**, because AJ held the listing and (3)(a) applies. The
+paragraph is retained for the next property where he is the cooperating broker.
+
+**Where it is reached, the clean resolution costs one email.** Ask the listing firm for written consent
+to reference the property in post-closing marketing, before the piece is designed. It moots the
+interpretive question entirely and costs nothing.
 
 ### 4.4 Two adjacent rules the brief did not ask about but that apply
 
@@ -556,10 +572,13 @@ the 452.136(3) consent.
 - [ ] **"ExSell Experts" never appears without "Epique Realty"** and does not out-shout it. No explicit
       Wisconsin team-name rule exists; this is derived from 452.136(2) and WRA guidance.
 - [ ] AJ's **status as a real estate professional is readily apparent**. NAR Article 12.
-- [ ] The piece **accurately states AJ represented the buyer**. Do not imply he held the listing.
-      452.136(1), REEB 24.085, NAR SoP 12-7.
-- [ ] **Written consent from the listing firm** to reference the property, obtained before September 4.
-      452.136(3).
+- [ ] The piece **accurately states which side AJ was on**, and does not imply otherwise. 452.136(1),
+      REEB 24.085, NAR SoP 12-7. **On 521 Alta Loma he was the LISTING agent** — a piece saying he
+      represented the buyer would itself be false advertising. Confirm the side per property; do not
+      copy this line forward.
+- [ ] **Written consent from the listing firm** to reference the property. **Not required for 521**,
+      where AJ held the listing and 452.136(3)(a) applies. Required for any property he did not list,
+      and obtained before the piece is designed. 452.136(3).
 - [ ] **Image rights cleared.** Own photography, or written permission. Not MLS photos by default.
 - [ ] **Buyer client not named**, and terms not disclosed, without broker sign-off. 452.133(1)(d).
 - [ ] Sale price shown only if accurate and only post-closing. 452.136(1) and 452.136(4).
