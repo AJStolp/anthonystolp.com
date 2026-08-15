@@ -133,7 +133,9 @@ Capabilities live in `.claude/skills/`. This file supplies state and boundaries;
 | Before committing | `/code-review` |
 | Ending a session or nearing a context limit | `/handoff` |
 
-If a procedure written here ever contradicts a skill, the skill wins and the paragraph gets deleted from this file.
+If a **procedure** written here ever contradicts a skill, the skill wins and the paragraph gets deleted from this file. Skills own method: the steps, the sequence, the technique.
+
+Skills do **not** own repo facts. Paths, file locations, naming, what is gitignored, and what may be committed are stated here, and here wins, because a general purpose skill cannot know them. A skill that names a different location means do the same work at the path this file gives. Concretely: `/handoff` and `mattpocock-skills:handoff` write to `docs/handoffs/`, never the OS temp directory.
 
 ---
 
