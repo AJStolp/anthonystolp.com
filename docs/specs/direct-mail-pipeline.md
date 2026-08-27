@@ -83,7 +83,7 @@ tables imply.
 | **Recently sold** | thanks.io discovery | Neighbor Blast, 80 nearest | 6x9 postcard, $1.65 = ~$132 | firm name (#40), card art |
 | **Market report** | Supabase `funnel_leads` | existing cron pipeline, new print channel | postcard | channel adapter |
 | **Attorney referral** | Supabase, hand-built | days-after-recipient-added | notecard, $3.04 | list does not exist; firm name |
-| **Expired listing** | Lofty pond via n8n | one-tap button, already built | notecard | copy rewrite; firm name |
+| **Expired listing** | Lofty pond via n8n | one-tap button, already built | **windowless letter, $2.56** | funded thanks.io credits |
 | **Birthday** | Supabase | On Recipient's Birthday | card | **no DOB data source** |
 | **Just listed** | n/a | n/a | n/a | arsenal only, not being run |
 
@@ -102,6 +102,13 @@ September 4, lands September 5.
 render is acceptable this removes the MLS photo-rights question entirely, which is the third open item
 on #40. Confirm with a real render before relying on it.
 
+**The expired piece is a windowless letter, not a notecard.** AJ wants no exterior artwork, and that
+single requirement decides the product: a notecard REQUIRES `front_image_url` or `image_template_id`,
+while both letter endpoints fall back to a blank background when neither is given. Windowless rather
+than windowed because the envelope carries a handwritten address and a real stamp, and a window reads
+as a bill before it is opened. $2.56 against the notecard's $3.04. The attorney campaign below still
+says notecard and has not been revisited against the same constraint.
+
 **Just listed is explicitly not being run.** The design exists in the thanks.io gallery and is worth
 copying into the account so it is there if wanted. Do not build automation for it.
 
@@ -113,8 +120,10 @@ Owned by `direct-mail-costs-and-compliance.md` §4. Two points restated only bec
 campaign in the table above:
 
 - **Every piece needs Epique's firm name exactly as licensed in Wisconsin**, clearly and conspicuously,
-  indicating a business and not a private party (452.136(2)). That string is still unknown and is
-  issue **#40**. It blocks the attorney campaign and the expired campaign as much as the just-sold one.
+  indicating a business and not a private party (452.136(2)). **Answered 2026-08-27: `Epique Realty`**,
+  per AJ, and now set in the mailer config. Issue **#40** stays open for the branding and photo-rights
+  halves. Note `src/lib/agent-profile.ts` still says `"ExSell Experts at Epique Realty"`; the mail
+  piece uses the firm alone and the two cannot both be the licensed string.
 - **452.136(3) does not restrict 521 Alta Loma.** AJ was the listing agent, so (3)(a) is satisfied and
   no consent letter is needed. It *does* restrict any property he did not list. See the correction
   banner at §4.3 of the research doc.

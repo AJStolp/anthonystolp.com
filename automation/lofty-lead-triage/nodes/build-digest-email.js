@@ -21,16 +21,17 @@ const claimBtn = i => (i.bucket === 'pond' && cfg.claimBaseUrl && cfg.claimSecre
   ? `<a href="${cfg.claimBaseUrl}/lofty-claim?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.claimSecret || '')}" style="display:inline-block;background:#1a7f37;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Claim now &rarr;</a>`
   : '';
 
-// One-tap postcard, handled by the companion lofty-mailer-webhook workflow. Same guard as
+// One-tap letter, handled by the companion lofty-mailer-webhook workflow. Same guard as
 // the Claim now button, so it simply does not render until that workflow is deployed and
 // configured. Shown for any lead with a mailing address, including A tier: AJ works A by
-// phone, but there is no reason to withhold the option.
+// phone, but there is no reason to withhold the option. On a mail_only lead it is the ONLY
+// action rendered.
 //
 // Dedup and the weekly cap are enforced by the WEBHOOK, not here. n8n static data is
 // per-workflow, so this workflow cannot know what has already been mailed. Tapping an
 // already-mailed lead is harmless and returns an "already mailed" page.
 const mailBtn = i => (i.mail_address && cfg.mailBaseUrl && cfg.mailSecret && !/PUT_|YOUR_/.test(String(cfg.mailBaseUrl)) && !/PUT_|YOUR_/.test(String(cfg.mailSecret)))
-  ? `<a href="${cfg.mailBaseUrl}/lofty-mail?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.mailSecret || '')}" style="display:inline-block;background:#6639ba;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Send postcard &rarr;</a>`
+  ? `<a href="${cfg.mailBaseUrl}/lofty-mail?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.mailSecret || '')}" style="display:inline-block;background:#6639ba;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Send letter &rarr;</a>`
   : '';
 
 // One line of hard property facts, only the parts we actually have.
@@ -47,7 +48,7 @@ const facts = i => {
   return f.join(' &middot; ');
 };
 
-// A do-not-contact lead keeps its Send postcard button and loses everything else. The phone
+// A do-not-contact lead keeps its Send letter button and loses everything else. The phone
 // number and email address are not rendered at all, tappable or otherwise, because a number
 // on the screen is an invitation and the whole point is that this one must not be called.
 const dncBadge = i => i.mail_only

@@ -240,7 +240,7 @@ contact us"* does not trip it.
 - `mail_only` and `mail_only_reason` are carried all the way through to the digest
 - Claude is told to write `outreach_angle` for a letter only, and never to suggest a call,
   an email or a text for that lead
-- the digest card renders a red **MAIL ONLY** badge with the reason, keeps **Send postcard**,
+- the digest card renders a red **MAIL ONLY** badge with the reason, keeps **Send letter**,
   and **does not render the phone number or email address at all** — not as text, not as a
   `tel:`/`mailto:` link. A number on screen is an invitation
 - the one case that still drops is a do-not-contact with **no mailing address**, because then
@@ -248,11 +248,32 @@ contact us"* does not trip it.
 
 ---
 
-## Send postcard button (one-tap direct mail)
+## Send letter button (one-tap direct mail)
 
 `lofty-mailer-webhook.json` is a separate workflow, like the claim webhook, so a mailer fault
-can never break the digest. The digest renders a **Send postcard** button on any card with a
-mailing address; tapping it mails one postcard through [thanks.io](https://thanks.io).
+can never break the digest. The digest renders a **Send letter** button on any card with a
+mailing address; tapping it mails one **windowless letter** through
+[thanks.io](https://thanks.io) at $2.56 a piece, real stamp and handwritten envelope.
+
+### Why a letter and not the notecard the spec named
+
+`docs/specs/direct-mail-pipeline.md` calls the expired campaign a notecard. It is a letter,
+because AJ wants **no exterior artwork** and the two products differ on exactly that point:
+
+| Product | Endpoint | Artwork | Price |
+|---|---|---|---|
+| Notecard | `/api/v2/send/notecard` | **required** (`front_image_url` or `image_template_id`) | $3.04 |
+| Windowless letter | `/api/v2/send/windowlessletter` | **optional**, blank background if omitted | $2.56 |
+| Windowed letter | `/api/v2/send/windowedletter` | optional | $1.24 |
+
+thanks.io documents that "if neither `image_template_id` nor `front_image_url` is specified, a
+blank background will be used", so the letter is the only product that honours the no-artwork
+decision without a placeholder blocking every send. Windowless over windowed because the
+address is handwritten on the envelope itself: a window reads as a bill before it is opened,
+and this piece only works if it reads as correspondence.
+
+A letter has **no `size` field**. `frontImageUrl` stays in the config, empty, for the day that
+decision is reversed. It is never a blocker.
 
 **Nothing sends autonomously.** Every piece is one deliberate tap, because every piece carries
 AJ's real estate license.
@@ -268,7 +289,6 @@ AJ's real estate license.
 | Firm name | `firmNameAsLicensed` still a placeholder — see blocker below | no |
 | **Licensed state** | property is outside `licensedState` (default WI) | no |
 | Address | no complete mailing address on the Lofty record | no |
-| Front image | `postcardFrontImageUrl` still a placeholder | no |
 
 Nothing commits until thanks.io accepts the send, mirroring `Mark Emailed Seen` in the triage
 workflow. A refusal, a vendor error, or a cap hit therefore never burns the lead or a slot, so
@@ -308,8 +328,12 @@ money.
    `"ExSell Experts at Epique Realty"`, a team-plus-firm construction. The mail piece uses the
    firm alone. If the licensed entity turns out to carry a suffix (`Inc`, `LLC`), this string is
    what has to change, and it has to change before anything prints.
-2. **thanks.io account, API key and funded credits.** AJ's to create.
-3. **AJ approves the template copy and front image.**
+2. **Funded thanks.io credits.** The account exists and branding is set, but as of
+   2026-08-27 the credits balance is **$0.00 with no payment method on file**, so no send can
+   succeed regardless of configuration. This is now the hard blocker.
+3. **AJ approves the letter copy.** No front image to approve; see the product table above.
+4. **`mailSecret` and `mailBaseUrl`** still ship as placeholders and must match the digest
+   workflow's `Config` node exactly, the same way `claimSecret` does.
 
 Not a blocker, but ask in the same message as #40: whether Epique requires pre-approval of
 marketing pieces. 452.136(2)(b) requires advertising in the name of and under the supervision
@@ -375,12 +399,14 @@ post it publicly. Rotate `claimSecret` in both workflows if a link leaks.
 ## Files
 - `lofty-lead-triage-daily.json` — importable n8n workflow (triage + digest, every 15 min).
 - `lofty-claim-webhook.json` — importable n8n workflow handling the Claim now button.
-- `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
+- `lofty-mailer-webhook.json` — importable n8n workflow handling the Send letter button.
 - `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
 - `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
 - `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
 - `nodes/build-digest-email.js` — paste-ready body of the **Build Digest Email** code node.
-- `nodes/mailer-{verify-and-cap,build-postcard,record-sent}.js` — bodies for the mailer workflow.
+- `nodes/mailer-{verify-and-cap,build-letter,record-sent}.js` — bodies for the mailer workflow.
+  These are paste-ready copies of the `jsCode` embedded in `lofty-mailer-webhook.json`. Change
+  one and you must change the other; they drift silently otherwise.
 - `README.md` — this file.
 
 The three `nodes/*.js` files are the source of truth for those node bodies. The workflow JSON

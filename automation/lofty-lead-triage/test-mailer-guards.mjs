@@ -28,8 +28,9 @@ const NO_ADDR = { ...WI_LEAD, streetAddress: '', city: '', zipCode: '', customAt
 
 const GOOD = { mailSecret: 's3cr3t-long-random', weeklyMailCap: '3', previewOnly: 'true',
   firmNameAsLicensed: 'Epique Realty LLC', licensedState: 'WI', agentName: 'Anthony Stolp',
-  agentPhone: '(262) 885-3310', agentLicense: '#114204-94', postcardSize: '4x6',
-  postcardFrontImageUrl: 'https://example.com/front.jpg',
+  agentPhone: '(262) 885-3310', agentLicense: '#114204-94',
+  returnName: 'Anthony Stolp', returnAddress: 'N88W6327 Willowbrooke Dr',
+  returnCity: 'Cedarburg', returnState: 'WI', returnPostalCode: '53012',
   handwritingColor: 'blue', handwritingRealism: 'true', handwritingStyleId: '' };
 
 let sd = {};
@@ -41,8 +42,8 @@ const ctx = (cfg, query, nodes = {}, json = {}, nowMs = Date.parse('2026-08-12T1
 const call = (f, c) => load(f)(c.$, c.$now, () => sd, c.$json, { log() {} })[0].json;
 
 const verify = (cfg, query, nowMs) => call('mailer-verify-and-cap.js', ctx(cfg, query, {}, {}, nowMs));
-const build = (cfg, auth, lead) => call('mailer-build-postcard.js', ctx(cfg, {}, { 'Verify, Cap & Dedup': auth }, { lead }));
-const record = (built, resp) => call('mailer-record-sent.js', ctx(GOOD, {}, { 'Build Postcard': built }, resp));
+const build = (cfg, auth, lead) => call('mailer-build-letter.js', ctx(cfg, {}, { 'Verify, Cap & Dedup': auth }, { lead }));
+const record = (built, resp) => call('mailer-record-sent.js', ctx(GOOD, {}, { 'Build Letter': built }, resp));
 const title = (h) => (String(h).match(/<h1[^>]*>([^<]*)</) || [])[1] || '(none)';
 
 let pass = 0, fail = 0;
@@ -59,10 +60,18 @@ is('valid token authorizes', auth.ok, true);
 is('unconfirmed firm name blocks', title(build({ ...GOOD, firmNameAsLicensed: 'PUT_FIRM_NAME_EXACTLY_AS_ON_LICENSE_CONFIRM_ISSUE_40' }, auth, WI_LEAD).html), 'Firm name not confirmed');
 is('out-of-state lead blocks', title(build(GOOD, auth, IA_LEAD).html), 'Outside your licensed state');
 is('lead with no address blocks', title(build(GOOD, auth, NO_ADDR).html), 'No mailing address');
-is('placeholder front image blocks', title(build({ ...GOOD, postcardFrontImageUrl: 'PUT_A_PUBLIC_HTTPS_IMAGE_URL_HERE' }, auth, WI_LEAD).html), 'No postcard front image');
 
 const built = build(GOOD, auth, WI_LEAD);
 is('good WI lead builds', built.ok, true);
+// A letter has no size field and needs no artwork. thanks.io supplies a blank background,
+// which is the whole reason this is a letter rather than the notecard the spec first named:
+// a notecard REQUIRES front_image_url or image_template_id and AJ wants no front image.
+is('no size field on a letter', 'size' in built.payload, false);
+is('no front image by default', 'front_image_url' in built.payload, false);
+is('front image included when set', 'front_image_url' in build({ ...GOOD, frontImageUrl: 'https://example.com/f.jpg' }, auth, WI_LEAD).payload, true);
+is('placeholder front image omitted', 'front_image_url' in build({ ...GOOD, frontImageUrl: 'PUT_A_PUBLIC_HTTPS_IMAGE_URL_HERE' }, auth, WI_LEAD).payload, false);
+is('return address on the envelope', built.payload.return_postal_code, '53012');
+is('return uses return_state not province', built.payload.return_state, 'WI');
 is('preview defaults ON', built.preview, true);
 is('recipient uses province not state', 'province' in built.payload.recipients[0], true);
 is('message carries licensed firm name', built.payload.message.includes('Epique Realty LLC'), true);

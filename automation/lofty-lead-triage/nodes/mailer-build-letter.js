@@ -1,13 +1,17 @@
-// Build the thanks.io postcard payload from the freshly fetched Lofty lead.
+// Build the thanks.io windowless-letter payload from the freshly fetched Lofty lead.
 //
 // The address is re-read from Lofty rather than passed through the URL: a link in an email
 // is user-editable, and this step spends money and puts a licensed real estate advertisement
 // in someone's mailbox. Never trust the query string for anything but the lead id.
 //
 // Contract (verified against docs.thanks.io, not from memory):
-//   POST https://api.thanks.io/api/v2/send/postcard   Authorization: Bearer <token>
+//   POST https://api.thanks.io/api/v2/send/windowlessletter   Authorization: Bearer <token>
 //   recipients[]: { name, address, address2, city, province, postal_code, country }
-//   plus: message, size ("4x6"|"6x9"|"6x11"), and front_image_url OR image_template_id
+//   plus: message. There is no `size` field on a letter, and artwork is OPTIONAL: thanks.io
+//   documents that "if neither image_template_id nor front_image_url is specified, a blank
+//   background will be used". That is why this is a letter and not the notecard the spec
+//   originally called for. A notecard REQUIRES front_image_url or image_template_id, and AJ
+//   does not want a front image at all. $2.56 a piece, real stamp and handwritten envelope.
 //   NOTE the recipient field is `province`, not `state`. The return-address override does
 //   use `return_state`. That asymmetry is thanks.io's, not a typo here.
 const cfg = $('Mailer Config').first().json;
@@ -33,7 +37,7 @@ const attr = (name) => {
 const firm = String(cfg.firmNameAsLicensed || '');
 if (!firm || /PUT_|YOUR_|CONFIRM/i.test(firm)) {
   return deny('Firm name not confirmed',
-    'firmNameAsLicensed is still a placeholder. Wisconsin requires the firm name exactly as printed on the license on every piece of advertising, so nothing was sent. Resolve issue #40 first.',
+    'firmNameAsLicensed is still a placeholder. Wisconsin requires the firm name exactly as printed on the license on every piece of advertising, so nothing was sent. See issue #40.',
     '#9a6700');
 }
 
@@ -63,17 +67,17 @@ const greeting = first ? `Hi ${first},` : 'Hello,';
 
 // Fixed, reviewed copy. Deliberately NOT model-generated: 452.136 bars advertising a
 // property the firm holds no listing on, and these listings have expired so nobody holds
-// them. The card solicits nothing and never describes the house as being for sale.
+// them. The letter solicits nothing and never describes the house as being for sale.
 //
 // Positioning is researched, not improvised. See docs/research/expired-listing-messaging.md.
 // The short version: an expired seller may hear from five agents the same morning and has
-// heard the standard opener "fifty times", so any card that asks for the listing is
+// heard the standard opener "fifty times", so any piece that asks for the listing is
 // indistinguishable from the pile. NAR puts honesty and trustworthiness as the second most
 // cited reason sellers choose an agent, so the differentiator is refusing the ask and
 // offering the honest read instead. The "not writing to ask for the listing" line is the
 // whole strategy and must stay in the second sentence, before they stop reading.
 //
-// The card OFFERS the diagnosis, it never contains it. Telling someone in writing that their
+// The letter OFFERS the diagnosis, it never contains it. Telling someone in writing that their
 // home was overpriced, unsolicited, reads as an insult rather than help.
 // House style: no em dashes, educate rather than advise, never give legal or tax advice.
 // Signature lines stay tight (single newlines); prose paragraphs are separated by BLANK
@@ -106,8 +110,6 @@ const recipient = {
 const payload = {
   recipients: [recipient],
   message,
-  size: cfg.postcardSize || '4x6',
-  front_image_url: cfg.postcardFrontImageUrl,
   // Default TRUE in config. A preview renders the card and returns image urls WITHOUT
   // mailing or charging, so the whole path can be exercised safely. Flipping this to false
   // is the deliberate act that makes this workflow start spending money.
@@ -127,12 +129,12 @@ if (cfg.handwritingColor && !/PUT_|YOUR_/.test(String(cfg.handwritingColor))) pa
 
 // font_size is 'auto' | 'small' | 'medium' | 'large' and is only honoured on AI-type fonts
 // (style ids 101+). Verified on a live preview: 'auto' sizes this message large enough that
-// it crowds the card edges, while 'small' fits with clean margins on all four sides.
+// it crowds the edges, while 'small' fits with clean margins on all four sides.
 if (['auto', 'small', 'medium', 'large'].includes(String(cfg.fontSize))) payload.font_size = String(cfg.fontSize);
 
 // handwriting_realism does NOT just add texture. It fabricates human imperfections, and on a
 // live render it produced a struck-through word ("came off off the market") to simulate the
-// writer correcting themselves. On a card whose whole premise is being straight with the
+// writer correcting themselves. On a letter whose whole premise is being straight with the
 // reader, a manufactured mistake is the wrong kind of authenticity, and it reads as sloppiness
 // rather than warmth. Off by default; still togglable. Only applies to AI fonts either way.
 if (String(cfg.handwritingRealism) === 'true') payload.handwriting_realism = true;
@@ -149,8 +151,10 @@ if (cfg.returnName) {
   payload.return_state = cfg.returnState;
   payload.return_postal_code = cfg.returnPostalCode;
 }
-if (!payload.front_image_url || /PUT_|YOUR_/.test(String(payload.front_image_url))) {
-  return deny('No postcard front image', 'postcardFrontImageUrl is still a placeholder, so nothing was sent. Set the front image in the Mailer Config node.', '#9a6700');
-}
+// Artwork is optional on a letter and AJ deliberately wants none: a blank background reads
+// as correspondence rather than advertising, which is the entire premise of this piece.
+// Left unset, thanks.io supplies the blank background itself. Set frontImageUrl only if that
+// decision is reversed; it is never a blocker.
+if (cfg.frontImageUrl && !/PUT_|YOUR_/.test(String(cfg.frontImageUrl))) payload.front_image_url = String(cfg.frontImageUrl).trim();
 
 return [{ json: { ok: true, leadId: auth.leadId, weekStart: auth.weekStart, weekCount: auth.weekCount, cap: auth.cap, recipientName: fullName, mailTo: `${street}, ${city}, ${state} ${zip}`, preview: payload.preview, payload } }];
