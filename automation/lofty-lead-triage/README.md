@@ -359,11 +359,18 @@ section below, and it did not change.
 |---|---|---|
 | Greeting | `firstName`, else first token of `Owner Name 1` | `Hello,` |
 | What to call the place | `Property Type` + `Bedrooms` | `home` |
-| Street | `Owner Street Address`, number and unit stripped | the city |
+| Street | `Owner Street Address`, number and unit stripped, **owner-occupied only** | the city |
 | List price | `Price` | the sentence without a figure |
 
 **Two slots in the body, not six.** The point is to show someone actually looked. A letter that
 recites six fields reads like a file being read aloud, which is the opposite of the effect.
+
+**The street is only named when the owner lives there.** `Owner Street Address` is the owner's
+mailing address, which for an absentee owner is not the house that expired. Robert Tally in the
+2026-08-27 pond is `Owner Occupied: N`, mails to 2855 N 58th St, and his expired listing's own
+remarks describe 3022 N 6th St. Naming the mailing street would have told him his home on the
+wrong street came off the market. Absentee and unknown-occupancy owners get the city, which is
+true either way.
 
 **Street parsing handles Wisconsin's grid addresses.** `W2830 County Road D` and
 `N88W6327 Willowbrooke Dr` put digits *inside* the leading token, so the rule is "drop the first

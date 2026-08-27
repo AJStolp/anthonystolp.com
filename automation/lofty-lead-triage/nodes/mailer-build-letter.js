@@ -149,7 +149,14 @@ const descriptor =
   : (beds > 0) ? `${beds} bedroom`
   : 'home';
 
-const streetLabel = streetName(street);
+// Only name the street when the owner actually LIVES at the property. `Owner Street Address`
+// is the owner's mailing address, which for an absentee owner is not the house that expired.
+// Live example from the 2026-08-27 pond: Robert Tally is Owner Occupied "N", mails to 2855 N
+// 58th St, and the expired listing's own remarks describe 3022 N 6th St. Naming the mailing
+// street would have told him his home on the wrong street came off the market. Absentee owners
+// get the city instead, which is true either way.
+const ownerOccupied = String(attr('Owner Occupied') || '').toUpperCase() === 'Y';
+const streetLabel = ownerOccupied ? streetName(street) : null;
 const subject = streetLabel ? `${descriptor} on ${streetLabel}` : `${city} ${descriptor}`;
 
 // List price, formatted plainly. Public, already advertised by the previous office, and the

@@ -92,6 +92,7 @@ is('message has no em dashes', /—/.test(built.payload.message), false);
 // --- per-lead slots. Every address below is a real one from the 2026-08-27 pond. ------------
 const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city || 'Milwaukee',
   'Owner Zip': '53210', 'Owner State': 'WI', Status: 'Expired', 'Owner Street Address': o.street,
+  'Owner Occupied': o.occ === undefined ? 'Y' : o.occ,
   ...(o.beds ? { Bedrooms: String(o.beds) } : {}), ...(o.type ? { 'Property Type': o.type } : {}),
   ...(o.price ? { Price: String(o.price) } : {}) }) });
 const msg = (o) => build(GOOD, auth, lead(o)).payload.message;
@@ -104,6 +105,11 @@ is('directional kept', msg({ street: '6209 N Berkeley Blvd', beds: 4 }).includes
 is('multi-family named', msg({ street: '2855 N 58th St', type: 'Multi-Family' }).includes('multi-family on N 58th St'), true);
 is('no beds no type falls back to home', msg({ street: '149 Hickory Dr' }).includes('home on Hickory Dr'), true);
 is('unparseable street falls back to city', msg({ street: '12345', city: 'Delafield', beds: 2 }).includes('Delafield 2 bedroom'), true);
+// Owner Street Address is where the OWNER lives. For an absentee owner that is not the house
+// that expired, so naming the street would name the wrong property.
+is('absentee owner gets the city, not the street', msg({ street: '2855 N 58th St', type: 'Multi-Family', occ: 'N' }).includes('Milwaukee multi-family'), true);
+is('absentee owner never names the street', msg({ street: '2855 N 58th St', type: 'Multi-Family', occ: 'N' }).includes('N 58th St'), false);
+is('unknown occupancy gets the city', msg({ street: '2855 N 58th St', beds: 3, occ: '' }).includes('Milwaukee 3 bedroom'), true);
 is('list price appears', msg({ street: '1633 Spruce St', beds: 4, price: 449900 }).includes('priced against at $449,900'), true);
 is('no price, sentence still true', msg({ street: '1633 Spruce St', beds: 4 }).includes('what it was priced against and what actually sold'), true);
 // Lofty carries source-feed casing. "SEAN JOCHIMS" was live in the pond on 2026-08-27, and
