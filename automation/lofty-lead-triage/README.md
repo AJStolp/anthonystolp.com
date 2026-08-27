@@ -43,8 +43,9 @@ Schedule (every 15 min, America/Chicago)
   (`Do Not Contact`, `Closed`, `Archived` — most of the 5,408-lead pond) never comes back.
   Because the stage filter already excludes the graveyard, there is **no date floor** — the
   seen-id set above is the only dedup, so every workable lead is surfaced once, no matter how
-  far back in the pond it sits. (A `reachable()` guard also drops any lead flagged
-  `Do Not Contact` / fully un-contactable that slips into the pipeline query.)
+  far back in the pond it sits. (A `reachable()` guard also handles anything flagged
+  `Do Not Contact` / fully un-contactable that slips into the pipeline query. It demotes rather
+  than drops. See [Do-not-contact routes to mail only](#do-not-contact-routes-to-mail-only).)
 - **Region pre-filter:** the pond is fed statewide bulk imports (a single 100-lead dump can
   span Eau Claire to Green Bay). Only WI leads in your drivable zip prefixes reach Claude,
   so you don't pay to C-tier a lead 3 hours away. Observed: a 100-lead dump → 84 in-WI → 32
@@ -207,6 +208,46 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 
 ---
 
+## Do-not-contact routes to mail only
+
+A do-not-contact signal demotes a lead to **mail only**. It does not drop it. Mail is not a
+channel the do-not-call registry governs, and a card is refusable in a way a ringing phone is
+not, so the honest handling is to stop calling and keep writing.
+
+`Closed`, `Archived` and `Trash` are still dropped outright. `Do Not Contact` is not.
+
+**Where the signal is read, in descending order of reliability:**
+
+| Source | Notes |
+|---|---|
+| Lofty `stage` = `Do Not Contact` | the structured case |
+| `* Phone * DNC` custom attributes | the columns exist and were **empty on every record inspected on 2026-08-27**, so they can confirm a DNC but never rule one out |
+| `cannotCall` + `cannotEmail` + `cannotText` all set | the record has no enabled channel |
+| the MLS remarks | the previous agent's own words |
+
+**The remarks check is the one that earns its keep.** Observed live on a $949,900 Delafield
+expired: *"Do not contact Sellers Taken off market for reasons and will be relisting soon."*
+Nothing structured carried that. The stage was `New Leads`, every DNC column was empty, and the
+lead sat in a running smart plan receiving automated email until a human read the remarks. The
+regex is deliberately narrow (`do not contact|call|solicit|disturb|phone`) and was checked
+against real remarks from the same pond so that copy like *"Do not miss this opportunity to
+contact us"* does not trip it.
+
+**What the demotion does:**
+
+- the lead is **kept** and still scored, and the tier reflects the property, not the channel.
+  A do-not-contact seller with real equity is still a good letter
+- `mail_only` and `mail_only_reason` are carried all the way through to the digest
+- Claude is told to write `outreach_angle` for a letter only, and never to suggest a call,
+  an email or a text for that lead
+- the digest card renders a red **MAIL ONLY** badge with the reason, keeps **Send postcard**,
+  and **does not render the phone number or email address at all** — not as text, not as a
+  `tel:`/`mailto:` link. A number on screen is an invitation
+- the one case that still drops is a do-not-contact with **no mailing address**, because then
+  there is no remaining route
+
+---
+
 ## Send postcard button (one-tap direct mail)
 
 `lofty-mailer-webhook.json` is a separate workflow, like the claim webhook, so a mailer fault
@@ -259,11 +300,14 @@ money.
 
 ### Blockers before the first real send
 
-1. **Issue #40 — the exact licensed firm name.** [Wis. Stat. 452.136](https://docs.legis.wisconsin.gov/statutes/statutes/452/136)
-   requires the firm name *exactly as printed on the license*, clearly shown as a business.
-   `firmNameAsLicensed` ships as a placeholder and the workflow refuses to send until it is
-   replaced. `src/lib/agent-profile.ts` says `"ExSell Experts at Epique Realty"`, which is a
-   team-plus-firm construction and may not be the licensed string.
+1. ~~**Issue #40 — the exact licensed firm name.**~~ **Answered 2026-08-27: `Epique Realty`**,
+   per AJ. [Wis. Stat. 452.136](https://docs.legis.wisconsin.gov/statutes/statutes/452/136)
+   requires the firm name *exactly as printed on the license*, clearly shown as a business, and
+   `firmNameAsLicensed` now carries that string, so the guard no longer refuses.
+   Note the remaining inconsistency: `src/lib/agent-profile.ts` says
+   `"ExSell Experts at Epique Realty"`, a team-plus-firm construction. The mail piece uses the
+   firm alone. If the licensed entity turns out to carry a suffix (`Inc`, `LLC`), this string is
+   what has to change, and it has to change before anything prints.
 2. **thanks.io account, API key and funded credits.** AJ's to create.
 3. **AJ approves the template copy and front image.**
 
