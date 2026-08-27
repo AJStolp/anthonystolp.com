@@ -289,6 +289,7 @@ AJ's real estate license.
 | Firm name | `firmNameAsLicensed` still a placeholder — see blocker below | no |
 | **Licensed state** | property is outside `licensedState` (default WI) | no |
 | Address | no complete mailing address on the Lofty record | no |
+| **Listing status** | the record is not Expired / Canceled / Withdrawn | no |
 
 Nothing commits until thanks.io accepts the send, mirroring `Mark Emailed Seen` in the triage
 workflow. A refusal, a vendor error, or a cap hit therefore never burns the lead or a slot, so
@@ -298,6 +299,15 @@ it can simply be tapped again later. **Hitting the cap does not consume the lead
 Dedup lives in this workflow rather than the digest because n8n static data is per-workflow and
 the triage workflow cannot read it. The button therefore always renders and the webhook is the
 authority; a second tap is harmless.
+
+### Why the listing-status guard exists
+
+The letter states, as fact, that the home came off the market without selling. That is true of an
+Expired or Canceled record and **false of an FSBO**, which is still actively for sale by its owner.
+The pond carries both: of 11 New Leads on 2026-08-27, 8 were Expired and 2 were FSBO. Mailing an
+FSBO this letter would put a false statement on a piece carrying AJ's license, so the guard refuses.
+
+Lifting it means **writing FSBO copy**, not widening `LETTER_STATUSES`.
 
 ### Handwriting
 

@@ -24,6 +24,12 @@ const WI_LEAD = {
 const IA_LEAD = { ...WI_LEAD, leadId: 1148505260350217, state: 'IA', city: 'De Witt',
   customAttributes: ca({ 'Owner Street Address': '2828 274th St', 'Owner City': 'De Witt',
     'Owner Zip': '52742', 'Owner State': 'IA', Status: 'Expired' }) };
+const FSBO_LEAD = { ...WI_LEAD, customAttributes: ca({ 'Owner Street Address': '3246 S 86th St',
+  'Owner City': 'Milwaukee', 'Owner Zip': '53227', 'Owner State': 'WI', Status: 'FSBO' }) };
+const CANCELED_LEAD = { ...WI_LEAD, customAttributes: ca({ 'Owner Street Address': '166 N 91st Pl',
+  'Owner City': 'Milwaukee', 'Owner Zip': '53226', 'Owner State': 'WI', Status: 'Canceled' }) };
+const NO_STATUS = { ...WI_LEAD, customAttributes: ca({ 'Owner Street Address': '166 N 91st Pl',
+  'Owner City': 'Milwaukee', 'Owner Zip': '53226', 'Owner State': 'WI' }) };
 const NO_ADDR = { ...WI_LEAD, streetAddress: '', city: '', zipCode: '', customAttributes: ca({ Status: 'Expired' }) };
 
 const GOOD = { mailSecret: 's3cr3t-long-random', weeklyMailCap: '3', previewOnly: 'true',
@@ -60,6 +66,11 @@ is('valid token authorizes', auth.ok, true);
 is('unconfirmed firm name blocks', title(build({ ...GOOD, firmNameAsLicensed: 'PUT_FIRM_NAME_EXACTLY_AS_ON_LICENSE_CONFIRM_ISSUE_40' }, auth, WI_LEAD).html), 'Firm name not confirmed');
 is('out-of-state lead blocks', title(build(GOOD, auth, IA_LEAD).html), 'Outside your licensed state');
 is('lead with no address blocks', title(build(GOOD, auth, NO_ADDR).html), 'No mailing address');
+// The letter asserts the home came off the market without selling. That is false of an FSBO,
+// which is still actively for sale, and 2 of the 11 live pond leads on 2026-08-27 were FSBO.
+is('FSBO blocks, copy would be false', title(build(GOOD, auth, FSBO_LEAD).html), 'Wrong listing status for this letter');
+is('unknown status blocks', title(build(GOOD, auth, NO_STATUS).html), 'Wrong listing status for this letter');
+is('canceled is allowed', build(GOOD, auth, CANCELED_LEAD).ok, true);
 
 const built = build(GOOD, auth, WI_LEAD);
 is('good WI lead builds', built.ok, true);

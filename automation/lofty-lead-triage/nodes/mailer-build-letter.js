@@ -61,6 +61,20 @@ if (String(state).toUpperCase() !== licensed) {
     '#cf222e');
 }
 
+// The copy below states, as fact, that the home came off the market without selling. That is
+// true of an Expired or Canceled record and FALSE of an FSBO, which is still actively for sale
+// by its owner. The live pond carries both: of 11 New Leads on 2026-08-27, 8 were Expired and
+// 2 were FSBO. Mailing an FSBO this letter puts a false statement on a piece carrying AJ's
+// license, so refuse rather than send. Lifting this means writing FSBO copy, not widening the
+// list of allowed statuses.
+const LETTER_STATUSES = new Set(['expired', 'canceled', 'cancelled', 'withdrawn']);
+const listingStatus = attr('Status');
+if (!LETTER_STATUSES.has(String(listingStatus || '').toLowerCase())) {
+  return deny('Wrong listing status for this letter',
+    `This letter says the home came off the market without selling, and this record is ${esc(listingStatus || 'of unknown status')}. That would be a false statement on a piece carrying your license, so nothing was sent. Expired, canceled and withdrawn records only until there is FSBO copy.`,
+    '#9a6700');
+}
+
 const first = (lead.firstName || (attr('Owner Name 1') || '').split(' ')[0] || '').trim();
 const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || attr('Owner Name 1') || 'Homeowner';
 const greeting = first ? `Hi ${first},` : 'Hello,';
