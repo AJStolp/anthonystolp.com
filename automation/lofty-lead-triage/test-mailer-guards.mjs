@@ -88,6 +88,33 @@ is('recipient uses province not state', 'province' in built.payload.recipients[0
 is('message carries licensed firm name', built.payload.message.includes('Epique Realty LLC'), true);
 is('message carries license number', built.payload.message.includes('#114204-94'), true);
 is('message has no em dashes', /—/.test(built.payload.message), false);
+
+// --- per-lead slots. Every address below is a real one from the 2026-08-27 pond. ------------
+const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city || 'Milwaukee',
+  'Owner Zip': '53210', 'Owner State': 'WI', Status: 'Expired', 'Owner Street Address': o.street,
+  ...(o.beds ? { Bedrooms: String(o.beds) } : {}), ...(o.type ? { 'Property Type': o.type } : {}),
+  ...(o.price ? { Price: String(o.price) } : {}) }) });
+const msg = (o) => build(GOOD, auth, lead(o)).payload.message;
+
+is('street number dropped', msg({ street: '1633 Spruce St', beds: 4 }).includes('4 bedroom on Spruce St'), true);
+is('WI grid address handled', msg({ street: 'W2830 County Road D', type: 'Other' }).includes('lot on County Road D'), true);
+is('WI alphanumeric grid handled', msg({ street: 'N88W6327 Willowbrooke Dr', beds: 3 }).includes('3 bedroom on Willowbrooke Dr'), true);
+is('apt suffix dropped', msg({ street: '2076 Chateau Ct Apt 203d', type: 'Condominium' }).includes('condo on Chateau Ct'), true);
+is('directional kept', msg({ street: '6209 N Berkeley Blvd', beds: 4 }).includes('4 bedroom on N Berkeley Blvd'), true);
+is('multi-family named', msg({ street: '2855 N 58th St', type: 'Multi-Family' }).includes('multi-family on N 58th St'), true);
+is('no beds no type falls back to home', msg({ street: '149 Hickory Dr' }).includes('home on Hickory Dr'), true);
+is('unparseable street falls back to city', msg({ street: '12345', city: 'Delafield', beds: 2 }).includes('Delafield 2 bedroom'), true);
+is('list price appears', msg({ street: '1633 Spruce St', beds: 4, price: 449900 }).includes('priced against at $449,900'), true);
+is('no price, sentence still true', msg({ street: '1633 Spruce St', beds: 4 }).includes('what it was priced against and what actually sold'), true);
+// Lofty carries source-feed casing. "SEAN JOCHIMS" was live in the pond on 2026-08-27, and
+// "Hi SEAN," on a handwritten letter is worse than no greeting at all.
+const named = (f, o) => build(GOOD, auth, { ...lead(o || { street: '1633 Spruce St', beds: 4 }), firstName: f }).payload.message;
+is('all-caps name normalised', named('SEAN').startsWith('Hi Sean,'), true);
+is('lowercase name normalised', named('robert').startsWith('Hi Robert,'), true);
+is('mixed case left alone', named('McDonald').startsWith('Hi McDonald,'), true);
+is('hyphenated caps normalised', named('JEAN-LUC').startsWith('Hi Jean-Luc,'), true);
+is('apostrophe caps normalised', named("O'BRIEN").startsWith("Hi O'Brien,"), true);
+is('still refuses the listing in sentence two', msg({ street: '1633 Spruce St', beds: 4 }).includes('I am not writing to ask for the listing'), true);
 is('message does not advertise the property', /for sale|listed at|asking/i.test(built.payload.message), false);
 
 // Handwriting: opt-in, and blank fields must fall through to thanks.io's own defaults rather

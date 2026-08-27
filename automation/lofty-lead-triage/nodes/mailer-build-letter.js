@@ -75,7 +75,18 @@ if (!LETTER_STATUSES.has(String(listingStatus || '').toLowerCase())) {
     '#9a6700');
 }
 
-const first = (lead.firstName || (attr('Owner Name 1') || '').split(' ')[0] || '').trim();
+// Lofty stores some names exactly as the source feed had them, which includes ALL CAPS
+// ("SEAN JOCHIMS" in the 2026-08-27 pond). A handwritten letter that opens "Hi SEAN," shouts
+// at the reader and is worse than no personalisation at all. Normalise only when the token is
+// entirely one case, so McDonald, DeAngelo and O'Brien survive untouched.
+const properCase = (w) => {
+  const t = String(w || '').trim();
+  if (!t) return t;
+  // Already mixed case means a human wrote it that way: McDonald, DeAngelo, van Dyke. Leave it.
+  if (t !== t.toUpperCase() && t !== t.toLowerCase()) return t;
+  return t.toLowerCase().replace(/(^|[\s'-])([a-z])/g, (m, p, c) => p + c.toUpperCase());
+};
+const first = properCase((lead.firstName || (attr('Owner Name 1') || '').split(' ')[0] || '').trim());
 const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || attr('Owner Name 1') || 'Homeowner';
 const greeting = first ? `Hi ${first},` : 'Hello,';
 
@@ -104,10 +115,58 @@ const signature = [
   `WI licensed real estate salesperson ${cfg.agentLicense || ''}`.trim()
 ].filter(Boolean).join('\n');
 
+// --- per-lead detail, built from DETERMINISTIC SLOTS, never from a model -------------------
+// AJ asked that the letter be drafted off each lead's own information. It is, from the record
+// only. Not from a model: 452.136 bars advertising a property the firm holds no listing on,
+// and a reviewed skeleton cannot drift across that line while generated copy can. Every slot
+// below is a public fact already on the Lofty record, and every one degrades to a shorter true
+// sentence when its datum is missing. Nothing is inferred, and nothing is said that the record
+// does not carry.
+//
+// Two slots only. The point is to prove someone actually looked, and a letter that recites six
+// fields reads like a file being read aloud, which is the opposite of the effect wanted.
+
+// "2855 N 58th St" -> "N 58th St". Wisconsin's grid addresses ("W2830 County Road D",
+// "N88W6327 Willowbrooke Dr") put digits inside the leading token, so the rule is "drop the
+// first token if it contains a digit" rather than "drop leading digits". Unit suffixes are
+// dropped too: nobody writes "your condo on Chateau Ct Apt 203d".
+const streetName = (raw) => {
+  let t = String(raw || '').trim().split(/\s+/);
+  if (t.length > 1 && /\d/.test(t[0])) t = t.slice(1);
+  const unit = t.findIndex(w => /^(apt|unit|ste|suite|#|lot)$/i.test(w) || /^#/.test(w));
+  if (unit > 0) t = t.slice(0, unit);
+  const out = t.join(' ').trim();
+  return out && /[a-z]/i.test(out) ? out : null;
+};
+
+// What to call the place. Falls all the way back to "home", which is true of anything.
+const beds = parseInt(attr('Bedrooms'), 10);
+const ptype = String(attr('Property Type') || '').toLowerCase();
+const descriptor =
+  ptype.includes('condo') ? 'condo'
+  : ptype.includes('multi') ? 'multi-family'
+  : (ptype.includes('other') && !(beds > 0)) ? 'lot'
+  : (beds > 0) ? `${beds} bedroom`
+  : 'home';
+
+const streetLabel = streetName(street);
+const subject = streetLabel ? `${descriptor} on ${streetLabel}` : `${city} ${descriptor}`;
+
+// List price, formatted plainly. Public, already advertised by the previous office, and the
+// single fact that most shows the letter is not a mail merge. Omitted entirely if absent.
+const priceNum = Number(String(attr('Price') || '').replace(/[^0-9.]/g, ''));
+const listedAt = Number.isFinite(priceNum) && priceNum > 0
+  ? '$' + Math.round(priceNum).toLocaleString('en-US')
+  : null;
+
+const looked = listedAt
+  ? `I looked at what it was priced against at ${listedAt} and what actually sold nearby. Say the word and I will send that. No charge, whether you list again this year, next year or never.`
+  : `I looked at what it was priced against and what actually sold near it. Say the word and I will send that. No charge, whether you list again this year, next year or never.`;
+
 const message = [
   greeting,
-  `Your ${city} home came off the market without selling. I am not writing to ask for the listing.`,
-  `I looked at what it was priced against and what actually sold near it. Say the word and I will send it. No charge, whether you list again this year, next year or never.`,
+  `Your ${subject} came off the market without selling. I am not writing to ask for the listing.`,
+  looked,
   `Or tell me what you were trying to do. I would rather hear that.`,
   signature
 ].join('\n\n');

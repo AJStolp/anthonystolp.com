@@ -349,6 +349,34 @@ Not a blocker, but ask in the same message as #40: whether Epique requires pre-a
 marketing pieces. 452.136(2)(b) requires advertising in the name of and under the supervision
 of the firm, but does **not** mandate per-piece broker sign-off. That is brokerage policy.
 
+### Per-lead detail comes from data slots, not a model
+
+AJ asked that the letter be drafted off each lead's own information. It is, and the slots are
+**deterministic**: filled straight from the Lofty record, never generated. The reason is the
+section below, and it did not change.
+
+| Slot | Source | Falls back to |
+|---|---|---|
+| Greeting | `firstName`, else first token of `Owner Name 1` | `Hello,` |
+| What to call the place | `Property Type` + `Bedrooms` | `home` |
+| Street | `Owner Street Address`, number and unit stripped | the city |
+| List price | `Price` | the sentence without a figure |
+
+**Two slots in the body, not six.** The point is to show someone actually looked. A letter that
+recites six fields reads like a file being read aloud, which is the opposite of the effect.
+
+**Street parsing handles Wisconsin's grid addresses.** `W2830 County Road D` and
+`N88W6327 Willowbrooke Dr` put digits *inside* the leading token, so the rule is "drop the first
+token if it contains a digit", not "drop leading digits". Unit suffixes go too: nobody writes
+"your condo on Chateau Ct Apt 203d". If parsing yields nothing usable it falls back to the city,
+so a malformed address degrades to a shorter true sentence rather than a broken one.
+
+**Names are case-normalised.** Lofty carries source-feed casing and the pond held `SEAN JOCHIMS`
+on 2026-08-27. "Hi SEAN," on a handwritten letter is worse than no greeting. Only fully
+single-case tokens are touched, so `McDonald`, `DeAngelo` and `van Dyke` survive.
+
+Every slot is covered by a test in `test-mailer-guards.mjs` against a real address from the pond.
+
 ### Copy is a fixed template, not model-generated
 
 452.136 also bars advertising a property the firm holds no listing on, and these listings have
