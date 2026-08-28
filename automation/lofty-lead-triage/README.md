@@ -338,9 +338,10 @@ money.
    `"ExSell Experts at Epique Realty"`, a team-plus-firm construction. The mail piece uses the
    firm alone. If the licensed entity turns out to carry a suffix (`Inc`, `LLC`), this string is
    what has to change, and it has to change before anything prints.
-2. **Funded thanks.io credits.** The account exists and branding is set, but as of
-   2026-08-27 the credits balance is **$0.00 with no payment method on file**, so no send can
-   succeed regardless of configuration. This is now the hard blocker.
+2. **Funded thanks.io credits**, for the FIRST REAL SEND only. As of 2026-08-27 the balance is
+   $0.00 with no payment method on file. This blocks `previewOnly: "false"` and nothing else:
+   `preview: true` renders the letter and returns image urls without charging, so the whole
+   path can be dialled in on an empty account. Add the card when the piece is right, not before.
 3. **AJ approves the letter copy.** No front image to approve; see the product table above.
 4. **`mailSecret` and `mailBaseUrl`** still ship as placeholders and must match the digest
    workflow's `Config` node exactly, the same way `claimSecret` does.
