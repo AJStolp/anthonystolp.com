@@ -126,55 +126,54 @@ const streetLabel = ownerOccupied ? streetName(street) : null;
 // property the firm holds no listing on, and these listings have expired so nobody holds
 // them. The letter solicits nothing and never describes the house as being for sale.
 //
-// REWRITTEN 2026-08-28. The previous version was analytically correct and emotionally cold,
-// and AJ was right to reject it. What it got wrong, kept here so it does not get rewritten
-// back:
+// REWRITTEN AGAIN 2026-08-28. Two prior versions are recorded here because both failed the
+// same way and the failure is easy to reintroduce:
 //
-//   1. It opened by narrating the reader's failure to them. "came off the market WITHOUT
-//      SELLING" is a verdict, not an observation. Nobody needs to be told their house did
-//      not sell, and being told reads as a data broker who pulled a report.
-//   2. "I am not writing to ask for the listing" keeps the letter pointed at the listing.
-//      A negation cannot un-plant the word. Refusing the ask still frames the piece as
-//      being about the ask.
-//   3. It recited the reader's own list price back at them. It proved someone looked, at
-//      the cost of feeling surveilled.
+//   v1  "Your home came off the market WITHOUT SELLING. I am not writing to ask for the
+//       listing." Narrated the reader's failure to them, then negated an ask they had not
+//       made. Also recited their own asking price back at them.
+//   v2  Softened to "came off the market. I am not writing about that." Same disease. A
+//       negation cannot un-plant a word, and opening by refusing something the reader never
+//       raised is a strange way to introduce yourself.
 //
-// What replaces it: a neighbour who tracks the local numbers, offering them, expecting
-// nothing. The offer is REAL and not a pretext. The site already runs a monthly market
-// report per zip (Redfin-derived stats, Claude-drafted, two-pass validated, delivered by
-// Resend, see /api/cron/market-reports). "I will add you" is a thing that exists and can be
-// honoured, which is the difference between a resource offer and a lead magnet.
+// v3 drops the frame entirely. It does not mention the expired listing at all, because there
+// is no way to raise it that does not read as "I pulled a report on you". What is left is an
+// INTRODUCTION from someone who works the area, an offer of the monthly numbers, and an open
+// door. AJ's brief: it should read like meeting a neighbour, and like help is available if
+// wanted.
 //
-// The acknowledgement stays, minus the sting: "came off the market" is the public fact the
-// record carries. "without selling" was the editorial. No time claim is made, because the
-// record's dates are inconsistent and a wrong "earlier this year" is worse than no date.
+// The offer is REAL and not a pretext. The site already runs a monthly market report per zip
+// (Redfin-derived stats, Claude-drafted, two-pass validated, delivered by Resend, see
+// /api/cron/market-reports). "Say the word" describes a thing that exists, which is the whole
+// difference between a resource offer and a lead magnet.
 //
 // House style: no em dashes, educate rather than advise, never give legal or tax advice.
 // Signature lines stay tight (single newlines); prose paragraphs are separated by BLANK
 // lines. Verified against a real thanks.io preview render: joining everything with single
 // newlines produced one dense unreadable block. The handwriting engine honours \n\n as a
 // paragraph break, and the difference in legibility is large.
+//
+// The license number line was dropped for warmth. 452.136(2) requires advertising to carry
+// the FIRM name clearly and conspicuously; it does not require the individual licensee's
+// number. The firm name stays and is non-negotiable. Put the number back by adding it to the
+// signature array if AJ prefers it.
 const signature = [
   `${cfg.agentName || 'Anthony Stolp'}, ${firm}`,
-  `${cfg.agentPhone || ''}`,
-  `WI licensed real estate salesperson ${cfg.agentLicense || ''}`.trim()
+  `${cfg.agentPhone || ''}`
 ].filter(Boolean).join('\n');
 
-// The street is named ONCE and the area ONCE, and which sentence carries which depends on
-// whether we have a street at all. Naming the city in both sentences ("your place in
-// Milwaukee ... what sells around Milwaukee") reads like a template with a variable in it,
-// which is exactly the tell this letter cannot afford.
-const place = streetLabel ? ` on ${streetLabel}` : '';
-// The area the monthly numbers cover. Street scale reads neighbourly and is the whole point,
-// but only when it is genuinely their street.
-const around = streetLabel || city;
+// Where he works, at the most neighbourly scale the record supports. Owner-occupied records
+// get "your part of Whitefish Bay, around N Berkeley Blvd"; absentee owners get the city
+// alone, because their mailing street is not the neighbourhood in question.
+const patch = streetLabel
+  ? `your part of ${city}, around ${streetLabel},`
+  : `the ${city} area,`;
 
 const message = [
   greeting,
-  `I saw your place${place} came off the market. I am not writing about that.`,
-  `Mostly I keep track of what sells around ${around}, what it closes at and what sits. I put a short note together on it each month for whoever wants one.`,
-  `If that would be useful, say the word and I will add you. No charge and no catch, and it keeps coming whether you ever sell or not.`,
-  `And if you would rather tell me about the house, I am glad to listen.`,
+  `I am ${(cfg.agentName || 'Anthony Stolp').split(' ')[0]}. I work ${patch} and I wanted to introduce myself.`,
+  `Every month I put together what actually sold nearby, what it closed at and how long it took. If you would like a copy, just say the word. It is free, and it keeps coming whether you ever sell or not.`,
+  `And if you ever want help with anything on the house, I am here for that too. Whenever that is, or never. No pressure either way.`,
   signature
 ].join('\n\n');
 

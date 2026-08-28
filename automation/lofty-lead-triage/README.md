@@ -410,33 +410,47 @@ Every slot is covered by a test in `test-mailer-guards.mjs` against a real addre
 
 ### The copy, and why it reads the way it does
 
-Rewritten 2026-08-28 after AJ rejected the first version. It was analytically correct and
-emotionally cold. Recorded here so it does not get written back:
+**Version 3, 2026-08-28.** Two earlier versions failed the same way and both are recorded so the
+failure does not get reintroduced:
 
-| What it did | Why it failed |
-|---|---|
-| "came off the market **without selling**" | narrated the reader's failure back to them. A verdict, not an observation, and it reads like a pulled report |
-| "I am not writing to ask for **the listing**" | a negation cannot un-plant the word. Refusing the ask still frames the letter as being about the ask |
-| recited their own list price | proved someone looked, at the cost of feeling surveilled |
+| Version | What it said | Why it failed |
+|---|---|---|
+| v1 | "Your home came off the market **without selling**. I am not writing to ask for **the listing**." | narrated the reader's failure back to them, then negated an ask they had not made. Also recited their own asking price |
+| v2 | "came off the market. **I am not writing about that.**" | same disease, softer. A negation cannot un-plant a word, and opening by refusing something the reader never raised is a strange way to introduce yourself |
+| **v3** | an introduction, an offer, an open door | never raises the expired listing at all |
 
-**The replacement is a neighbour who tracks the local numbers, offering them, expecting
-nothing.** The acknowledgement survives minus the sting, because "came off the market" is the
-public fact the record carries and "without selling" was the editorial. No time claim is made:
-the record's dates are inconsistent and a wrong "earlier this year" is worse than no date.
+**v3 drops the frame entirely.** There is no way to mention the expired listing that does not
+read as "I pulled a report on you", so it is not mentioned. What is left is someone who works
+the area introducing himself, offering the monthly numbers, and saying help is available if
+wanted. AJ's brief was that it should read like meeting a neighbour.
 
 **The offer is real, and that is the point.** The site already runs a monthly market report per
 zip: Redfin-derived stats, Claude-drafted, two-pass validated, delivered by Resend
-(`/api/cron/market-reports`). "Say the word and I will add you" describes a thing that exists.
-That is the difference between a resource offer and a lead magnet, and it is the only reason
-this letter is honest.
+(`/api/cron/market-reports`). "Say the word" describes a thing that exists. That is the
+difference between a resource offer and a lead magnet, and it is the only reason this letter is
+honest.
 
-**Operational consequence:** a reply to one of these letters is a request to be subscribed to
-that zip's monthly report. If nobody actions it, the letter has lied. `POST /api/lead` already
-accepts the market-report subscribe shape, so the path exists; what does not exist yet is any
-routing from "Keith emailed back" to that endpoint. Doing it by hand is fine at this volume.
+**Operational consequence:** a reply is a request to be subscribed to that zip's monthly report.
+If nobody actions it, the letter has lied. `POST /api/lead` already accepts the market-report
+subscribe shape; what does not exist is any routing from "Keith emailed back" to that endpoint.
+By hand is fine at this volume.
 
-The tests in `test-mailer-guards.mjs` assert the three failures above can never reappear: no
-"without selling", no dollar figure, no occurrence of the word "listing".
+**The neighbourhood scale comes off the record.** Owner-occupied gets "your part of Whitefish
+Bay, around N Berkeley Blvd". Absentee owners get the city alone, because their mailing street
+is not the neighbourhood in question.
+
+**The license number was dropped for warmth.** 452.136(2) requires advertising to carry the
+FIRM name clearly and conspicuously; it does not require the individual licensee's number. The
+firm name stays and is not negotiable. Add the number back to the `signature` array if wanted.
+
+**A guard is now arguably redundant.** The listing-status guard exists because v1 and v2
+asserted the home came off the market, which is false of an FSBO. v3 asserts nothing about the
+listing, so the guard no longer prevents a false statement. It is deliberately left in place:
+removing a safety guard is AJ's call, not a side effect of a copy edit. Lifting it would make
+the two FSBO leads in the pond mailable.
+
+The tests assert the failures above cannot reappear: no "I am not writing", no mention of the
+market, no dollar figure, no occurrence of "listing".
 
 ### Copy is a fixed template, not model-generated
 

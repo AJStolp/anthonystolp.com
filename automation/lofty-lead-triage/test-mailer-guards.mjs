@@ -86,7 +86,11 @@ is('return uses return_state not province', built.payload.return_state, 'WI');
 is('preview defaults ON', built.preview, true);
 is('recipient uses province not state', 'province' in built.payload.recipients[0], true);
 is('message carries licensed firm name', built.payload.message.includes('Epique Realty LLC'), true);
-is('message carries license number', built.payload.message.includes('#114204-94'), true);
+// The license NUMBER was deliberately dropped for warmth: 452.136(2) requires the FIRM name
+// clearly and conspicuously, not the individual licensee's number. The firm name is the part
+// that is legally load-bearing, so that is what is asserted.
+is('message carries the licensed firm name', built.payload.message.includes('Epique Realty LLC'), true);
+is('license number no longer present', built.payload.message.includes('#114204-94'), false);
 is('message has no em dashes', /—/.test(built.payload.message), false);
 
 // --- per-lead slots. Every address below is a real one from the 2026-08-27 pond. ------------
@@ -97,18 +101,18 @@ const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city |
   ...(o.price ? { Price: String(o.price) } : {}) }) });
 const msg = (o) => build(GOOD, auth, lead(o)).payload.message;
 
-is('street number dropped', msg({ street: '1633 Spruce St' }).includes('your place on Spruce St'), true);
-is('WI grid address handled', msg({ street: 'W2830 County Road D' }).includes('your place on County Road D'), true);
-is('WI alphanumeric grid handled', msg({ street: 'N88W6327 Willowbrooke Dr' }).includes('on Willowbrooke Dr'), true);
-is('apt suffix dropped', msg({ street: '2076 Chateau Ct Apt 203d' }).includes('on Chateau Ct'), true);
-is('directional kept', msg({ street: '6209 N Berkeley Blvd' }).includes('on N Berkeley Blvd'), true);
-is('street doubles as the area', msg({ street: '1633 Spruce St' }).includes('what sells around Spruce St'), true);
-is('unparseable street falls back to city', msg({ street: '12345', city: 'Delafield' }).includes('what sells around Delafield'), true);
+is('street number dropped', msg({ street: '1633 Spruce St' }).includes('around Spruce St'), true);
+is('WI grid address handled', msg({ street: 'W2830 County Road D' }).includes('around County Road D'), true);
+is('WI alphanumeric grid handled', msg({ street: 'N88W6327 Willowbrooke Dr' }).includes('around Willowbrooke Dr'), true);
+is('apt suffix dropped', msg({ street: '2076 Chateau Ct Apt 203d' }).includes('around Chateau Ct'), true);
+is('directional kept', msg({ street: '6209 N Berkeley Blvd' }).includes('around N Berkeley Blvd'), true);
+is('street scoped to their part of town', msg({ street: '1633 Spruce St', city: 'Grafton' }).includes('your part of Grafton, around Spruce St'), true);
+is('unparseable street falls back to city', msg({ street: '12345', city: 'Delafield' }).includes('I work the Delafield area'), true);
 
 // Owner Street Address is where the OWNER lives. For an absentee owner that is not the house
 // that expired, so naming the street would name the wrong property.
 is('absentee owner never names the street', msg({ street: '2855 N 58th St', occ: 'N' }).includes('N 58th St'), false);
-is('absentee owner falls back to the city', msg({ street: '2855 N 58th St', occ: 'N' }).includes('what sells around Milwaukee'), true);
+is('absentee owner falls back to the city', msg({ street: '2855 N 58th St', occ: 'N' }).includes('I work the Milwaukee area'), true);
 is('unknown occupancy behaves as absentee', msg({ street: '2855 N 58th St', occ: '' }).includes('N 58th St'), false);
 
 // --- the 2026-08-28 rewrite. These assert the three things the old copy got WRONG, so a
@@ -117,8 +121,15 @@ const M = msg({ street: '6209 N Berkeley Blvd', price: 1095000 });
 is('never narrates the failure back', /without selling/i.test(M), false);
 is('never recites their list price', /\$[0-9]/.test(M), false);
 is('never says the word listing', /listing/i.test(M), false);
-is('acknowledges without a verdict', M.includes('came off the market. I am not writing about that.'), true);
-is('offers the monthly note', M.includes('what sells around N Berkeley Blvd'), true);
+// v1 and v2 both opened by negating an ask the reader had not made. v3 never raises the
+// expired listing at all, because there is no way to raise it that does not read as
+// "I pulled a report on you".
+is('never negates an unmade ask', /I am not writing/i.test(M), false);
+is('never mentions the market at all', /came off the market|the market/i.test(M), false);
+is('introduces himself', M.includes('I wanted to introduce myself'), true);
+is('offers the monthly note', M.includes('Every month I put together what actually sold nearby'), true);
+is('leaves the door open', M.includes('I am here for that too'), true);
+is('says no pressure out loud', M.includes('No pressure either way'), true);
 is('offer has no strings', M.includes('whether you ever sell or not'), true);
 is('city not repeated in both sentences', (msg({ street: '2855 N 58th St', occ: 'N' }).match(/Milwaukee/g) || []).length, 1);
 is('no time claim is made', /this year|last year|recently|earlier/i.test(M.split('whether you ever sell')[0]), false);
