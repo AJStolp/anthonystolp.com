@@ -34,7 +34,7 @@ const NO_ADDR = { ...WI_LEAD, streetAddress: '', city: '', zipCode: '', customAt
 
 const GOOD = { mailSecret: 's3cr3t-long-random', weeklyMailCap: '3', previewOnly: 'true',
   firmNameAsLicensed: 'Epique Realty LLC', licensedState: 'WI', agentName: 'Anthony Stolp',
-  agentPhone: '(262) 4837932', agentLicense: '#114204-94',
+  agentPhone: '(262) 483-7932', agentLicense: '#114204-94',
   returnName: 'Anthony Stolp', returnAddress: 'N88W6327 Willowbrooke Dr',
   returnCity: 'Cedarburg', returnState: 'WI', returnPostalCode: '53012',
   handwritingColor: 'blue', handwritingRealism: 'true', handwritingStyleId: '' };
@@ -126,7 +126,7 @@ is('introduces himself', M.includes("thought I'd introduce myself the old-fashio
 is('sells interpretation, not data', M.includes("What's harder is figuring out what those numbers actually mean"), true);
 is('names the real market forces', M.includes('rates, inventory'), true);
 is('invites a text, not just a call', M.includes('just text or call me'), true);
-is('uses the mobile number', M.includes('(262) 4837932'), true);
+is('uses the mobile number', M.includes('(262) 483-7932'), true);
 is('firm name on its own line', M.includes('\nExsell Experts | Epique Realty\n') || M.includes('Epique Realty LLC'), true);
 is('city not repeated in both sentences', (msg({ street: '2855 N 58th St', occ: 'N' }).match(/Milwaukee/g) || []).length, 1);
 is('no time claim is made', /this year|last year|recently|earlier/i.test(M.split('whether you ever sell')[0]), false);

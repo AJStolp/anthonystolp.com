@@ -133,7 +133,10 @@ const greeting = first ? `Hi ${first},` : 'Hello,';
 //
 // The phone is the MOBILE number, not the office line, because the letter says "text or call
 // me" and only one of those two numbers takes a text. agent-profile.ts carries both:
-// phone "(262) 885-3310" and mobilePhone "(262) 483-7932". AJ wrote it without the hyphen.
+// phone "(262) 885-3310" and mobilePhone "(262) 483-7932". AJ first wrote it without the
+// hyphen, then restored it after seeing the render: "4837932" is a seven-digit run and it is
+// the one thing on the page the reader has to act on, so it is the wrong place to save a
+// character.
 //
 // The offer is REAL. The site already runs a monthly market report per zip (Redfin-derived
 // stats, Claude-drafted, two-pass validated, delivered by Resend, see

@@ -441,7 +441,9 @@ Two mechanical changes to AJ's draft, both forced:
 
 **The phone is the mobile number**, `(262) 483-7932`, not the office line, because the letter
 says "text or call me" and only one of those takes a text. `agent-profile.ts` carries both.
-AJ wrote it without the hyphen; it renders as a 7-digit run.
+Hyphenated: AJ first wrote it as `4837932`, then restored the hyphen after seeing the render.
+A seven-digit run is the one thing on the page the reader has to act on, which makes it the
+wrong place to save a character.
 
 **The offer is real.** The site already runs a monthly market report per zip: Redfin-derived
 stats, Claude-drafted, two-pass validated, delivered by Resend (`/api/cron/market-reports`).
