@@ -289,7 +289,6 @@ AJ's real estate license.
 | Firm name | `firmNameAsLicensed` still a placeholder — see blocker below | no |
 | **Licensed state** | property is outside `licensedState` (default WI) | no |
 | Address | no complete mailing address on the Lofty record | no |
-| **Listing status** | the record is not Expired / Canceled / Withdrawn | no |
 
 Nothing commits until thanks.io accepts the send, mirroring `Mark Emailed Seen` in the triage
 workflow. A refusal, a vendor error, or a cap hit therefore never burns the lead or a slot, so
@@ -321,14 +320,23 @@ Fitting the entire message above the first fold would mean cutting it to roughly
 which removes the "I am not writing to ask for the listing" turn that the whole piece is built
 on. Not worth it.
 
-### Why the listing-status guard exists
+### The listing-status guard, and why it was removed
 
-The letter states, as fact, that the home came off the market without selling. That is true of an
-Expired or Canceled record and **false of an FSBO**, which is still actively for sale by its owner.
-The pond carries both: of 11 New Leads on 2026-08-27, 8 were Expired and 2 were FSBO. Mailing an
-FSBO this letter would put a false statement on a piece carrying AJ's license, so the guard refuses.
+It existed because copy v1 and v2 stated as fact that the home came off the market without
+selling. True of an Expired or Canceled record, **false of an FSBO**, which is still actively
+for sale. Of 11 New Leads on 2026-08-27, 8 were Expired and 2 were FSBO, and both FSBOs had
+complete mailing addresses, so both would have passed every other guard and mailed a false
+statement on a piece carrying AJ's license.
 
-Lifting it means **writing FSBO copy**, not widening `LETTER_STATUSES`.
+**Removed 2026-08-28 with AJ's approval**, once copy v3 stopped asserting anything about the
+listing. An introduction, an offer of the monthly numbers and an open door are equally true of
+an expired seller, an FSBO, and a homeowner who never listed. The guard no longer prevented
+anything, and it was costing the two FSBO leads.
+
+**The precondition is enforced by test, not by comment.** `test-mailer-guards.mjs` asserts the
+message never mentions the market and never says "listing". If a future edit reintroduces a
+status-dependent claim, those tests fail, and that is the signal to put the guard back. Do not
+reintroduce such a claim without also reinstating it.
 
 ### Handwriting
 

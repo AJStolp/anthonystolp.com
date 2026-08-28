@@ -66,11 +66,14 @@ is('valid token authorizes', auth.ok, true);
 is('unconfirmed firm name blocks', title(build({ ...GOOD, firmNameAsLicensed: 'PUT_FIRM_NAME_EXACTLY_AS_ON_LICENSE_CONFIRM_ISSUE_40' }, auth, WI_LEAD).html), 'Firm name not confirmed');
 is('out-of-state lead blocks', title(build(GOOD, auth, IA_LEAD).html), 'Outside your licensed state');
 is('lead with no address blocks', title(build(GOOD, auth, NO_ADDR).html), 'No mailing address');
-// The letter asserts the home came off the market without selling. That is false of an FSBO,
-// which is still actively for sale, and 2 of the 11 live pond leads on 2026-08-27 were FSBO.
-is('FSBO blocks, copy would be false', title(build(GOOD, auth, FSBO_LEAD).html), 'Wrong listing status for this letter');
-is('unknown status blocks', title(build(GOOD, auth, NO_STATUS).html), 'Wrong listing status for this letter');
-is('canceled is allowed', build(GOOD, auth, CANCELED_LEAD).ok, true);
+// The listing-status guard was removed once copy v3 stopped asserting anything about the
+// listing. These assert the removal, so a silent reintroduction shows up as a failure, and
+// they sit next to the copy tests that make the removal SAFE ("never mentions the market at
+// all", "never says the word listing"). If those ever fail, this guard has to come back.
+is('FSBO now mails', build(GOOD, auth, FSBO_LEAD).ok, true);
+is('unknown status now mails', build(GOOD, auth, NO_STATUS).ok, true);
+is('canceled still mails', build(GOOD, auth, CANCELED_LEAD).ok, true);
+is('FSBO letter makes no listing claim', /listing|came off the market/i.test(build(GOOD, auth, FSBO_LEAD).payload.message), false);
 
 const built = build(GOOD, auth, WI_LEAD);
 is('good WI lead builds', built.ok, true);

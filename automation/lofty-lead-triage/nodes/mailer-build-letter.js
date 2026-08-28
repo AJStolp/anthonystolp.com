@@ -61,19 +61,20 @@ if (String(state).toUpperCase() !== licensed) {
     '#cf222e');
 }
 
-// The copy below states, as fact, that the home came off the market without selling. That is
-// true of an Expired or Canceled record and FALSE of an FSBO, which is still actively for sale
-// by its owner. The live pond carries both: of 11 New Leads on 2026-08-27, 8 were Expired and
-// 2 were FSBO. Mailing an FSBO this letter puts a false statement on a piece carrying AJ's
-// license, so refuse rather than send. Lifting this means writing FSBO copy, not widening the
-// list of allowed statuses.
-const LETTER_STATUSES = new Set(['expired', 'canceled', 'cancelled', 'withdrawn']);
-const listingStatus = attr('Status');
-if (!LETTER_STATUSES.has(String(listingStatus || '').toLowerCase())) {
-  return deny('Wrong listing status for this letter',
-    `This letter says the home came off the market without selling, and this record is ${esc(listingStatus || 'of unknown status')}. That would be a false statement on a piece carrying your license, so nothing was sent. Expired, canceled and withdrawn records only until there is FSBO copy.`,
-    '#9a6700');
-}
+// LISTING-STATUS GUARD REMOVED 2026-08-28, deliberately, with AJ's approval. It existed
+// because copy v1 and v2 stated as fact that the home came off the market without selling.
+// That is true of an Expired or Canceled record and FALSE of an FSBO, which is still actively
+// for sale, so mailing an FSBO would have put a false statement on a piece carrying AJ's
+// license. Of 11 New Leads on 2026-08-27, 8 were Expired and 2 were FSBO.
+//
+// Copy v3 asserts NOTHING about the listing. It is an introduction, an offer of the monthly
+// numbers, and an open door, all of which are equally true of an expired seller, an FSBO, and
+// a homeowner who never listed at all. The guard therefore no longer prevents anything.
+//
+// THE PRECONDITION IS ENFORCED BY TEST, NOT BY COMMENT. `test-mailer-guards.mjs` asserts the
+// message never mentions the market and never says "listing". If a future edit reintroduces a
+// status-dependent claim, those tests fail, and THAT is the signal to put this guard back.
+// Do not reintroduce such a claim without also reinstating the guard.
 
 // Lofty stores some names exactly as the source feed had them, which includes ALL CAPS
 // ("SEAN JOCHIMS" in the 2026-08-27 pond). A handwritten letter that opens "Hi SEAN," shouts
