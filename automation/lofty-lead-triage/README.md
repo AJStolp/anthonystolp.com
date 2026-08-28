@@ -317,9 +317,10 @@ blank and thanks.io applies its own default.
 
 | Config | Values |
 |---|---|
-| `handwritingStyleId` | integer. **thanks.io publishes no list of valid ids and no endpoint to fetch them** — take the value from their dashboard or ask support. Blank falls back to their default. |
+| `handwritingStyleId` | integer. **thanks.io publishes no list of valid ids and no endpoint to fetch them** — take the value from their dashboard or ask support. Blank falls back to their default. Ships as `104`, chosen from an earlier postcard render. **Unconfirmed:** the dashboard names its styles ("Analytic Atom", "Binary Bard") and never shows an id, and the DOM does not carry one, so which name `104` resolves to is not known. The dashboard also advises using **Analytic Atom in blue to match the handwriting on the outside of the envelope**, which matters here: a letter whose inside and envelope look like two different hands undercuts the whole premise. Worth one question to thanks.io support. |
 | `handwritingColor` | `blue`, `black`, `green`, `purple`, `red`, or a hex value like `#4287f5` |
-| `handwritingRealism` | `"true"` enables the realism effect on AI fonts. Ships enabled. |
+| `handwritingRealism` | `"true"` enables the realism effect on AI fonts. Ships **disabled**: on a live render it fabricated a struck-through word to simulate self-correction, which on a letter about being straight with the reader reads as sloppiness. |
+| `fontSize` | `auto` since 2026-08-27. `small` was tuned for a 4x6 postcard, where `auto` crowded the edges. On an 8.5x11 letter page `small` would look lost, and a real render at `auto` fills the top two thirds with clean margins. |
 
 ### `previewOnly` defaults to `true`
 

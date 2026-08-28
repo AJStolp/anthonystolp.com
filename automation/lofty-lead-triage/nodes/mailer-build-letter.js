@@ -208,8 +208,11 @@ if (Number.isFinite(hwStyle) && hwStyle > 0) payload.handwriting_style_id = hwSt
 if (cfg.handwritingColor && !/PUT_|YOUR_/.test(String(cfg.handwritingColor))) payload.handwriting_color = String(cfg.handwritingColor).trim();
 
 // font_size is 'auto' | 'small' | 'medium' | 'large' and is only honoured on AI-type fonts
-// (style ids 101+). Verified on a live preview: 'auto' sizes this message large enough that
-// it crowds the edges, while 'small' fits with clean margins on all four sides.
+// (style ids 101+). 'small' was chosen when this was a 4x6 POSTCARD, where 'auto' crowded the
+// edges. That reasoning does not survive the move to a letter: an 8.5x11 page is roughly eight
+// times the area, and 'small' on it would look lost. Re-verified 2026-08-27 on a real
+// thanks.io render of the actual copy at 'auto': the message fills the top two thirds of the
+// page with clean margins on all four sides and no collision with either fold line.
 if (['auto', 'small', 'medium', 'large'].includes(String(cfg.fontSize))) payload.font_size = String(cfg.fontSize);
 
 // handwriting_realism does NOT just add texture. It fabricates human imperfections, and on a
