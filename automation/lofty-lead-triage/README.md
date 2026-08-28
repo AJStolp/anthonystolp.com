@@ -300,6 +300,27 @@ Dedup lives in this workflow rather than the digest because n8n static data is p
 the triage workflow cannot read it. The button therefore always renders and the webhook is the
 authority; a second tap is harmless.
 
+### The fold lines are inherent, and `auto` puts the crease in the right place
+
+A letter is folded into thirds to fit its envelope, so the page carries two fold lines and any
+message longer than about four lines crosses the first one. This is not a defect to design
+around, it is how every letter anyone has ever received works.
+
+What *is* controllable is which line lands on the crease, and `font_size` is the only lever:
+
+| `font_size` | Where the first crease falls | Verdict |
+|---|---|---|
+| `auto` | mid-sentence in the body, "Say the word and I will send that" | **fine**, and what ships |
+| `small` | through the **phone number** in the signature | worse, and the whole letter shrinks to a cramped note in the top quarter of the page |
+
+Both were rendered live on 2026-08-27 with the real copy. `small` was tried specifically to see
+whether it would clear the fold. It does not: it shrinks the block upward but the signature still
+crosses, and it lands the crease on the one line the reader most needs to be legible.
+
+Fitting the entire message above the first fold would mean cutting it to roughly four lines,
+which removes the "I am not writing to ask for the listing" turn that the whole piece is built
+on. Not worth it.
+
 ### Why the listing-status guard exists
 
 The letter states, as fact, that the home came off the market without selling. That is true of an
@@ -317,10 +338,11 @@ blank and thanks.io applies its own default.
 
 | Config | Values |
 |---|---|
-| `handwritingStyleId` | integer. **thanks.io publishes no list of valid ids and no endpoint to fetch them** — take the value from their dashboard or ask support. Blank falls back to their default. Ships as `104`, chosen from an earlier postcard render. **Unconfirmed:** the dashboard names its styles ("Analytic Atom", "Binary Bard") and never shows an id, and the DOM does not carry one, so which name `104` resolves to is not known. The dashboard also advises using **Analytic Atom in blue to match the handwriting on the outside of the envelope**, which matters here: a letter whose inside and envelope look like two different hands undercuts the whole premise. Worth one question to thanks.io support. |
+| `handwritingStyleId` | integer. **thanks.io publishes no list of valid ids and no endpoint to fetch them.** `104` is **Analytic Atom**, confirmed 2026-08-27 by reading the dashboard's own render call: selecting Analytic Atom posts `"style": 104`. This is the style AJ chose, and the dashboard advises it specifically because it **matches the handwriting on the outside of the envelope**. A letter whose inside and envelope look like two different hands undercuts the whole premise, so do not change this without re-checking the envelope. |
 | `handwritingColor` | `blue`, `black`, `green`, `purple`, `red`, or a hex value like `#4287f5` |
 | `handwritingRealism` | `"true"` enables the realism effect on AI fonts. Ships **disabled**: on a live render it fabricated a struck-through word to simulate self-correction, which on a letter about being straight with the reader reads as sloppiness. |
-| `fontSize` | `auto` since 2026-08-27. `small` was tuned for a 4x6 postcard, where `auto` crowded the edges. On an 8.5x11 letter page `small` would look lost, and a real render at `auto` fills the top two thirds with clean margins. |
+| `fontSize` | `auto` since 2026-08-27. `small` was tuned for a 4x6 postcard, where `auto` crowded the edges. On a letter it is actively worse: see the fold section below. |
+| `handwritingColor` | `blue`. The dashboard posts `rgba(31,0,113,0.80)` for its "Blue", a deep indigo, and the API takes preset names or hex. **Unverified** whether the preset `blue` renders identically to the colour in the approved proof. Check it on the first API preview. |
 
 ### `previewOnly` defaults to `true`
 
