@@ -90,20 +90,65 @@ const first = properCase((lead.firstName || (attr('Owner Name 1') || '').split('
 const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim() || attr('Owner Name 1') || 'Homeowner';
 const greeting = first ? `Hi ${first},` : 'Hello,';
 
+// --- per-lead detail, built from DETERMINISTIC SLOTS, never from a model -------------------
+// AJ asked that the letter be drafted off each lead's own information. It is, from the record
+// only. Not from a model: 452.136 bars advertising a property the firm holds no listing on,
+// and a reviewed skeleton cannot drift across that line while generated copy can. Every slot
+// below is a public fact already on the Lofty record, and every one degrades to a shorter true
+// sentence when its datum is missing.
+//
+// The LIST PRICE slot was removed in the 2026-08-28 rewrite. Reciting a reader's own asking
+// price back to them proved someone had looked, at the cost of reading like a pulled report.
+
+// "2855 N 58th St" -> "N 58th St". Wisconsin's grid addresses ("W2830 County Road D",
+// "N88W6327 Willowbrooke Dr") put digits inside the leading token, so the rule is "drop the
+// first token if it contains a digit" rather than "drop leading digits". Unit suffixes are
+// dropped too: nobody writes "your place on Chateau Ct Apt 203d".
+const streetName = (raw) => {
+  let t = String(raw || '').trim().split(/\s+/);
+  if (t.length > 1 && /\d/.test(t[0])) t = t.slice(1);
+  const unit = t.findIndex(w => /^(apt|unit|ste|suite|#|lot)$/i.test(w) || /^#/.test(w));
+  if (unit > 0) t = t.slice(0, unit);
+  const out = t.join(' ').trim();
+  return out && /[a-z]/i.test(out) ? out : null;
+};
+
+// Only name the street when the owner actually LIVES at the property. `Owner Street Address`
+// is the owner's mailing address, which for an absentee owner is not the house that expired.
+// Live example from the 2026-08-27 pond: Robert Tally is Owner Occupied "N", mails to 2855 N
+// 58th St, and the expired listing's own remarks describe 3022 N 6th St. Naming the mailing
+// street would have told him his place on the wrong street came off the market. Absentee
+// owners get the city, which is true either way.
+const ownerOccupied = String(attr('Owner Occupied') || '').toUpperCase() === 'Y';
+const streetLabel = ownerOccupied ? streetName(street) : null;
+
 // Fixed, reviewed copy. Deliberately NOT model-generated: 452.136 bars advertising a
 // property the firm holds no listing on, and these listings have expired so nobody holds
 // them. The letter solicits nothing and never describes the house as being for sale.
 //
-// Positioning is researched, not improvised. See docs/research/expired-listing-messaging.md.
-// The short version: an expired seller may hear from five agents the same morning and has
-// heard the standard opener "fifty times", so any piece that asks for the listing is
-// indistinguishable from the pile. NAR puts honesty and trustworthiness as the second most
-// cited reason sellers choose an agent, so the differentiator is refusing the ask and
-// offering the honest read instead. The "not writing to ask for the listing" line is the
-// whole strategy and must stay in the second sentence, before they stop reading.
+// REWRITTEN 2026-08-28. The previous version was analytically correct and emotionally cold,
+// and AJ was right to reject it. What it got wrong, kept here so it does not get rewritten
+// back:
 //
-// The letter OFFERS the diagnosis, it never contains it. Telling someone in writing that their
-// home was overpriced, unsolicited, reads as an insult rather than help.
+//   1. It opened by narrating the reader's failure to them. "came off the market WITHOUT
+//      SELLING" is a verdict, not an observation. Nobody needs to be told their house did
+//      not sell, and being told reads as a data broker who pulled a report.
+//   2. "I am not writing to ask for the listing" keeps the letter pointed at the listing.
+//      A negation cannot un-plant the word. Refusing the ask still frames the piece as
+//      being about the ask.
+//   3. It recited the reader's own list price back at them. It proved someone looked, at
+//      the cost of feeling surveilled.
+//
+// What replaces it: a neighbour who tracks the local numbers, offering them, expecting
+// nothing. The offer is REAL and not a pretext. The site already runs a monthly market
+// report per zip (Redfin-derived stats, Claude-drafted, two-pass validated, delivered by
+// Resend, see /api/cron/market-reports). "I will add you" is a thing that exists and can be
+// honoured, which is the difference between a resource offer and a lead magnet.
+//
+// The acknowledgement stays, minus the sting: "came off the market" is the public fact the
+// record carries. "without selling" was the editorial. No time claim is made, because the
+// record's dates are inconsistent and a wrong "earlier this year" is worse than no date.
+//
 // House style: no em dashes, educate rather than advise, never give legal or tax advice.
 // Signature lines stay tight (single newlines); prose paragraphs are separated by BLANK
 // lines. Verified against a real thanks.io preview render: joining everything with single
@@ -115,66 +160,21 @@ const signature = [
   `WI licensed real estate salesperson ${cfg.agentLicense || ''}`.trim()
 ].filter(Boolean).join('\n');
 
-// --- per-lead detail, built from DETERMINISTIC SLOTS, never from a model -------------------
-// AJ asked that the letter be drafted off each lead's own information. It is, from the record
-// only. Not from a model: 452.136 bars advertising a property the firm holds no listing on,
-// and a reviewed skeleton cannot drift across that line while generated copy can. Every slot
-// below is a public fact already on the Lofty record, and every one degrades to a shorter true
-// sentence when its datum is missing. Nothing is inferred, and nothing is said that the record
-// does not carry.
-//
-// Two slots only. The point is to prove someone actually looked, and a letter that recites six
-// fields reads like a file being read aloud, which is the opposite of the effect wanted.
-
-// "2855 N 58th St" -> "N 58th St". Wisconsin's grid addresses ("W2830 County Road D",
-// "N88W6327 Willowbrooke Dr") put digits inside the leading token, so the rule is "drop the
-// first token if it contains a digit" rather than "drop leading digits". Unit suffixes are
-// dropped too: nobody writes "your condo on Chateau Ct Apt 203d".
-const streetName = (raw) => {
-  let t = String(raw || '').trim().split(/\s+/);
-  if (t.length > 1 && /\d/.test(t[0])) t = t.slice(1);
-  const unit = t.findIndex(w => /^(apt|unit|ste|suite|#|lot)$/i.test(w) || /^#/.test(w));
-  if (unit > 0) t = t.slice(0, unit);
-  const out = t.join(' ').trim();
-  return out && /[a-z]/i.test(out) ? out : null;
-};
-
-// What to call the place. Falls all the way back to "home", which is true of anything.
-const beds = parseInt(attr('Bedrooms'), 10);
-const ptype = String(attr('Property Type') || '').toLowerCase();
-const descriptor =
-  ptype.includes('condo') ? 'condo'
-  : ptype.includes('multi') ? 'multi-family'
-  : (ptype.includes('other') && !(beds > 0)) ? 'lot'
-  : (beds > 0) ? `${beds} bedroom`
-  : 'home';
-
-// Only name the street when the owner actually LIVES at the property. `Owner Street Address`
-// is the owner's mailing address, which for an absentee owner is not the house that expired.
-// Live example from the 2026-08-27 pond: Robert Tally is Owner Occupied "N", mails to 2855 N
-// 58th St, and the expired listing's own remarks describe 3022 N 6th St. Naming the mailing
-// street would have told him his home on the wrong street came off the market. Absentee owners
-// get the city instead, which is true either way.
-const ownerOccupied = String(attr('Owner Occupied') || '').toUpperCase() === 'Y';
-const streetLabel = ownerOccupied ? streetName(street) : null;
-const subject = streetLabel ? `${descriptor} on ${streetLabel}` : `${city} ${descriptor}`;
-
-// List price, formatted plainly. Public, already advertised by the previous office, and the
-// single fact that most shows the letter is not a mail merge. Omitted entirely if absent.
-const priceNum = Number(String(attr('Price') || '').replace(/[^0-9.]/g, ''));
-const listedAt = Number.isFinite(priceNum) && priceNum > 0
-  ? '$' + Math.round(priceNum).toLocaleString('en-US')
-  : null;
-
-const looked = listedAt
-  ? `I looked at what it was priced against at ${listedAt} and what actually sold nearby. Say the word and I will send that. No charge, whether you list again this year, next year or never.`
-  : `I looked at what it was priced against and what actually sold near it. Say the word and I will send that. No charge, whether you list again this year, next year or never.`;
+// The street is named ONCE and the area ONCE, and which sentence carries which depends on
+// whether we have a street at all. Naming the city in both sentences ("your place in
+// Milwaukee ... what sells around Milwaukee") reads like a template with a variable in it,
+// which is exactly the tell this letter cannot afford.
+const place = streetLabel ? ` on ${streetLabel}` : '';
+// The area the monthly numbers cover. Street scale reads neighbourly and is the whole point,
+// but only when it is genuinely their street.
+const around = streetLabel || city;
 
 const message = [
   greeting,
-  `Your ${subject} came off the market without selling. I am not writing to ask for the listing.`,
-  looked,
-  `Or tell me what you were trying to do. I would rather hear that.`,
+  `I saw your place${place} came off the market. I am not writing about that.`,
+  `Mostly I keep track of what sells around ${around}, what it closes at and what sits. I put a short note together on it each month for whoever wants one.`,
+  `If that would be useful, say the word and I will add you. No charge and no catch, and it keeps coming whether you ever sell or not.`,
+  `And if you would rather tell me about the house, I am glad to listen.`,
   signature
 ].join('\n\n');
 

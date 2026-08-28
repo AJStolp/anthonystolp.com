@@ -408,12 +408,37 @@ single-case tokens are touched, so `McDonald`, `DeAngelo` and `van Dyke` survive
 
 Every slot is covered by a test in `test-mailer-guards.mjs` against a real address from the pond.
 
-### Copy is a fixed template, not model-generated
+### The copy, and why it reads the way it does
 
-452.136 also bars advertising a property the firm holds no listing on, and these listings have
-expired so nobody holds them. The card solicits the listing and never describes the house as
-being for sale. A reviewed template cannot drift across that line; per-send generated copy can.
-The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is the one talking.
+Rewritten 2026-08-28 after AJ rejected the first version. It was analytically correct and
+emotionally cold. Recorded here so it does not get written back:
+
+| What it did | Why it failed |
+|---|---|
+| "came off the market **without selling**" | narrated the reader's failure back to them. A verdict, not an observation, and it reads like a pulled report |
+| "I am not writing to ask for **the listing**" | a negation cannot un-plant the word. Refusing the ask still frames the letter as being about the ask |
+| recited their own list price | proved someone looked, at the cost of feeling surveilled |
+
+**The replacement is a neighbour who tracks the local numbers, offering them, expecting
+nothing.** The acknowledgement survives minus the sting, because "came off the market" is the
+public fact the record carries and "without selling" was the editorial. No time claim is made:
+the record's dates are inconsistent and a wrong "earlier this year" is worse than no date.
+
+**The offer is real, and that is the point.** The site already runs a monthly market report per
+zip: Redfin-derived stats, Claude-drafted, two-pass validated, delivered by Resend
+(`/api/cron/market-reports`). "Say the word and I will add you" describes a thing that exists.
+That is the difference between a resource offer and a lead magnet, and it is the only reason
+this letter is honest.
+
+**Operational consequence:** a reply to one of these letters is a request to be subscribed to
+that zip's monthly report. If nobody actions it, the letter has lied. `POST /api/lead` already
+accepts the market-report subscribe shape, so the path exists; what does not exist yet is any
+routing from "Keith emailed back" to that endpoint. Doing it by hand is fine at this volume.
+
+The tests in `test-mailer-guards.mjs` assert the three failures above can never reappear: no
+"without selling", no dollar figure, no occurrence of the word "listing".
+
+### Copy is a fixed template, not model-generated
 
 ---
 

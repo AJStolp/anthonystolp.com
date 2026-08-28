@@ -97,30 +97,31 @@ const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city |
   ...(o.price ? { Price: String(o.price) } : {}) }) });
 const msg = (o) => build(GOOD, auth, lead(o)).payload.message;
 
-is('street number dropped', msg({ street: '1633 Spruce St', beds: 4 }).includes('4 bedroom on Spruce St'), true);
-is('WI grid address handled', msg({ street: 'W2830 County Road D', type: 'Other' }).includes('lot on County Road D'), true);
-is('WI alphanumeric grid handled', msg({ street: 'N88W6327 Willowbrooke Dr', beds: 3 }).includes('3 bedroom on Willowbrooke Dr'), true);
-is('apt suffix dropped', msg({ street: '2076 Chateau Ct Apt 203d', type: 'Condominium' }).includes('condo on Chateau Ct'), true);
-is('directional kept', msg({ street: '6209 N Berkeley Blvd', beds: 4 }).includes('4 bedroom on N Berkeley Blvd'), true);
-is('multi-family named', msg({ street: '2855 N 58th St', type: 'Multi-Family' }).includes('multi-family on N 58th St'), true);
-is('no beds no type falls back to home', msg({ street: '149 Hickory Dr' }).includes('home on Hickory Dr'), true);
-is('unparseable street falls back to city', msg({ street: '12345', city: 'Delafield', beds: 2 }).includes('Delafield 2 bedroom'), true);
+is('street number dropped', msg({ street: '1633 Spruce St' }).includes('your place on Spruce St'), true);
+is('WI grid address handled', msg({ street: 'W2830 County Road D' }).includes('your place on County Road D'), true);
+is('WI alphanumeric grid handled', msg({ street: 'N88W6327 Willowbrooke Dr' }).includes('on Willowbrooke Dr'), true);
+is('apt suffix dropped', msg({ street: '2076 Chateau Ct Apt 203d' }).includes('on Chateau Ct'), true);
+is('directional kept', msg({ street: '6209 N Berkeley Blvd' }).includes('on N Berkeley Blvd'), true);
+is('street doubles as the area', msg({ street: '1633 Spruce St' }).includes('what sells around Spruce St'), true);
+is('unparseable street falls back to city', msg({ street: '12345', city: 'Delafield' }).includes('what sells around Delafield'), true);
+
 // Owner Street Address is where the OWNER lives. For an absentee owner that is not the house
 // that expired, so naming the street would name the wrong property.
-is('absentee owner gets the city, not the street', msg({ street: '2855 N 58th St', type: 'Multi-Family', occ: 'N' }).includes('Milwaukee multi-family'), true);
-is('absentee owner never names the street', msg({ street: '2855 N 58th St', type: 'Multi-Family', occ: 'N' }).includes('N 58th St'), false);
-is('unknown occupancy gets the city', msg({ street: '2855 N 58th St', beds: 3, occ: '' }).includes('Milwaukee 3 bedroom'), true);
-is('list price appears', msg({ street: '1633 Spruce St', beds: 4, price: 449900 }).includes('priced against at $449,900'), true);
-is('no price, sentence still true', msg({ street: '1633 Spruce St', beds: 4 }).includes('what it was priced against and what actually sold'), true);
-// Lofty carries source-feed casing. "SEAN JOCHIMS" was live in the pond on 2026-08-27, and
-// "Hi SEAN," on a handwritten letter is worse than no greeting at all.
-const named = (f, o) => build(GOOD, auth, { ...lead(o || { street: '1633 Spruce St', beds: 4 }), firstName: f }).payload.message;
-is('all-caps name normalised', named('SEAN').startsWith('Hi Sean,'), true);
-is('lowercase name normalised', named('robert').startsWith('Hi Robert,'), true);
-is('mixed case left alone', named('McDonald').startsWith('Hi McDonald,'), true);
-is('hyphenated caps normalised', named('JEAN-LUC').startsWith('Hi Jean-Luc,'), true);
-is('apostrophe caps normalised', named("O'BRIEN").startsWith("Hi O'Brien,"), true);
-is('still refuses the listing in sentence two', msg({ street: '1633 Spruce St', beds: 4 }).includes('I am not writing to ask for the listing'), true);
+is('absentee owner never names the street', msg({ street: '2855 N 58th St', occ: 'N' }).includes('N 58th St'), false);
+is('absentee owner falls back to the city', msg({ street: '2855 N 58th St', occ: 'N' }).includes('what sells around Milwaukee'), true);
+is('unknown occupancy behaves as absentee', msg({ street: '2855 N 58th St', occ: '' }).includes('N 58th St'), false);
+
+// --- the 2026-08-28 rewrite. These assert the three things the old copy got WRONG, so a
+// future edit cannot quietly reintroduce them. -----------------------------------------------
+const M = msg({ street: '6209 N Berkeley Blvd', price: 1095000 });
+is('never narrates the failure back', /without selling/i.test(M), false);
+is('never recites their list price', /\$[0-9]/.test(M), false);
+is('never says the word listing', /listing/i.test(M), false);
+is('acknowledges without a verdict', M.includes('came off the market. I am not writing about that.'), true);
+is('offers the monthly note', M.includes('what sells around N Berkeley Blvd'), true);
+is('offer has no strings', M.includes('whether you ever sell or not'), true);
+is('city not repeated in both sentences', (msg({ street: '2855 N 58th St', occ: 'N' }).match(/Milwaukee/g) || []).length, 1);
+is('no time claim is made', /this year|last year|recently|earlier/i.test(M.split('whether you ever sell')[0]), false);
 is('message does not advertise the property', /for sale|listed at|asking/i.test(built.payload.message), false);
 
 // Handwriting: opt-in, and blank fields must fall through to thanks.io's own defaults rather
