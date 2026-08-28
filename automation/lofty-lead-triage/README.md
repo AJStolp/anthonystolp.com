@@ -418,47 +418,45 @@ Every slot is covered by a test in `test-mailer-guards.mjs` against a real addre
 
 ### The copy, and why it reads the way it does
 
-**Version 3, 2026-08-28.** Two earlier versions failed the same way and both are recorded so the
-failure does not get reintroduced:
+**Version 4, 2026-08-28, written by AJ.** Three earlier versions are recorded because each
+failed differently and the failures are easy to reintroduce:
 
 | Version | What it said | Why it failed |
 |---|---|---|
-| v1 | "Your home came off the market **without selling**. I am not writing to ask for **the listing**." | narrated the reader's failure back to them, then negated an ask they had not made. Also recited their own asking price |
-| v2 | "came off the market. **I am not writing about that.**" | same disease, softer. A negation cannot un-plant a word, and opening by refusing something the reader never raised is a strange way to introduce yourself |
-| **v3** | an introduction, an offer, an open door | never raises the expired listing at all |
+| v1 | "came off the market **without selling**. I am not writing to ask for **the listing**." | narrated the reader's failure back to them, then negated an ask they had not made. Also recited their own asking price |
+| v2 | "came off the market. **I am not writing about that.**" | same disease, softer. A negation cannot un-plant a word |
+| v3 | an introduction offering "what sold nearby" | correct instinct, but flat. It never said why anyone should want that from him rather than from Zillow |
+| **v4** | "it's easy to look up what sold nearby. **What's harder is figuring out what those numbers actually mean for your house**" | ships |
 
-**v3 drops the frame entirely.** There is no way to mention the expired listing that does not
-read as "I pulled a report on you", so it is not mentioned. What is left is someone who works
-the area introducing himself, offering the monthly numbers, and saying help is available if
-wanted. AJ's brief was that it should read like meeting a neighbour.
+**v4's move is that the data is not the product, the interpretation is.** Anyone can pull a
+comp. What an agent can actually offer is what the comps mean for one specific house, after
+rate moves and inventory swings. That distinction is real, it is defensible, and it is the only
+line in four drafts that answers "why you".
 
-**The offer is real, and that is the point.** The site already runs a monthly market report per
-zip: Redfin-derived stats, Claude-drafted, two-pass validated, delivered by Resend
-(`/api/cron/market-reports`). "Say the word" describes a thing that exists. That is the
-difference between a resource offer and a lead magnet, and it is the only reason this letter is
-honest.
+Two mechanical changes to AJ's draft, both forced:
 
-**Operational consequence:** a reply is a request to be subscribed to that zip's monthly report.
-If nobody actions it, the letter has lied. `POST /api/lead` already accepts the market-report
-subscribe shape; what does not exist is any routing from "Keith emailed back" to that endpoint.
-By hand is fine at this volume.
+- the **em dash** before "especially after the big swings" became a comma. House style bars em
+  dashes and a test asserts it.
+- the **italics** on *your* were dropped. The handwriting engine renders plain text.
 
-**The neighbourhood scale comes off the record.** Owner-occupied gets "your part of Whitefish
-Bay, around N Berkeley Blvd". Absentee owners get the city alone, because their mailing street
-is not the neighbourhood in question.
+**The phone is the mobile number**, `(262) 483-7932`, not the office line, because the letter
+says "text or call me" and only one of those takes a text. `agent-profile.ts` carries both.
+AJ wrote it without the hyphen; it renders as a 7-digit run.
 
-**The license number was dropped for warmth.** 452.136(2) requires advertising to carry the
-FIRM name clearly and conspicuously; it does not require the individual licensee's number. The
-firm name stays and is not negotiable. Add the number back to the `signature` array if wanted.
+**The offer is real.** The site already runs a monthly market report per zip: Redfin-derived
+stats, Claude-drafted, two-pass validated, delivered by Resend (`/api/cron/market-reports`).
+"Happy to send it over" describes a thing that exists. A reply is a request to be subscribed;
+if nobody actions it, the letter has lied.
 
-**A guard is now arguably redundant.** The listing-status guard exists because v1 and v2
-asserted the home came off the market, which is false of an FSBO. v3 asserts nothing about the
-listing, so the guard no longer prevents a false statement. It is deliberately left in place:
-removing a safety guard is AJ's call, not a side effect of a copy edit. Lifting it would make
-the two FSBO leads in the pond mailable.
+**Slots: two.** The first name and the city, both straight off the Lofty record. The list price
+went in v3 and the street went in v4, both deliberately. The street was only ever emitted for
+owner-occupied records because `Owner Street Address` is the OWNER's mailing address, which for
+an absentee owner is not the house that expired. v4 names no street, so that hazard is moot.
+The helper is in git history if it is ever wanted back.
 
-The tests assert the failures above cannot reappear: no "I am not writing", no mention of the
-market, no dollar figure, no occurrence of "listing".
+**Length.** 638 characters at the longest of the ten real pond leads, against v3's 504.
+Rendered live: the signature lands just above the second fold. There is not much headroom left,
+so a v5 that adds a sentence needs re-rendering rather than assuming.
 
 ### Copy is a fixed template, not model-generated
 

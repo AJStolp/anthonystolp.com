@@ -94,87 +94,66 @@ const greeting = first ? `Hi ${first},` : 'Hello,';
 // --- per-lead detail, built from DETERMINISTIC SLOTS, never from a model -------------------
 // AJ asked that the letter be drafted off each lead's own information. It is, from the record
 // only. Not from a model: 452.136 bars advertising a property the firm holds no listing on,
-// and a reviewed skeleton cannot drift across that line while generated copy can. Every slot
-// below is a public fact already on the Lofty record, and every one degrades to a shorter true
-// sentence when its datum is missing.
+// and a reviewed skeleton cannot drift across that line while generated copy can.
 //
-// The LIST PRICE slot was removed in the 2026-08-28 rewrite. Reciting a reader's own asking
-// price back to them proved someone had looked, at the cost of reading like a pulled report.
-
-// "2855 N 58th St" -> "N 58th St". Wisconsin's grid addresses ("W2830 County Road D",
-// "N88W6327 Willowbrooke Dr") put digits inside the leading token, so the rule is "drop the
-// first token if it contains a digit" rather than "drop leading digits". Unit suffixes are
-// dropped too: nobody writes "your place on Chateau Ct Apt 203d".
-const streetName = (raw) => {
-  let t = String(raw || '').trim().split(/\s+/);
-  if (t.length > 1 && /\d/.test(t[0])) t = t.slice(1);
-  const unit = t.findIndex(w => /^(apt|unit|ste|suite|#|lot)$/i.test(w) || /^#/.test(w));
-  if (unit > 0) t = t.slice(0, unit);
-  const out = t.join(' ').trim();
-  return out && /[a-z]/i.test(out) ? out : null;
-};
-
-// Only name the street when the owner actually LIVES at the property. `Owner Street Address`
-// is the owner's mailing address, which for an absentee owner is not the house that expired.
-// Live example from the 2026-08-27 pond: Robert Tally is Owner Occupied "N", mails to 2855 N
-// 58th St, and the expired listing's own remarks describe 3022 N 6th St. Naming the mailing
-// street would have told him his place on the wrong street came off the market. Absentee
-// owners get the city, which is true either way.
-const ownerOccupied = String(attr('Owner Occupied') || '').toUpperCase() === 'Y';
-const streetLabel = ownerOccupied ? streetName(street) : null;
+// v4 uses TWO slots: the first name and the city. Earlier versions carried more and they were
+// dropped as the copy changed, deliberately rather than by neglect:
+//   - the LIST PRICE went in v3. Reciting a reader's own asking price back to them proved
+//     someone had looked, at the cost of reading like a pulled report.
+//   - the STREET went in v4. It was only ever emitted for owner-occupied records, because
+//     `Owner Street Address` is the OWNER's mailing address and for an absentee owner that is
+//     not the house that expired. Robert Tally in the 2026-08-27 pond is Owner Occupied "N",
+//     mails to 2855 N 58th St, and his expired listing's remarks describe 3022 N 6th St.
+//     AJ's v4 copy says "the {city} area" and names no street, so the whole hazard is moot.
+//     The helper and its tests are in git history if the street variant is ever wanted back.
 
 // Fixed, reviewed copy. Deliberately NOT model-generated: 452.136 bars advertising a
 // property the firm holds no listing on, and these listings have expired so nobody holds
 // them. The letter solicits nothing and never describes the house as being for sale.
 //
-// REWRITTEN AGAIN 2026-08-28. Two prior versions are recorded here because both failed the
-// same way and the failure is easy to reintroduce:
+// COPY v4, 2026-08-28, WRITTEN BY AJ. Reproduced as he wrote it, with two mechanical changes
+// noted below. Three earlier versions failed and are recorded so the failures do not return:
 //
 //   v1  "Your home came off the market WITHOUT SELLING. I am not writing to ask for the
 //       listing." Narrated the reader's failure to them, then negated an ask they had not
 //       made. Also recited their own asking price back at them.
-//   v2  Softened to "came off the market. I am not writing about that." Same disease. A
-//       negation cannot un-plant a word, and opening by refusing something the reader never
-//       raised is a strange way to introduce yourself.
+//   v2  Softened to "came off the market. I am not writing about that." Same disease.
+//   v3  Dropped the listing entirely. Correct instinct, but flat: it offered "what sold
+//       nearby" without saying why anyone should want it from him rather than from Zillow.
 //
-// v3 drops the frame entirely. It does not mention the expired listing at all, because there
-// is no way to raise it that does not read as "I pulled a report on you". What is left is an
-// INTRODUCTION from someone who works the area, an offer of the monthly numbers, and an open
-// door. AJ's brief: it should read like meeting a neighbour, and like help is available if
-// wanted.
+// v4 answers that. The data is not the product, the INTERPRETATION is: "it's easy to look up
+// what sold nearby, what's harder is figuring out what those numbers mean for your house."
+// That is a real distinction and it is the thing an agent can actually offer.
 //
-// The offer is REAL and not a pretext. The site already runs a monthly market report per zip
-// (Redfin-derived stats, Claude-drafted, two-pass validated, delivered by Resend, see
-// /api/cron/market-reports). "Say the word" describes a thing that exists, which is the whole
-// difference between a resource offer and a lead magnet.
+// Two mechanical changes to AJ's draft, both forced:
+//   - the em dash before "especially after the big swings" became a comma. House style bars
+//     em dashes and there is a test asserting it.
+//   - the italics on *your* were dropped. The handwriting engine renders plain text; there is
+//     no emphasis to render.
+//
+// The phone is the MOBILE number, not the office line, because the letter says "text or call
+// me" and only one of those two numbers takes a text. agent-profile.ts carries both:
+// phone "(262) 885-3310" and mobilePhone "(262) 483-7932". AJ wrote it without the hyphen.
+//
+// The offer is REAL. The site already runs a monthly market report per zip (Redfin-derived
+// stats, Claude-drafted, two-pass validated, delivered by Resend, see
+// /api/cron/market-reports). "Happy to send it over" describes a thing that exists.
 //
 // House style: no em dashes, educate rather than advise, never give legal or tax advice.
-// Signature lines stay tight (single newlines); prose paragraphs are separated by BLANK
-// lines. Verified against a real thanks.io preview render: joining everything with single
-// newlines produced one dense unreadable block. The handwriting engine honours \n\n as a
-// paragraph break, and the difference in legibility is large.
-//
-// The license number line was dropped for warmth. 452.136(2) requires advertising to carry
-// the FIRM name clearly and conspicuously; it does not require the individual licensee's
-// number. The firm name stays and is non-negotiable. Put the number back by adding it to the
-// signature array if AJ prefers it.
+// Prose paragraphs are separated by BLANK lines; signature lines are single newlines.
+// Verified against a real thanks.io render: single newlines throughout produced one dense
+// unreadable block. The handwriting engine honours \n\n as a paragraph break.
 const signature = [
-  `${cfg.agentName || 'Anthony Stolp'}, ${firm}`,
+  `${cfg.agentName || 'Anthony Stolp'}`,
+  firm,
   `${cfg.agentPhone || ''}`
 ].filter(Boolean).join('\n');
 
-// Where he works, at the most neighbourly scale the record supports. Owner-occupied records
-// get "your part of Whitefish Bay, around N Berkeley Blvd"; absentee owners get the city
-// alone, because their mailing street is not the neighbourhood in question.
-const patch = streetLabel
-  ? `your part of ${city}, around ${streetLabel},`
-  : `the ${city} area,`;
-
 const message = [
   greeting,
-  `I am ${(cfg.agentName || 'Anthony Stolp').split(' ')[0]}. I work ${patch} and I wanted to introduce myself.`,
-  `Every month I put together what actually sold nearby, what it closed at and how long it took. If you would like a copy, just say the word. It is free, and it keeps coming whether you ever sell or not.`,
-  `And if you ever want help with anything on the house, I am here for that too. Whenever that is, or never. No pressure either way.`,
+  `I'm ${(cfg.agentName || 'Anthony Stolp').split(' ')[0]}. I work the ${city} area and thought I'd introduce myself the old-fashioned way.`,
+  `These days it's easy to look up what sold nearby. What's harder is figuring out what those numbers actually mean for your house, especially after the big swings of the last few years. Every month I dig into both the local picture and the bigger market forces (rates, inventory, who's really buying right now) and try to put it in plain language.`,
+  `If you'd ever like a short read on where things stand for homes like yours, just text or call me. Happy to send it over.`,
   signature
 ].join('\n\n');
 

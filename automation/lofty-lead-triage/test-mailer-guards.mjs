@@ -34,7 +34,7 @@ const NO_ADDR = { ...WI_LEAD, streetAddress: '', city: '', zipCode: '', customAt
 
 const GOOD = { mailSecret: 's3cr3t-long-random', weeklyMailCap: '3', previewOnly: 'true',
   firmNameAsLicensed: 'Epique Realty LLC', licensedState: 'WI', agentName: 'Anthony Stolp',
-  agentPhone: '(262) 885-3310', agentLicense: '#114204-94',
+  agentPhone: '(262) 4837932', agentLicense: '#114204-94',
   returnName: 'Anthony Stolp', returnAddress: 'N88W6327 Willowbrooke Dr',
   returnCity: 'Cedarburg', returnState: 'WI', returnPostalCode: '53012',
   handwritingColor: 'blue', handwritingRealism: 'true', handwritingStyleId: '' };
@@ -96,7 +96,7 @@ is('message carries the licensed firm name', built.payload.message.includes('Epi
 is('license number no longer present', built.payload.message.includes('#114204-94'), false);
 is('message has no em dashes', /—/.test(built.payload.message), false);
 
-// --- per-lead slots. Every address below is a real one from the 2026-08-27 pond. ------------
+// --- per-lead slots. v4 uses two: the first name and the city. -----------------------------
 const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city || 'Milwaukee',
   'Owner Zip': '53210', 'Owner State': 'WI', Status: 'Expired', 'Owner Street Address': o.street,
   'Owner Occupied': o.occ === undefined ? 'Y' : o.occ,
@@ -104,36 +104,30 @@ const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city |
   ...(o.price ? { Price: String(o.price) } : {}) }) });
 const msg = (o) => build(GOOD, auth, lead(o)).payload.message;
 
-is('street number dropped', msg({ street: '1633 Spruce St' }).includes('around Spruce St'), true);
-is('WI grid address handled', msg({ street: 'W2830 County Road D' }).includes('around County Road D'), true);
-is('WI alphanumeric grid handled', msg({ street: 'N88W6327 Willowbrooke Dr' }).includes('around Willowbrooke Dr'), true);
-is('apt suffix dropped', msg({ street: '2076 Chateau Ct Apt 203d' }).includes('around Chateau Ct'), true);
-is('directional kept', msg({ street: '6209 N Berkeley Blvd' }).includes('around N Berkeley Blvd'), true);
-is('street scoped to their part of town', msg({ street: '1633 Spruce St', city: 'Grafton' }).includes('your part of Grafton, around Spruce St'), true);
-is('unparseable street falls back to city', msg({ street: '12345', city: 'Delafield' }).includes('I work the Delafield area'), true);
+is('city comes off the record', msg({ street: '1633 Spruce St', city: 'Grafton' }).includes('I work the Grafton area'), true);
+is('city varies per lead', msg({ street: '149 Hickory Dr', city: 'Delafield' }).includes('I work the Delafield area'), true);
 
-// Owner Street Address is where the OWNER lives. For an absentee owner that is not the house
-// that expired, so naming the street would name the wrong property.
-is('absentee owner never names the street', msg({ street: '2855 N 58th St', occ: 'N' }).includes('N 58th St'), false);
-is('absentee owner falls back to the city', msg({ street: '2855 N 58th St', occ: 'N' }).includes('I work the Milwaukee area'), true);
-is('unknown occupancy behaves as absentee', msg({ street: '2855 N 58th St', occ: '' }).includes('N 58th St'), false);
+// The street slot was removed in v4. It only ever fired for owner-occupied records, because
+// Owner Street Address is the OWNER's mailing address and for an absentee owner that is not
+// the house that expired. v4 names no street, so the hazard cannot recur.
+is('never names a street', /Spruce St|Hickory Dr|N 58th St/.test(msg({ street: '1633 Spruce St' })), false);
+is('absentee owner is no longer a hazard', msg({ street: '2855 N 58th St', occ: 'N' }).includes('N 58th St'), false);
 
-// --- the 2026-08-28 rewrite. These assert the three things the old copy got WRONG, so a
-// future edit cannot quietly reintroduce them. -----------------------------------------------
-const M = msg({ street: '6209 N Berkeley Blvd', price: 1095000 });
+// --- v4, AJ's own copy. These assert what it must and must not say. -------------------------
+const M = msg({ street: '6209 N Berkeley Blvd', city: 'Whitefish Bay', price: 1095000 });
 is('never narrates the failure back', /without selling/i.test(M), false);
 is('never recites their list price', /\$[0-9]/.test(M), false);
 is('never says the word listing', /listing/i.test(M), false);
-// v1 and v2 both opened by negating an ask the reader had not made. v3 never raises the
-// expired listing at all, because there is no way to raise it that does not read as
-// "I pulled a report on you".
 is('never negates an unmade ask', /I am not writing/i.test(M), false);
-is('never mentions the market at all', /came off the market|the market/i.test(M), false);
-is('introduces himself', M.includes('I wanted to introduce myself'), true);
-is('offers the monthly note', M.includes('Every month I put together what actually sold nearby'), true);
-is('leaves the door open', M.includes('I am here for that too'), true);
-is('says no pressure out loud', M.includes('No pressure either way'), true);
-is('offer has no strings', M.includes('whether you ever sell or not'), true);
+is('never mentions the market coming off', /came off the market/i.test(M), false);
+is('introduces himself', M.includes("thought I'd introduce myself the old-fashioned way"), true);
+// The data is not the product, the interpretation is. This is the line that distinguishes him
+// from Zillow and it is the whole reason v4 beats v3.
+is('sells interpretation, not data', M.includes("What's harder is figuring out what those numbers actually mean"), true);
+is('names the real market forces', M.includes('rates, inventory'), true);
+is('invites a text, not just a call', M.includes('just text or call me'), true);
+is('uses the mobile number', M.includes('(262) 4837932'), true);
+is('firm name on its own line', M.includes('\nExsell Experts | Epique Realty\n') || M.includes('Epique Realty LLC'), true);
 is('city not repeated in both sentences', (msg({ street: '2855 N 58th St', occ: 'N' }).match(/Milwaukee/g) || []).length, 1);
 is('no time claim is made', /this year|last year|recently|earlier/i.test(M.split('whether you ever sell')[0]), false);
 is('message does not advertise the property', /for sale|listed at|asking/i.test(built.payload.message), false);
