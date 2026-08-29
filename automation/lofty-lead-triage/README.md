@@ -255,6 +255,29 @@ can never break the digest. The digest renders a **Send letter** button on any c
 mailing address; tapping it mails one **windowless letter** through
 [thanks.io](https://thanks.io) at $2.56 a piece, real stamp and handwritten envelope.
 
+### The background is blank on purpose, and the branding footer will not appear
+
+Settled 2026-08-29 by reading the account rather than guessing. thanks.io keeps letter
+backgrounds as **image templates**, one set per product:
+
+| Section | Contents |
+|---|---|
+| Windowless Letters | `356270` AJ's branding footer (name, *Exsell Real Estate Experts \| Epique Realty*, email, 262-483-7932, anthonystolp.com), `226870` blank |
+| Windowed Letters | two more, unused, we send windowless |
+
+**The payload sends neither `front_image_url` nor `image_template_id`, so thanks.io uses a blank
+background and the branding footer does NOT print.** That was an open question for several days
+and this is the answer. It is also why the firm name stays in the handwritten signature: nothing
+else on the page carries it, and 452.136(2) requires it.
+
+AJ chose blank on 2026-08-29. The whole premise is that the piece does not look produced, and a
+typeset footer works against that. To reverse it, pass `image_template_id: 356270`; the footer
+would then carry the disclosure in print and the handwritten signature could shorten to a name.
+
+Note the footer's firm string is "Exsell **Real Estate** Experts | Epique Realty" while
+`firmNameAsLicensed` is "Exsell Experts | Epique Realty". They cannot both be the licensed name.
+Irrelevant while the background is blank, and blocking the moment it is not.
+
 ### Why a letter and not the notecard the spec named
 
 `docs/specs/direct-mail-pipeline.md` calls the expired campaign a notecard. It is a letter,
