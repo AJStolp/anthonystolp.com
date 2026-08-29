@@ -1,5 +1,9 @@
 // Interpret the thanks.io response and commit state ONLY on a real send.
 //
+// Also renders the APPROVAL page. A preview reached here for one of two reasons: previewOnly
+// pins everything to dry-run, or a human has not confirmed yet. Only the second has a next
+// step, so only the second gets buttons.
+//
 // Three outcomes are deliberately kept apart:
 //   error   -> nothing committed, so the lead can be retried and no slot is burned
 //   preview -> nothing committed, because no mail left the building and nothing was charged
@@ -22,9 +26,24 @@ if (failed) {
 
 if (built.preview) {
   const previews = (resp.data && Array.isArray(resp.data.previews)) ? resp.data.previews : [];
-  const imgs = previews.map(u => `<img src="${esc(u)}" alt="postcard preview" style="max-width:100%;border:1px solid #d0d7de;border-radius:6px;margin:8px 0">`).join('');
+  const imgs = previews.map(u => `<img src="${esc(u)}" alt="letter preview" style="max-width:100%;border:1px solid #d0d7de;border-radius:6px;margin:8px 0">`).join('');
+
+  // Two different reasons to be looking at a preview, and only one of them has a next step.
+  if (built.awaitingApproval) {
+    // The approval gate. The links are RELATIVE, so they resolve against whatever host n8n is
+    // reachable on and the host never has to be configured here or committed to the repo.
+    const q = $('Mail Webhook').first().json.query || {};
+    const base = `?lead_id=${encodeURIComponent(String(q.lead_id || ''))}&t=${encodeURIComponent(String(q.t || ''))}`;
+    const btn = (href, label, bg) => `<a href="${href}" style="display:inline-block;background:${bg};color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;padding:11px 20px;border-radius:6px;margin:4px 8px 0 0">${label}</a>`;
+    const actions = `<div style="margin:14px 0 0">${btn(base + '&confirm=1', 'Mail it &rarr;', '#1a7f37')}${btn(base + '&decline=1', 'Not this one', '#6e7781')}</div>`
+      + `<p style="margin:12px 0 0;color:#8c959f;font-size:13px">Nothing has been sent or charged yet. This is ${esc(built.weekCount + 1)} of ${esc(built.cap)} for the week if you send it.</p>`;
+    return [{ json: { html: page('Ready to mail. Have a look first.',
+      `This is the letter as it will print for ${esc(built.recipientName)} at ${esc(built.mailTo)}.`,
+      '#0969da', imgs + actions) } }];
+  }
+
   return [{ json: { html: page('Preview only, nothing mailed',
-    `This is what would go to ${esc(built.recipientName)} at ${esc(built.mailTo)}. No postcard was sent and you were not charged. Set previewOnly to false in the Mailer Config node when you are ready to mail for real.`,
+    `This is what would go to ${esc(built.recipientName)} at ${esc(built.mailTo)}. No letter was sent and you were not charged. Set previewOnly to false in the Mailer Config node when you are ready to mail for real.`,
     '#0969da', imgs) } }];
 }
 
@@ -37,7 +56,7 @@ sd.mailWeekStart = built.weekStart;
 sd.mailWeekCount = Number(built.weekCount || 0) + 1;
 
 const remaining = Math.max(0, built.cap - sd.mailWeekCount);
-return [{ json: { html: page('Postcard on its way',
+return [{ json: { html: page('Letter on its way',
   `Sending to ${esc(built.recipientName)} at ${esc(built.mailTo)}. That is ${sd.mailWeekCount} of ${built.cap} this week, ${remaining} left.`,
   '#1a7f37',
   `<p style="margin:8px 0 0;color:#8c959f;font-size:13px">thanks.io order ${esc(resp.id || 'accepted')}. This owner will not be mailed again.</p>`) }}];

@@ -96,6 +96,50 @@ is('message carries the licensed firm name', built.payload.message.includes('Epi
 is('license number no longer present', built.payload.message.includes('#114204-94'), false);
 is('message has no em dashes', /—/.test(built.payload.message), false);
 
+// --- the approval gate --------------------------------------------------------------------
+// AJ wants eyes on every letter before it mails, until the pipeline is proven. Three inputs
+// decide whether money moves and ALL must say send: previewOnly off, and either approval off
+// or the reader confirmed.
+const ARMED = { ...GOOD, previewOnly: 'false' };          // dry-run switch OFF, can spend
+const authC = (q) => verify(ARMED, { lead_id: '111', t: GOOD.mailSecret, ...q });
+
+is('decline commits nothing and says so', title(verify(ARMED, { lead_id: '111', t: GOOD.mailSecret, decline: '1' }).html), 'Left alone');
+// ok:false is what routes it down the IF Authorized false branch straight to Respond,
+// skipping Lofty, thanks.io and every commit.
+is('decline short-circuits to the response', verify(ARMED, { lead_id: '111', t: GOOD.mailSecret, decline: '1' }).ok, false);
+is('confirm flag reaches the auth', authC({ confirm: '1' }).confirmed, true);
+is('no confirm flag means unconfirmed', authC({}).confirmed, false);
+
+const unconfirmed = build(ARMED, authC({}), WI_LEAD);
+is('first tap is a preview, not a send', unconfirmed.payload.preview, true);
+is('first tap is flagged as awaiting approval', unconfirmed.awaitingApproval, true);
+
+const confirmed = build(ARMED, authC({ confirm: '1' }), WI_LEAD);
+is('confirmed tap really sends', confirmed.payload.preview, false);
+is('confirmed tap is not awaiting approval', confirmed.awaitingApproval, false);
+
+// Turning the gate off restores the pre-approval behaviour: one tap mails.
+const noGate = build({ ...ARMED, requireApproval: 'false' }, authC({}), WI_LEAD);
+is('gate off means one tap mails', noGate.payload.preview, false);
+
+// previewOnly overrides everything. Confirming while in dry-run must NOT send.
+const dryRunConfirmed = build(GOOD, authC({ confirm: '1' }), WI_LEAD);
+is('previewOnly overrides a confirm', dryRunConfirmed.payload.preview, true);
+is('dry run is not an approval prompt', dryRunConfirmed.awaitingApproval, false);
+
+// The approval page must offer the next step and must commit nothing.
+const PREVIEW_RESP = { data: { previews: ['https://example.com/p1.png'] } };
+sd = {};
+const approvalPage = call('mailer-record-sent.js',
+  ctx(ARMED, { lead_id: '111', t: GOOD.mailSecret }, { 'Build Letter': unconfirmed }, PREVIEW_RESP));
+is('approval page shown', title(approvalPage.html), 'Ready to mail. Have a look first.');
+is('approval page renders the letter', approvalPage.html.includes('https://example.com/p1.png'), true);
+is('approval page offers Mail it', approvalPage.html.includes('&confirm=1'), true);
+is('approval page offers a decline', approvalPage.html.includes('&decline=1'), true);
+is('approval link is relative, no host', /href="\?lead_id=/.test(approvalPage.html), true);
+is('approval commits no send', sd.mailedLeadIds, undefined);
+is('approval commits no count', sd.mailWeekCount, undefined);
+
 // --- per-lead slots. v4 uses two: the first name and the city. -----------------------------
 const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city || 'Milwaukee',
   'Owner Zip': '53210', 'Owner State': 'WI', Status: 'Expired', 'Owner Street Address': o.street,

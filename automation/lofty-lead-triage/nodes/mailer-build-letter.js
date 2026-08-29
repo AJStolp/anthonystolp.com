@@ -160,6 +160,11 @@ const message = [
   signature
 ].join('\n\n');
 
+// The approval gate. On by default: AJ wants to see every letter before it mails, until the
+// pipeline has proven itself. Turning it off is a one-word config change and makes the digest
+// button send immediately, which is the pre-approval behaviour.
+const requireApproval = String(cfg.requireApproval) !== 'false';
+
 const recipient = {
   name: fullName,
   address: street,
@@ -172,10 +177,18 @@ const recipient = {
 const payload = {
   recipients: [recipient],
   message,
-  // Default TRUE in config. A preview renders the card and returns image urls WITHOUT
-  // mailing or charging, so the whole path can be exercised safely. Flipping this to false
-  // is the deliberate act that makes this workflow start spending money.
-  preview: String(cfg.previewOnly) !== 'false'
+  // Three things decide whether this is a preview or a real send, and ALL of them must say
+  // "send" before money moves:
+  //
+  //   previewOnly   config. "true" (the shipped default) pins every call to a preview. This
+  //                 is the dry-run switch and it overrides everything below.
+  //   requireApproval  config. "true" (the default) means the first tap only RENDERS the
+  //                 letter and asks. AJ wants eyes on every piece until the pipeline is
+  //                 dialled in, so this is on by default and can be turned off later.
+  //   confirmed     from the URL. Set by the "Mail it" button on the approval page.
+  //
+  // So: preview unless previewOnly is off AND (approval is off OR the reader confirmed).
+  preview: String(cfg.previewOnly) !== 'false' || (requireApproval && !auth.confirmed)
 };
 // Handwriting. thanks.io's differentiator is a handwriting-style render rather than obvious
 // bulk print, which lifts the odds the card is opened at all. AJ chose this deliberately,
@@ -222,4 +235,9 @@ if (cfg.returnName) {
 // decision is reversed; it is never a blocker.
 if (cfg.frontImageUrl && !/PUT_|YOUR_/.test(String(cfg.frontImageUrl))) payload.front_image_url = String(cfg.frontImageUrl).trim();
 
-return [{ json: { ok: true, leadId: auth.leadId, weekStart: auth.weekStart, weekCount: auth.weekCount, cap: auth.cap, recipientName: fullName, mailTo: `${street}, ${city}, ${state} ${zip}`, preview: payload.preview, payload } }];
+// awaitingApproval means "this preview exists because a human has not said yes yet", which is
+// different from "previewOnly is on so nothing can ever send". The record step renders a
+// different page for each, because only one of them has a next step.
+const awaitingApproval = requireApproval && !auth.confirmed && String(cfg.previewOnly) === 'false';
+
+return [{ json: { ok: true, leadId: auth.leadId, weekStart: auth.weekStart, weekCount: auth.weekCount, cap: auth.cap, recipientName: fullName, mailTo: `${street}, ${city}, ${state} ${zip}`, preview: payload.preview, awaitingApproval, payload } }];

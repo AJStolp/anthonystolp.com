@@ -10,6 +10,11 @@ const cfg = $('Mailer Config').first().json;
 const q = ($('Mail Webhook').first().json.query) || {};
 const leadId = String(q.lead_id || '').trim();
 const token = String(q.t || '');
+// The approval gate. The digest's button links here WITHOUT confirm, which renders the letter
+// and asks. The "Mail it" button on that page links back here WITH confirm=1, which is the tap
+// that actually spends money. See mailer-build-letter.js for where this decides `preview`.
+const confirmed = String(q.confirm || '') === '1';
+const declined = String(q.decline || '') === '1';
 
 const page = (title, body, color) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="font:16px/1.5 -apple-system,system-ui,Segoe UI,Arial,sans-serif;background:#f6f8fa;margin:0;padding:48px 20px;color:#1f2328"><div style="max-width:460px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)"><h1 style="margin:0 0 10px;font-size:20px;color:${color}">${title}</h1><p style="margin:0;color:#57606a">${body}</p></div></body></html>`;
 
@@ -23,6 +28,13 @@ if (!secret || /PUT_|YOUR_/.test(secret)) {
 }
 if (!leadId || !/^\d+$/.test(leadId)) return deny('Bad request', 'That link is missing a valid lead id.');
 if (token !== secret) return deny('Not authorized', 'That link is not valid. Use the Send letter button in the digest email.');
+
+// Declining is a no-op by design. It commits nothing, so the lead stays workable and the same
+// button can be tapped again later. It exists to give an explicit "nothing happened" rather
+// than leaving a tab to be closed on faith.
+if (declined) {
+  return deny('Left alone', 'Nothing was sent and nothing was charged. This lead is untouched, so you can send it later if you change your mind.', '#57606a');
+}
 
 const sd = $getWorkflowStaticData('global');
 
@@ -50,4 +62,4 @@ if (weekCount >= CAP) {
 }
 
 // Carry the (possibly rolled over) window forward so the record step does not recompute it.
-return [{ json: { ok: true, leadId, weekStart, weekCount, cap: CAP } }];
+return [{ json: { ok: true, leadId, weekStart, weekCount, cap: CAP, confirmed } }];

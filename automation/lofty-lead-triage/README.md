@@ -301,6 +301,40 @@ decision is reversed. It is never a blocker.
 **Nothing sends autonomously.** Every piece is one deliberate tap, because every piece carries
 AJ's real estate license.
 
+### Approve every letter before it mails
+
+**On by default.** AJ wants eyes on each piece until the pipeline has proven itself, so the
+digest's button does not mail. It renders.
+
+```
+digest "Send letter"  ->  GET /webhook/lofty-mail?lead_id=…&t=…
+                            builds the letter, calls thanks.io with preview:true (free)
+                            responds with the RENDERED LETTER plus two buttons
+   "Mail it"           ->  GET …&confirm=1     the tap that actually spends money
+   "Not this one"      ->  GET …&decline=1     commits nothing, lead stays workable
+```
+
+The buttons are **relative links**, so they resolve against whatever host n8n is reachable on.
+The host is never configured here and never committed. `mailBaseUrl` in the digest workflow is
+the only place it lives, and it stays a placeholder in git.
+
+**Three inputs decide whether money moves, and all must agree:**
+
+| Input | Where | Effect |
+|---|---|---|
+| `previewOnly` | config, ships `"true"` | overrides everything. Pins every call to a preview. The dry-run switch |
+| `requireApproval` | config, ships `"true"` | first tap renders and asks; only a confirmed tap sends |
+| `confirm=1` | the URL | set by the Mail it button |
+
+So a confirm while `previewOnly` is still `"true"` does **not** send, and the page says so
+rather than pretending. Turning `requireApproval` off restores one-tap sending, which is what
+existed before 2026-08-29.
+
+**Nothing commits on the approval pass.** No dedup entry, no weekly counter, because no mail
+left the building. Declining likewise commits nothing, so the same lead can be sent later. The
+weekly cap and the never-mail-twice check still run on the FIRST tap, so a capped or
+already-mailed lead is refused before a preview is even rendered.
+
 ### Guards, in the order they fire
 
 | Guard | Refuses when | Commits? |
