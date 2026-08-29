@@ -43,8 +43,9 @@ Schedule (every 15 min, America/Chicago)
   (`Do Not Contact`, `Closed`, `Archived` — most of the 5,408-lead pond) never comes back.
   Because the stage filter already excludes the graveyard, there is **no date floor** — the
   seen-id set above is the only dedup, so every workable lead is surfaced once, no matter how
-  far back in the pond it sits. (A `reachable()` guard also drops any lead flagged
-  `Do Not Contact` / fully un-contactable that slips into the pipeline query.)
+  far back in the pond it sits. (A `reachable()` guard also handles anything flagged
+  `Do Not Contact` / fully un-contactable that slips into the pipeline query. It demotes rather
+  than drops. See [Do-not-contact routes to mail only](#do-not-contact-routes-to-mail-only).)
 - **Region pre-filter:** the pond is fed statewide bulk imports (a single 100-lead dump can
   span Eau Claire to Green Bay). Only WI leads in your drivable zip prefixes reach Claude,
   so you don't pay to C-tier a lead 3 hours away. Observed: a 100-lead dump → 84 in-WI → 32
@@ -207,11 +208,95 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 
 ---
 
-## Send postcard button (one-tap direct mail)
+## Do-not-contact routes to mail only
+
+A do-not-contact signal demotes a lead to **mail only**. It does not drop it. Mail is not a
+channel the do-not-call registry governs, and a card is refusable in a way a ringing phone is
+not, so the honest handling is to stop calling and keep writing.
+
+`Closed`, `Archived` and `Trash` are still dropped outright. `Do Not Contact` is not.
+
+**Where the signal is read, in descending order of reliability:**
+
+| Source | Notes |
+|---|---|
+| Lofty `stage` = `Do Not Contact` | the structured case |
+| `* Phone * DNC` custom attributes | the columns exist and were **empty on every record inspected on 2026-08-27**, so they can confirm a DNC but never rule one out |
+| `cannotCall` + `cannotEmail` + `cannotText` all set | the record has no enabled channel |
+| the MLS remarks | the previous agent's own words |
+
+**The remarks check is the one that earns its keep.** Observed live on a $949,900 Delafield
+expired: *"Do not contact Sellers Taken off market for reasons and will be relisting soon."*
+Nothing structured carried that. The stage was `New Leads`, every DNC column was empty, and the
+lead sat in a running smart plan receiving automated email until a human read the remarks. The
+regex is deliberately narrow (`do not contact|call|solicit|disturb|phone`) and was checked
+against real remarks from the same pond so that copy like *"Do not miss this opportunity to
+contact us"* does not trip it.
+
+**What the demotion does:**
+
+- the lead is **kept** and still scored, and the tier reflects the property, not the channel.
+  A do-not-contact seller with real equity is still a good letter
+- `mail_only` and `mail_only_reason` are carried all the way through to the digest
+- Claude is told to write `outreach_angle` for a letter only, and never to suggest a call,
+  an email or a text for that lead
+- the digest card renders a red **MAIL ONLY** badge with the reason, keeps **Send letter**,
+  and **does not render the phone number or email address at all** — not as text, not as a
+  `tel:`/`mailto:` link. A number on screen is an invitation
+- the one case that still drops is a do-not-contact with **no mailing address**, because then
+  there is no remaining route
+
+---
+
+## Send letter button (one-tap direct mail)
 
 `lofty-mailer-webhook.json` is a separate workflow, like the claim webhook, so a mailer fault
-can never break the digest. The digest renders a **Send postcard** button on any card with a
-mailing address; tapping it mails one postcard through [thanks.io](https://thanks.io).
+can never break the digest. The digest renders a **Send letter** button on any card with a
+mailing address; tapping it mails one **windowless letter** through
+[thanks.io](https://thanks.io) at $2.56 a piece, real stamp and handwritten envelope.
+
+### The background is blank on purpose, and the branding footer will not appear
+
+Settled 2026-08-29 by reading the account rather than guessing. thanks.io keeps letter
+backgrounds as **image templates**, one set per product:
+
+| Section | Contents |
+|---|---|
+| Windowless Letters | `356270` AJ's branding footer (name, *Exsell Real Estate Experts \| Epique Realty*, email, 262-483-7932, anthonystolp.com), `226870` blank |
+| Windowed Letters | two more, unused, we send windowless |
+
+**The payload sends neither `front_image_url` nor `image_template_id`, so thanks.io uses a blank
+background and the branding footer does NOT print.** That was an open question for several days
+and this is the answer. It is also why the firm name stays in the handwritten signature: nothing
+else on the page carries it, and 452.136(2) requires it.
+
+AJ chose blank on 2026-08-29. The whole premise is that the piece does not look produced, and a
+typeset footer works against that. To reverse it, pass `image_template_id: 356270`; the footer
+would then carry the disclosure in print and the handwritten signature could shorten to a name.
+
+Note the footer's firm string is "Exsell **Real Estate** Experts | Epique Realty" while
+`firmNameAsLicensed` is "Exsell Experts | Epique Realty". They cannot both be the licensed name.
+Irrelevant while the background is blank, and blocking the moment it is not.
+
+### Why a letter and not the notecard the spec named
+
+`docs/specs/direct-mail-pipeline.md` calls the expired campaign a notecard. It is a letter,
+because AJ wants **no exterior artwork** and the two products differ on exactly that point:
+
+| Product | Endpoint | Artwork | Price |
+|---|---|---|---|
+| Notecard | `/api/v2/send/notecard` | **required** (`front_image_url` or `image_template_id`) | $3.04 |
+| Windowless letter | `/api/v2/send/windowlessletter` | **optional**, blank background if omitted | $2.56 |
+| Windowed letter | `/api/v2/send/windowedletter` | optional | $1.24 |
+
+thanks.io documents that "if neither `image_template_id` nor `front_image_url` is specified, a
+blank background will be used", so the letter is the only product that honours the no-artwork
+decision without a placeholder blocking every send. Windowless over windowed because the
+address is handwritten on the envelope itself: a window reads as a bill before it is opened,
+and this piece only works if it reads as correspondence.
+
+A letter has **no `size` field**. `frontImageUrl` stays in the config, empty, for the day that
+decision is reversed. It is never a blocker.
 
 **Nothing sends autonomously.** Every piece is one deliberate tap, because every piece carries
 AJ's real estate license.
@@ -227,7 +312,6 @@ AJ's real estate license.
 | Firm name | `firmNameAsLicensed` still a placeholder — see blocker below | no |
 | **Licensed state** | property is outside `licensedState` (default WI) | no |
 | Address | no complete mailing address on the Lofty record | no |
-| Front image | `postcardFrontImageUrl` still a placeholder | no |
 
 Nothing commits until thanks.io accepts the send, mirroring `Mark Emailed Seen` in the triage
 workflow. A refusal, a vendor error, or a cap hit therefore never burns the lead or a slot, so
@@ -238,6 +322,45 @@ Dedup lives in this workflow rather than the digest because n8n static data is p
 the triage workflow cannot read it. The button therefore always renders and the webhook is the
 authority; a second tap is harmless.
 
+### The fold lines are inherent, and `auto` puts the crease in the right place
+
+A letter is folded into thirds to fit its envelope, so the page carries two fold lines and any
+message longer than about four lines crosses the first one. This is not a defect to design
+around, it is how every letter anyone has ever received works.
+
+What *is* controllable is which line lands on the crease, and `font_size` is the only lever:
+
+| `font_size` | Where the first crease falls | Verdict |
+|---|---|---|
+| `auto` | mid-sentence in the body, "Say the word and I will send that" | **fine**, and what ships |
+| `small` | through the **phone number** in the signature | worse, and the whole letter shrinks to a cramped note in the top quarter of the page |
+
+Both were rendered live on 2026-08-27 with the real copy. `small` was tried specifically to see
+whether it would clear the fold. It does not: it shrinks the block upward but the signature still
+crosses, and it lands the crease on the one line the reader most needs to be legible.
+
+Fitting the entire message above the first fold would mean cutting it to roughly four lines,
+which removes the "I am not writing to ask for the listing" turn that the whole piece is built
+on. Not worth it.
+
+### The listing-status guard, and why it was removed
+
+It existed because copy v1 and v2 stated as fact that the home came off the market without
+selling. True of an Expired or Canceled record, **false of an FSBO**, which is still actively
+for sale. Of 11 New Leads on 2026-08-27, 8 were Expired and 2 were FSBO, and both FSBOs had
+complete mailing addresses, so both would have passed every other guard and mailed a false
+statement on a piece carrying AJ's license.
+
+**Removed 2026-08-28 with AJ's approval**, once copy v3 stopped asserting anything about the
+listing. An introduction, an offer of the monthly numbers and an open door are equally true of
+an expired seller, an FSBO, and a homeowner who never listed. The guard no longer prevented
+anything, and it was costing the two FSBO leads.
+
+**The precondition is enforced by test, not by comment.** `test-mailer-guards.mjs` asserts the
+message never mentions the market and never says "listing". If a future edit reintroduces a
+status-dependent claim, those tests fail, and that is the signal to put the guard back. Do not
+reintroduce such a claim without also reinstating it.
+
 ### Handwriting
 
 thanks.io renders the message in a handwriting style rather than obvious bulk print, which is
@@ -246,9 +369,11 @@ blank and thanks.io applies its own default.
 
 | Config | Values |
 |---|---|
-| `handwritingStyleId` | integer. **thanks.io publishes no list of valid ids and no endpoint to fetch them** — take the value from their dashboard or ask support. Blank falls back to their default. |
+| `handwritingStyleId` | integer. **thanks.io publishes no list of valid ids and no endpoint to fetch them.** `104` is **Analytic Atom**, confirmed 2026-08-27 by reading the dashboard's own render call: selecting Analytic Atom posts `"style": 104`. This is the style AJ chose, and the dashboard advises it specifically because it **matches the handwriting on the outside of the envelope**. A letter whose inside and envelope look like two different hands undercuts the whole premise, so do not change this without re-checking the envelope. |
 | `handwritingColor` | `blue`, `black`, `green`, `purple`, `red`, or a hex value like `#4287f5` |
-| `handwritingRealism` | `"true"` enables the realism effect on AI fonts. Ships enabled. |
+| `handwritingRealism` | `"true"` enables the realism effect on AI fonts. Ships **disabled**: on a live render it fabricated a struck-through word to simulate self-correction, which on a letter about being straight with the reader reads as sloppiness. |
+| `fontSize` | `auto` since 2026-08-27. `small` was tuned for a 4x6 postcard, where `auto` crowded the edges. On a letter it is actively worse: see the fold section below. |
+| `handwritingColor` | `blue`. The dashboard posts `rgba(31,0,113,0.80)` for its "Blue", a deep indigo, and the API takes preset names or hex. **Unverified** whether the preset `blue` renders identically to the colour in the approved proof. Check it on the first API preview. |
 
 ### `previewOnly` defaults to `true`
 
@@ -259,24 +384,106 @@ money.
 
 ### Blockers before the first real send
 
-1. **Issue #40 — the exact licensed firm name.** [Wis. Stat. 452.136](https://docs.legis.wisconsin.gov/statutes/statutes/452/136)
-   requires the firm name *exactly as printed on the license*, clearly shown as a business.
-   `firmNameAsLicensed` ships as a placeholder and the workflow refuses to send until it is
-   replaced. `src/lib/agent-profile.ts` says `"ExSell Experts at Epique Realty"`, which is a
-   team-plus-firm construction and may not be the licensed string.
-2. **thanks.io account, API key and funded credits.** AJ's to create.
-3. **AJ approves the template copy and front image.**
+1. ~~**Issue #40 — the exact licensed firm name.**~~ **Answered 2026-08-27: `Epique Realty`**,
+   per AJ. [Wis. Stat. 452.136](https://docs.legis.wisconsin.gov/statutes/statutes/452/136)
+   requires the firm name *exactly as printed on the license*, clearly shown as a business, and
+   `firmNameAsLicensed` now carries that string, so the guard no longer refuses.
+   Note the remaining inconsistency: `src/lib/agent-profile.ts` says
+   `"ExSell Experts at Epique Realty"`, a team-plus-firm construction. The mail piece uses the
+   firm alone. If the licensed entity turns out to carry a suffix (`Inc`, `LLC`), this string is
+   what has to change, and it has to change before anything prints.
+2. **Funded thanks.io credits**, for the FIRST REAL SEND only. As of 2026-08-27 the balance is
+   $0.00 with no payment method on file. This blocks `previewOnly: "false"` and nothing else:
+   `preview: true` renders the letter and returns image urls without charging, so the whole
+   path can be dialled in on an empty account. Add the card when the piece is right, not before.
+3. **AJ approves the letter copy.** No front image to approve; see the product table above.
+4. **`mailSecret` and `mailBaseUrl`** still ship as placeholders and must match the digest
+   workflow's `Config` node exactly, the same way `claimSecret` does.
 
 Not a blocker, but ask in the same message as #40: whether Epique requires pre-approval of
 marketing pieces. 452.136(2)(b) requires advertising in the name of and under the supervision
 of the firm, but does **not** mandate per-piece broker sign-off. That is brokerage policy.
 
-### Copy is a fixed template, not model-generated
+### Per-lead detail comes from data slots, not a model
 
-452.136 also bars advertising a property the firm holds no listing on, and these listings have
-expired so nobody holds them. The card solicits the listing and never describes the house as
-being for sale. A reviewed template cannot drift across that line; per-send generated copy can.
-The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is the one talking.
+AJ asked that the letter be drafted off each lead's own information. It is, and the slots are
+**deterministic**: filled straight from the Lofty record, never generated. The reason is the
+section below, and it did not change.
+
+| Slot | Source | Falls back to |
+|---|---|---|
+| Greeting | `firstName`, else first token of `Owner Name 1` | `Hello,` |
+| What to call the place | `Property Type` + `Bedrooms` | `home` |
+| Street | `Owner Street Address`, number and unit stripped, **owner-occupied only** | the city |
+| List price | `Price` | the sentence without a figure |
+
+**Two slots in the body, not six.** The point is to show someone actually looked. A letter that
+recites six fields reads like a file being read aloud, which is the opposite of the effect.
+
+**The street is only named when the owner lives there.** `Owner Street Address` is the owner's
+mailing address, which for an absentee owner is not the house that expired. Robert Tally in the
+2026-08-27 pond is `Owner Occupied: N`, mails to 2855 N 58th St, and his expired listing's own
+remarks describe 3022 N 6th St. Naming the mailing street would have told him his home on the
+wrong street came off the market. Absentee and unknown-occupancy owners get the city, which is
+true either way.
+
+**Street parsing handles Wisconsin's grid addresses.** `W2830 County Road D` and
+`N88W6327 Willowbrooke Dr` put digits *inside* the leading token, so the rule is "drop the first
+token if it contains a digit", not "drop leading digits". Unit suffixes go too: nobody writes
+"your condo on Chateau Ct Apt 203d". If parsing yields nothing usable it falls back to the city,
+so a malformed address degrades to a shorter true sentence rather than a broken one.
+
+**Names are case-normalised.** Lofty carries source-feed casing and the pond held `SEAN JOCHIMS`
+on 2026-08-27. "Hi SEAN," on a handwritten letter is worse than no greeting. Only fully
+single-case tokens are touched, so `McDonald`, `DeAngelo` and `van Dyke` survive.
+
+Every slot is covered by a test in `test-mailer-guards.mjs` against a real address from the pond.
+
+### The copy, and why it reads the way it does
+
+**Version 4, 2026-08-28, written by AJ.** Three earlier versions are recorded because each
+failed differently and the failures are easy to reintroduce:
+
+| Version | What it said | Why it failed |
+|---|---|---|
+| v1 | "came off the market **without selling**. I am not writing to ask for **the listing**." | narrated the reader's failure back to them, then negated an ask they had not made. Also recited their own asking price |
+| v2 | "came off the market. **I am not writing about that.**" | same disease, softer. A negation cannot un-plant a word |
+| v3 | an introduction offering "what sold nearby" | correct instinct, but flat. It never said why anyone should want that from him rather than from Zillow |
+| **v4** | "it's easy to look up what sold nearby. **What's harder is figuring out what those numbers actually mean for your house**" | ships |
+
+**v4's move is that the data is not the product, the interpretation is.** Anyone can pull a
+comp. What an agent can actually offer is what the comps mean for one specific house, after
+rate moves and inventory swings. That distinction is real, it is defensible, and it is the only
+line in four drafts that answers "why you".
+
+Two mechanical changes to AJ's draft, both forced:
+
+- the **em dash** before "especially after the big swings" became a comma. House style bars em
+  dashes and a test asserts it.
+- the **italics** on *your* were dropped. The handwriting engine renders plain text.
+
+**The phone is the mobile number**, `(262) 483-7932`, not the office line, because the letter
+says "text or call me" and only one of those takes a text. `agent-profile.ts` carries both.
+Hyphenated: AJ first wrote it as `4837932`, then restored the hyphen after seeing the render.
+A seven-digit run is the one thing on the page the reader has to act on, which makes it the
+wrong place to save a character.
+
+**The offer is real.** The site already runs a monthly market report per zip: Redfin-derived
+stats, Claude-drafted, two-pass validated, delivered by Resend (`/api/cron/market-reports`).
+"Happy to send it over" describes a thing that exists. A reply is a request to be subscribed;
+if nobody actions it, the letter has lied.
+
+**Slots: two.** The first name and the city, both straight off the Lofty record. The list price
+went in v3 and the street went in v4, both deliberately. The street was only ever emitted for
+owner-occupied records because `Owner Street Address` is the OWNER's mailing address, which for
+an absentee owner is not the house that expired. v4 names no street, so that hazard is moot.
+The helper is in git history if it is ever wanted back.
+
+**Length.** 638 characters at the longest of the ten real pond leads, against v3's 504.
+Rendered live: the signature lands just above the second fold. There is not much headroom left,
+so a v5 that adds a sentence needs re-rendering rather than assuming.
+
+### Copy is a fixed template, not model-generated
 
 ---
 
@@ -331,12 +538,14 @@ post it publicly. Rotate `claimSecret` in both workflows if a link leaks.
 ## Files
 - `lofty-lead-triage-daily.json` — importable n8n workflow (triage + digest, every 15 min).
 - `lofty-claim-webhook.json` — importable n8n workflow handling the Claim now button.
-- `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
+- `lofty-mailer-webhook.json` — importable n8n workflow handling the Send letter button.
 - `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
 - `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
 - `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
 - `nodes/build-digest-email.js` — paste-ready body of the **Build Digest Email** code node.
-- `nodes/mailer-{verify-and-cap,build-postcard,record-sent}.js` — bodies for the mailer workflow.
+- `nodes/mailer-{verify-and-cap,build-letter,record-sent}.js` — bodies for the mailer workflow.
+  These are paste-ready copies of the `jsCode` embedded in `lofty-mailer-webhook.json`. Change
+  one and you must change the other; they drift silently otherwise.
 - `README.md` — this file.
 
 The three `nodes/*.js` files are the source of truth for those node bodies. The workflow JSON

@@ -24,12 +24,19 @@ const WI_LEAD = {
 const IA_LEAD = { ...WI_LEAD, leadId: 1148505260350217, state: 'IA', city: 'De Witt',
   customAttributes: ca({ 'Owner Street Address': '2828 274th St', 'Owner City': 'De Witt',
     'Owner Zip': '52742', 'Owner State': 'IA', Status: 'Expired' }) };
+const FSBO_LEAD = { ...WI_LEAD, customAttributes: ca({ 'Owner Street Address': '3246 S 86th St',
+  'Owner City': 'Milwaukee', 'Owner Zip': '53227', 'Owner State': 'WI', Status: 'FSBO' }) };
+const CANCELED_LEAD = { ...WI_LEAD, customAttributes: ca({ 'Owner Street Address': '166 N 91st Pl',
+  'Owner City': 'Milwaukee', 'Owner Zip': '53226', 'Owner State': 'WI', Status: 'Canceled' }) };
+const NO_STATUS = { ...WI_LEAD, customAttributes: ca({ 'Owner Street Address': '166 N 91st Pl',
+  'Owner City': 'Milwaukee', 'Owner Zip': '53226', 'Owner State': 'WI' }) };
 const NO_ADDR = { ...WI_LEAD, streetAddress: '', city: '', zipCode: '', customAttributes: ca({ Status: 'Expired' }) };
 
 const GOOD = { mailSecret: 's3cr3t-long-random', weeklyMailCap: '3', previewOnly: 'true',
   firmNameAsLicensed: 'Epique Realty LLC', licensedState: 'WI', agentName: 'Anthony Stolp',
-  agentPhone: '(262) 885-3310', agentLicense: '#114204-94', postcardSize: '4x6',
-  postcardFrontImageUrl: 'https://example.com/front.jpg',
+  agentPhone: '(262) 483-7932', agentLicense: '#114204-94',
+  returnName: 'Anthony Stolp', returnAddress: 'N88W6327 Willowbrooke Dr',
+  returnCity: 'Cedarburg', returnState: 'WI', returnPostalCode: '53012',
   handwritingColor: 'blue', handwritingRealism: 'true', handwritingStyleId: '' };
 
 let sd = {};
@@ -41,8 +48,8 @@ const ctx = (cfg, query, nodes = {}, json = {}, nowMs = Date.parse('2026-08-12T1
 const call = (f, c) => load(f)(c.$, c.$now, () => sd, c.$json, { log() {} })[0].json;
 
 const verify = (cfg, query, nowMs) => call('mailer-verify-and-cap.js', ctx(cfg, query, {}, {}, nowMs));
-const build = (cfg, auth, lead) => call('mailer-build-postcard.js', ctx(cfg, {}, { 'Verify, Cap & Dedup': auth }, { lead }));
-const record = (built, resp) => call('mailer-record-sent.js', ctx(GOOD, {}, { 'Build Postcard': built }, resp));
+const build = (cfg, auth, lead) => call('mailer-build-letter.js', ctx(cfg, {}, { 'Verify, Cap & Dedup': auth }, { lead }));
+const record = (built, resp) => call('mailer-record-sent.js', ctx(GOOD, {}, { 'Build Letter': built }, resp));
 const title = (h) => (String(h).match(/<h1[^>]*>([^<]*)</) || [])[1] || '(none)';
 
 let pass = 0, fail = 0;
@@ -59,15 +66,70 @@ is('valid token authorizes', auth.ok, true);
 is('unconfirmed firm name blocks', title(build({ ...GOOD, firmNameAsLicensed: 'PUT_FIRM_NAME_EXACTLY_AS_ON_LICENSE_CONFIRM_ISSUE_40' }, auth, WI_LEAD).html), 'Firm name not confirmed');
 is('out-of-state lead blocks', title(build(GOOD, auth, IA_LEAD).html), 'Outside your licensed state');
 is('lead with no address blocks', title(build(GOOD, auth, NO_ADDR).html), 'No mailing address');
-is('placeholder front image blocks', title(build({ ...GOOD, postcardFrontImageUrl: 'PUT_A_PUBLIC_HTTPS_IMAGE_URL_HERE' }, auth, WI_LEAD).html), 'No postcard front image');
+// The listing-status guard was removed once copy v3 stopped asserting anything about the
+// listing. These assert the removal, so a silent reintroduction shows up as a failure, and
+// they sit next to the copy tests that make the removal SAFE ("never mentions the market at
+// all", "never says the word listing"). If those ever fail, this guard has to come back.
+is('FSBO now mails', build(GOOD, auth, FSBO_LEAD).ok, true);
+is('unknown status now mails', build(GOOD, auth, NO_STATUS).ok, true);
+is('canceled still mails', build(GOOD, auth, CANCELED_LEAD).ok, true);
+is('FSBO letter makes no listing claim', /listing|came off the market/i.test(build(GOOD, auth, FSBO_LEAD).payload.message), false);
 
 const built = build(GOOD, auth, WI_LEAD);
 is('good WI lead builds', built.ok, true);
+// A letter has no size field and needs no artwork. thanks.io supplies a blank background,
+// which is the whole reason this is a letter rather than the notecard the spec first named:
+// a notecard REQUIRES front_image_url or image_template_id and AJ wants no front image.
+is('no size field on a letter', 'size' in built.payload, false);
+is('no front image by default', 'front_image_url' in built.payload, false);
+is('front image included when set', 'front_image_url' in build({ ...GOOD, frontImageUrl: 'https://example.com/f.jpg' }, auth, WI_LEAD).payload, true);
+is('placeholder front image omitted', 'front_image_url' in build({ ...GOOD, frontImageUrl: 'PUT_A_PUBLIC_HTTPS_IMAGE_URL_HERE' }, auth, WI_LEAD).payload, false);
+is('return address on the envelope', built.payload.return_postal_code, '53012');
+is('return uses return_state not province', built.payload.return_state, 'WI');
 is('preview defaults ON', built.preview, true);
 is('recipient uses province not state', 'province' in built.payload.recipients[0], true);
 is('message carries licensed firm name', built.payload.message.includes('Epique Realty LLC'), true);
-is('message carries license number', built.payload.message.includes('#114204-94'), true);
+// The license NUMBER was deliberately dropped for warmth: 452.136(2) requires the FIRM name
+// clearly and conspicuously, not the individual licensee's number. The firm name is the part
+// that is legally load-bearing, so that is what is asserted.
+is('message carries the licensed firm name', built.payload.message.includes('Epique Realty LLC'), true);
+is('license number no longer present', built.payload.message.includes('#114204-94'), false);
 is('message has no em dashes', /—/.test(built.payload.message), false);
+
+// --- per-lead slots. v4 uses two: the first name and the city. -----------------------------
+const lead = (o) => ({ ...WI_LEAD, customAttributes: ca({ 'Owner City': o.city || 'Milwaukee',
+  'Owner Zip': '53210', 'Owner State': 'WI', Status: 'Expired', 'Owner Street Address': o.street,
+  'Owner Occupied': o.occ === undefined ? 'Y' : o.occ,
+  ...(o.beds ? { Bedrooms: String(o.beds) } : {}), ...(o.type ? { 'Property Type': o.type } : {}),
+  ...(o.price ? { Price: String(o.price) } : {}) }) });
+const msg = (o) => build(GOOD, auth, lead(o)).payload.message;
+
+is('city comes off the record', msg({ street: '1633 Spruce St', city: 'Grafton' }).includes('I work the Grafton area'), true);
+is('city varies per lead', msg({ street: '149 Hickory Dr', city: 'Delafield' }).includes('I work the Delafield area'), true);
+
+// The street slot was removed in v4. It only ever fired for owner-occupied records, because
+// Owner Street Address is the OWNER's mailing address and for an absentee owner that is not
+// the house that expired. v4 names no street, so the hazard cannot recur.
+is('never names a street', /Spruce St|Hickory Dr|N 58th St/.test(msg({ street: '1633 Spruce St' })), false);
+is('absentee owner is no longer a hazard', msg({ street: '2855 N 58th St', occ: 'N' }).includes('N 58th St'), false);
+
+// --- v4, AJ's own copy. These assert what it must and must not say. -------------------------
+const M = msg({ street: '6209 N Berkeley Blvd', city: 'Whitefish Bay', price: 1095000 });
+is('never narrates the failure back', /without selling/i.test(M), false);
+is('never recites their list price', /\$[0-9]/.test(M), false);
+is('never says the word listing', /listing/i.test(M), false);
+is('never negates an unmade ask', /I am not writing/i.test(M), false);
+is('never mentions the market coming off', /came off the market/i.test(M), false);
+is('introduces himself', M.includes("thought I'd introduce myself the old-fashioned way"), true);
+// The data is not the product, the interpretation is. This is the line that distinguishes him
+// from Zillow and it is the whole reason v4 beats v3.
+is('sells interpretation, not data', M.includes("What's harder is figuring out what those numbers actually mean"), true);
+is('names the real market forces', M.includes('rates, inventory'), true);
+is('invites a text, not just a call', M.includes('just text or call me'), true);
+is('uses the mobile number', M.includes('(262) 483-7932'), true);
+is('firm name on its own line', M.includes('\nExsell Experts | Epique Realty\n') || M.includes('Epique Realty LLC'), true);
+is('city not repeated in both sentences', (msg({ street: '2855 N 58th St', occ: 'N' }).match(/Milwaukee/g) || []).length, 1);
+is('no time claim is made', /this year|last year|recently|earlier/i.test(M.split('whether you ever sell')[0]), false);
 is('message does not advertise the property', /for sale|listed at|asking/i.test(built.payload.message), false);
 
 // Handwriting: opt-in, and blank fields must fall through to thanks.io's own defaults rather

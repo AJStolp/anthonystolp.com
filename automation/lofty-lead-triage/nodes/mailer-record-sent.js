@@ -6,7 +6,7 @@
 //   sent    -> commit mailedLeadIds + the weekly counter
 // This mirrors "Mark Emailed Seen" in the triage workflow, which likewise commits only after
 // a successful send.
-const built = $('Build Postcard').first().json;
+const built = $('Build Letter').first().json;
 const resp = $json || {};
 
 const page = (title, body, color, extra) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title></head><body style="font:16px/1.5 -apple-system,system-ui,Segoe UI,Arial,sans-serif;background:#f6f8fa;margin:0;padding:48px 20px;color:#1f2328"><div style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:12px;padding:28px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08)"><h1 style="margin:0 0 10px;font-size:20px;color:${color}">${title}</h1><p style="margin:0 0 8px;color:#57606a">${body}</p>${extra || ''}</div></body></html>`;

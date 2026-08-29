@@ -19,10 +19,10 @@ const deny = (title, body, color) => [{ json: { ok: false, leadId, html: page(ti
 // than authorize against a well-known string.
 const secret = String(cfg.mailSecret || '');
 if (!secret || /PUT_|YOUR_/.test(secret)) {
-  return deny('Not configured', 'This mailer workflow has no mailSecret set. Fill in the Mailer Config node before using the Send postcard button.', '#9a6700');
+  return deny('Not configured', 'This mailer workflow has no mailSecret set. Fill in the Mailer Config node before using the Send letter button.', '#9a6700');
 }
 if (!leadId || !/^\d+$/.test(leadId)) return deny('Bad request', 'That link is missing a valid lead id.');
-if (token !== secret) return deny('Not authorized', 'That link is not valid. Use the Send postcard button in the digest email.');
+if (token !== secret) return deny('Not authorized', 'That link is not valid. Use the Send letter button in the digest email.');
 
 const sd = $getWorkflowStaticData('global');
 
