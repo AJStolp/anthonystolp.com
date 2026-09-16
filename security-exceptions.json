@@ -1,0 +1,22 @@
+{
+  "exceptions": [
+    {
+      "package": "nanoid",
+      "id": "GHSA-28wg-ghj8-5hjv",
+      "ticket": "anthonystolp:T-004",
+      "reason": "build or test tooling only: @tailwindcss/postcss \u203a postcss \u203a nanoid. Never in a shipped bundle"
+    },
+    {
+      "package": "nanoid",
+      "id": "GHSA-2v37-7h3g-55p8",
+      "ticket": "anthonystolp:T-004",
+      "reason": "build or test tooling only: @tailwindcss/postcss \u203a postcss \u203a nanoid. Never in a shipped bundle"
+    },
+    {
+      "package": "postcss",
+      "id": "GHSA-r28c-9q8g-f849",
+      "ticket": "anthonystolp:T-004",
+      "reason": "build or test tooling only: @tailwindcss/postcss \u203a postcss. Never in a shipped bundle"
+    }
+  ]
+}
