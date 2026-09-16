@@ -1,7 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Tests assume the Next.js dev server is already running on port 3000.
-// Run `bun dev` in another terminal, then `bunx playwright test`.
+// The suite starts its own dev server when one is not already up, so
+// `bun run test:e2e` works from nothing. If you already have `bun dev` running
+// it reuses that rather than fighting it for port 3000.
+//
+// It deliberately starts nothing when pointed at another server: a run against
+// production must talk to production, and quietly booting a local Next beside
+// it would be the worst of both.
 //
 // To run against production:
 //   PLAYWRIGHT_BASE_URL=https://anthonystolp.com bunx playwright test
@@ -14,6 +19,9 @@ import { defineConfig, devices } from "@playwright/test";
 // that one test fails with "Too many requests" — brute-force protection
 // working, not a regression. Wait out the window, or use
 // `--grep-invert "admin redirects"` while iterating on other tests.
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL);
+
 export default defineConfig({
   testDir: "./tests/e2e",
   // Detects whether the home-value funnel is live on the target server, so the
@@ -24,8 +32,21 @@ export default defineConfig({
   fullyParallel: false,             // dev server is shared; serialize
   workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
+  // Only for a local target. See the note at the top.
+  webServer: isLocal
+    ? {
+        command: "bun run dev",
+        url: baseURL,
+        reuseExistingServer: true,
+        // A cold Next dev server compiles on first request, and this suite's
+        // first request is its slowest.
+        timeout: 180_000,
+        stdout: "ignore",
+        stderr: "pipe",
+      }
+    : undefined,
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
+    baseURL,
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "off",
