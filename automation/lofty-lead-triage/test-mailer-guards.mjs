@@ -46,7 +46,7 @@ const record = (built, resp) => call('mailer-record-sent.js', ctx(GOOD, {}, { 'B
 const title = (h) => (String(h).match(/<h1[^>]*>([^<]*)</) || [])[1] || '(none)';
 
 let pass = 0, fail = 0;
-const is = (label, got, want) => { const ok = String(got) === String(want); ok ? pass++ : fail++;
+const is = (label, got, want) => { const ok = String(got) === String(want); if (ok) { pass++; } else { fail++; }
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${label.padEnd(44)} ${ok ? '' : `got ${got}, wanted ${want}`}`); };
 
 is('placeholder secret refuses', title(verify({ ...GOOD, mailSecret: 'PUT_A_LONG_RANDOM_SECRET_HERE' }, { lead_id: '1', t: 'x' }).html), 'Not configured');

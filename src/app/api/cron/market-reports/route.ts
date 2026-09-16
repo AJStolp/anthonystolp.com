@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase-server";
 import { DEFAULT_AGENT_ID, getAgentProfile } from "@/lib/agent-profile";
 import { fetchRedfinZipStatsWithDiagnostics } from "@/lib/market-data/redfin";
-import { getStatsForReport, upsertMarketStats } from "@/lib/market-data";
+import { upsertMarketStats } from "@/lib/market-data";
 import {
   REPORT_MODEL,
   draftReport,

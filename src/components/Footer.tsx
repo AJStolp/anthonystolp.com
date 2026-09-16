@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { ArrowUp } from "lucide-react";
 
 export function Footer() {
@@ -65,19 +67,19 @@ export function Footer() {
             <h3 className="sr-only">Site</h3>
             <ul className="space-y-3 text-sm text-ink/75">
               <li>
-                <a href="/" className="transition-colors hover:text-ink">
+                <Link href="/" className="transition-colors hover:text-ink">
                   Home
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#approach" className="transition-colors hover:text-ink">
+                <Link href="/#approach" className="transition-colors hover:text-ink">
                   Approach
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/#contact" className="transition-colors hover:text-ink">
+                <Link href="/#contact" className="transition-colors hover:text-ink">
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
