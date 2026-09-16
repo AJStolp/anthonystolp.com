@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { Resend } from "resend";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabase } from "@/lib/supabase-server";
-import { getAgentProfile, DEFAULT_AGENT_ID } from "@/lib/agent-profile";
+import { getAgentProfile } from "@/lib/agent-profile";
 import { applyComplianceFooter } from "@/lib/email-compliance";
 import { escapeHtml } from "@/lib/utils";
 

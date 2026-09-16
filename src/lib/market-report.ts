@@ -209,7 +209,7 @@ export function validateDraft(
 export async function factCheckDraft(
   draft: Draft,
   sourceStats: Record<string, unknown>,
-  agent: AgentProfile,
+  _agent: AgentProfile,
 ): Promise<FactCheck | null> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
