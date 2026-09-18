@@ -10,7 +10,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:a11y": "playwright test accessibility",
-    "audit:deps": "bun tools/audit-dependencies.mjs"
+    "audit:deps": "bun tools/audit-dependencies.mjs",
+    "lint": "eslint . --max-warnings=11"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
@@ -37,8 +38,11 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "^16.3.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.70.0"
   },
   "ignoreScripts": [
     "sharp",

@@ -101,7 +101,6 @@ export async function fetchRedfinZipStatsWithDiagnostics(
   let headers: string[] | null = null;
   let i_region = -1;
   let i_periodBegin = -1;
-  let i_periodDuration = -1;
   let i_medianSale = -1;
   let i_homesSold = -1;
   let i_inventory = -1;
@@ -126,7 +125,6 @@ export async function fetchRedfinZipStatsWithDiagnostics(
         );
         i_region = headers.indexOf("region");
         i_periodBegin = headers.indexOf("period_begin");
-        i_periodDuration = headers.indexOf("period_duration");
         i_medianSale = headers.indexOf("median_sale_price");
         i_homesSold = headers.indexOf("homes_sold");
         i_inventory = headers.indexOf("inventory");

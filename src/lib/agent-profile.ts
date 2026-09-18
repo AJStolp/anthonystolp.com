@@ -71,7 +71,7 @@ const AJ_PROFILE: AgentProfile = {
  * Look up an agent profile by ID. v1 returns AJ for any input (single-tenant).
  * v2 will query an `agents` table.
  */
-export function getAgentProfile(agentId?: string | null): AgentProfile {
+export function getAgentProfile(_agentId?: string | null): AgentProfile {
   // Single-tenant fallback. Multi-tenant version will look up by ID.
   return AJ_PROFILE;
 }
