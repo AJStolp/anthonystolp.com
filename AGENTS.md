@@ -74,3 +74,13 @@ The site is built to be accessible — match these patterns, don't regress them:
 ## Env
 
 See `.env.local.example` for the full list and what each key gates.
+
+## Workflow
+
+The branch model, the six ticket statuses, who may close a ticket, the triage vocabulary
+and the dependency rules are defined once in `../headspace/WORKFLOW.md`. They are the same
+in every project and are not restated here.
+
+This file carries only what is specific to this repo: the commit gate, the tools, and the
+deploy path. If something here contradicts `WORKFLOW.md` about the workflow itself, that
+file is right and this one needs fixing.
