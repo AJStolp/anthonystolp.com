@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  # dev is where work integrates and main is only ever reached by a promotion,
+  # so the gate has to cover both. A PR whose base is not listed here runs no
+  # checks at all: it finds nothing to read rather than something red, which is
+  # the worst way for a branch to look green.
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+# One job, where unChonk's ci.yml has two. Splitting pays for itself when a slow
+# gate can run beside a fast one, and here the whole suite is about fifteen
+# seconds: a second job would buy a second `bun install` in order to run a
+# two-second lint in parallel with an eight-second build.
+jobs:
+  gate:
+    name: Lint, type-check, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # bun, never npm (AGENTS.md). --frozen-lockfile so a run that would need
+      # to resolve a tree different from bun.lock fails here rather than testing
+      # dependencies nobody committed.
+      - run: bun install --frozen-lockfile
+
+      # The three gates package.json already defines, cheapest first so a red
+      # run reports in seconds. Each step keeps its script's name, so a failure
+      # says which gate broke without opening the log.
+      #
+      # `lint` keeps its --max-warnings=11 ceiling in package.json rather than
+      # restating the number here, so local and CI cannot drift apart.
+      #
+      # `build` is also the second type check, and it needs no secrets: every
+      # env read is lazy and trySupabase() yields empty at build time.
+      - name: Lint
+        run: bun run lint
+
+      - name: Type check
+        run: bun run type-check
+
+      - name: Build
+        run: bun run build
+
+      # test:e2e is deliberately absent. Playwright here has no webServer, so it
+      # needs a dev server already running, and against anything real it writes
+      # funnel_leads rows and sends live email. That is a gate a person runs, not
+      # one that fires on every push.
