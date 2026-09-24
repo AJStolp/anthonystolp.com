@@ -68,7 +68,7 @@ export default async function LeadsPage({
           <form action="/api/admin/logout" method="POST">
             <button
               type="submit"
-              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/60 underline-offset-4 hover:underline"
+              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/70 underline-offset-4 hover:underline"
             >
               Sign out
             </button>
@@ -76,7 +76,7 @@ export default async function LeadsPage({
         </div>
         <div className="mx-auto flex max-w-5xl items-baseline justify-between px-6 pb-6 md:pb-8">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/60">
+            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/70">
               Inbox
             </p>
             <h1 className="mt-1 font-display text-2xl font-semibold tracking-[-0.02em] text-ink md:text-3xl">
@@ -99,7 +99,7 @@ export default async function LeadsPage({
 
       <div className="mx-auto max-w-5xl px-6 py-10">
         {leads.length === 0 ? (
-          <p className="text-ink-soft/60">No leads in this view.</p>
+          <p className="text-ink-soft/70">No leads in this view.</p>
         ) : (
           <InboxClient initialLeads={leads} />
         )}

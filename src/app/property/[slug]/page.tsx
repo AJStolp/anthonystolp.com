@@ -335,7 +335,7 @@ export default async function PropertyPage({
               </p>
               <p className="mt-1 text-lg font-medium">{lender.name}</p>
               {lender.contact && (
-                <p className="text-[14px] text-ink/60">{lender.contact}</p>
+                <p className="text-[14px] text-ink/65">{lender.contact}</p>
               )}
               {lender.applyUrl && (
                 <a

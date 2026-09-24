@@ -155,7 +155,7 @@ export default function PrivacyPage() {
               personal information by emailing{" "}
               <a
                 href="mailto:anthony@exsellexperts.com"
-                className="underline underline-offset-2 hover:text-ink/60"
+                className="underline underline-offset-2 hover:text-ink/65"
               >
                 anthony@exsellexperts.com
               </a>
@@ -193,7 +193,7 @@ export default function PrivacyPage() {
               Questions about this Privacy Policy? Email{" "}
               <a
                 href="mailto:anthony@exsellexperts.com"
-                className="underline underline-offset-2 hover:text-ink/60"
+                className="underline underline-offset-2 hover:text-ink/65"
               >
                 anthony@exsellexperts.com
               </a>{" "}

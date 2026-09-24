@@ -152,7 +152,7 @@ export default function TermsPage() {
               Questions? Email{" "}
               <a
                 href="mailto:anthony@exsellexperts.com"
-                className="underline underline-offset-2 hover:text-ink/60"
+                className="underline underline-offset-2 hover:text-ink/65"
               >
                 anthony@exsellexperts.com
               </a>{" "}

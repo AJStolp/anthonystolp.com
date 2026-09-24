@@ -53,7 +53,7 @@ export function Hero({ featured }: Props) {
             {HOME_VALUE_ENABLED ? (
               <>
                 <HeroAddressInput />
-                <div className="mt-5 flex items-center gap-2 text-[13px] text-ink/60">
+                <div className="mt-5 flex items-center gap-2 text-[13px] text-ink/65">
                   <span>or</span>
                   <button
                     type="button"

@@ -134,7 +134,7 @@ export function RecentResults({ results }: { results: PropertyRow[] }) {
                       </span>
                     )}
                     {stats && (
-                      <span className="text-[13px] text-ink/60">{stats}</span>
+                      <span className="text-[13px] text-ink/65">{stats}</span>
                     )}
                   </div>
 

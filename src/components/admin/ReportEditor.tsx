@@ -159,7 +159,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
       ) : null}
 
       <div>
-        <label className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/60">
+        <label className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
           Subject
         </label>
         <input

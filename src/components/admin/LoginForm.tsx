@@ -38,7 +38,7 @@ export function LoginForm({ next }: { next?: string }) {
       <div>
         <label
           htmlFor="admin-password"
-          className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/60"
+          className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/70"
         >
           Password
         </label>

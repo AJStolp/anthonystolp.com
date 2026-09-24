@@ -192,7 +192,7 @@ function LeadCard({
       </button>
 
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-4">
-        <label className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/60">
+        <label className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
           Status
         </label>
         <select
@@ -221,7 +221,7 @@ function LeadCard({
         <div className="mt-5 space-y-5 border-t border-ink/10 pt-5">
           {lead.message && (
             <div>
-              <p className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/60">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
                 Their message
               </p>
               <p className="mt-2 whitespace-pre-wrap border-l-2 border-ink/15 pl-3 text-[14px] leading-[1.7] text-ink-soft">
@@ -252,7 +252,7 @@ function LeadCard({
           <div>
             <label
               htmlFor={`notes-${lead.id}`}
-              className="block text-[11px] uppercase tracking-[0.24em] text-ink-soft/60"
+              className="block text-[11px] uppercase tracking-[0.24em] text-ink-soft/70"
             >
               Notes
             </label>
