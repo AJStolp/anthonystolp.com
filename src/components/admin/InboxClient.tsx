@@ -185,7 +185,7 @@ function LeadCard({
           )}
         </div>
         <div className="flex items-center justify-between gap-3 md:col-span-3 md:justify-end">
-          <span className="text-[11px] uppercase tracking-[0.2em] text-ink-soft/55">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-ink-soft/70">
             {relative}
           </span>
         </div>
@@ -208,7 +208,7 @@ function LeadCard({
           ))}
         </select>
         {statusSaving && (
-          <span className="text-[11px] text-ink-soft/55">Saving...</span>
+          <span className="text-[11px] text-ink-soft/70">Saving...</span>
         )}
         {lead.ai_draft && !expanded && (
           <span className="ml-auto text-[11px] uppercase tracking-[0.2em] text-accent">
@@ -266,7 +266,7 @@ function LeadCard({
               className="mt-2 w-full resize-y border border-ink/15 bg-cream p-3 text-[14px] text-ink outline-none placeholder:text-ink/30 focus-visible:border-ink"
             />
             {notesSaving && (
-              <p className="mt-1 text-[11px] text-ink-soft/55">Saving...</p>
+              <p className="mt-1 text-[11px] text-ink-soft/70">Saving...</p>
             )}
           </div>
 
@@ -325,7 +325,7 @@ function Meta({
 }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-[0.2em] text-ink-soft/55">
+      <dt className="text-[10px] uppercase tracking-[0.2em] text-ink-soft/70">
         {label}
       </dt>
       <dd className="mt-0.5">{children}</dd>

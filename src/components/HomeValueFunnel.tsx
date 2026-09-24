@@ -647,13 +647,13 @@ function DoneStep({
 
       {estimate && (
         <div className="hv-fade mt-10 border border-ink/10 bg-cream-deep/40 p-6">
-          <p className="text-[10px] uppercase tracking-[0.32em] text-ink-soft/55">
+          <p className="text-[10px] uppercase tracking-[0.32em] text-ink-soft/70">
             Instant range
           </p>
           <p className="mt-2 font-display text-2xl font-semibold text-ink">
             {formatPrice(estimate.low)} to {formatPrice(estimate.high)}
           </p>
-          <p className="mt-2 text-[11px] uppercase tracking-[0.24em] text-ink-soft/55">
+          <p className="mt-2 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
             {estimate.compsUsed} comps · {estimate.confidence} confidence · by
             bndryiq
           </p>

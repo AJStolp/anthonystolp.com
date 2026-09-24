@@ -67,7 +67,7 @@ export function RecentResults({ results }: { results: PropertyRow[] }) {
       <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
         <h2
           id="recent-results-heading"
-          className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/55"
+          className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/70"
         >
           Recent results
         </h2>
@@ -116,7 +116,7 @@ export function RecentResults({ results }: { results: PropertyRow[] }) {
                   </h3>
 
                   {locality && (
-                    <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-ink/50">
+                    <p className="mt-2 text-[11px] uppercase tracking-[0.28em] text-ink/65">
                       {locality}
                     </p>
                   )}

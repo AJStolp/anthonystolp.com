@@ -126,7 +126,7 @@ function parseBody(body: string): { h2?: string; paras: string[] }[] {
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="border border-ink/10 p-5">
-      <p className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/55">
+      <p className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
         {label}
       </p>
       <p className="mt-2 font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
@@ -180,7 +180,7 @@ function MarketSnapshot({
           <StatTile key={t.label} label={t.label} value={t.value} />
         ))}
       </div>
-      <p className="mt-4 text-[11px] leading-[1.6] text-ink-soft/50">
+      <p className="mt-4 text-[11px] leading-[1.6] text-ink-soft/70">
         Data from{" "}
         <a
           href="https://www.redfin.com/news/data-center/"

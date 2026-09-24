@@ -123,7 +123,7 @@ function TabLink({
       className={
         active
           ? "border-b-2 border-ink pb-2 text-ink"
-          : "pb-2 text-ink-soft/55 hover:text-ink"
+          : "pb-2 text-ink-soft/70 hover:text-ink"
       }
     >
       {children}
