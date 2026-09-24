@@ -269,7 +269,7 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
       </Row>
 
       <fieldset className="grid grid-cols-3 gap-4">
-        <legend className="col-span-3 mb-2 text-[11px] uppercase tracking-[0.28em] text-ink-soft/60">
+        <legend className="col-span-3 mb-2 text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
           Filters (optional metadata, used in future search wiring)
         </legend>
         <Row label="Min price ($)">
@@ -370,7 +370,7 @@ function Row({
 }) {
   return (
     <label className="block">
-      <span className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/60">
+      <span className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
         {label}
       </span>
       <div className="mt-2">{children}</div>

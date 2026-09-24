@@ -298,7 +298,7 @@ export function HomeValueFunnel() {
 function LookingUpBlock({ address }: { address: BndryiqAddress | null }) {
   return (
     <div className="hv-fade mt-12 border border-ink/10 bg-cream p-8 md:p-10">
-      <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-ink-soft/60">
+      <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-ink-soft/70">
         We have your address
       </p>
       {address ? (
@@ -316,7 +316,7 @@ function LookingUpBlock({ address }: { address: BndryiqAddress | null }) {
         algorithm guess, no marketing fluff. Just an honest read from a local
         agent.
       </p>
-      <p className="mt-4 text-[13px] leading-[1.6] text-ink-soft/65">
+      <p className="mt-4 text-[13px] leading-[1.6] text-ink-soft/70">
         Fill in your contact info below so I know where to send it.
       </p>
     </div>
@@ -328,7 +328,7 @@ function LookingUpBlock({ address }: { address: BndryiqAddress | null }) {
 function Header() {
   return (
     <div>
-      <p className="hv-fade text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/60">
+      <p className="hv-fade text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
         Free Home Value
       </p>
       {/* Visual heading only — the page's real <h1> is server-rendered in
@@ -349,7 +349,7 @@ function Header() {
 
 function PoweredBy() {
   return (
-    <p className="hv-fade mt-3 text-right text-[10px] uppercase tracking-[0.28em] text-ink-soft/45">
+    <p className="hv-fade mt-3 text-right text-[10px] uppercase tracking-[0.28em] text-ink-soft/70">
       estimate by bndryiq
     </p>
   );
@@ -465,7 +465,7 @@ function ContactFormInline({
     >
       {address && (
         <div className="border border-ink/10 bg-cream-deep/40 px-4 py-3 text-[12px] text-ink-soft">
-          <span className="uppercase tracking-[0.24em] text-ink-soft/60">
+          <span className="uppercase tracking-[0.24em] text-ink-soft/70">
             About
           </span>{" "}
           <span className="font-medium text-ink">{address.address}</span>
@@ -501,7 +501,7 @@ function ContactFormInline({
       <div>
         <label
           htmlFor={timeframeId}
-          className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/60"
+          className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/70"
         >
           Thinking about selling
         </label>
@@ -521,7 +521,7 @@ function ContactFormInline({
       <div>
         <label
           htmlFor={messageId}
-          className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/60"
+          className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/70"
         >
           Recent upgrades or notes (optional)
         </label>
@@ -647,13 +647,13 @@ function DoneStep({
 
       {estimate && (
         <div className="hv-fade mt-10 border border-ink/10 bg-cream-deep/40 p-6">
-          <p className="text-[10px] uppercase tracking-[0.32em] text-ink-soft/55">
+          <p className="text-[10px] uppercase tracking-[0.32em] text-ink-soft/70">
             Instant range
           </p>
           <p className="mt-2 font-display text-2xl font-semibold text-ink">
             {formatPrice(estimate.low)} to {formatPrice(estimate.high)}
           </p>
-          <p className="mt-2 text-[11px] uppercase tracking-[0.24em] text-ink-soft/55">
+          <p className="mt-2 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
             {estimate.compsUsed} comps · {estimate.confidence} confidence · by
             bndryiq
           </p>
@@ -687,7 +687,7 @@ const Field = function Field({ label, error, id, ...props }: FieldProps) {
     <div>
       <label
         htmlFor={fieldId}
-        className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/60"
+        className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/70"
       >
         {label}
       </label>

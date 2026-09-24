@@ -26,7 +26,7 @@ export default function FairHousingPage() {
         <h1 className="font-display text-[clamp(2.5rem,5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
           Fair Housing Notice
         </h1>
-        <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/55">
+        <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/65">
           Equal Housing Opportunity
         </p>
 
@@ -77,7 +77,7 @@ export default function FairHousingPage() {
                   href="https://www.hud.gov"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:text-ink/60"
+                  className="underline underline-offset-2 hover:text-ink/65"
                 >
                   hud.gov
                 </a>
@@ -89,7 +89,7 @@ export default function FairHousingPage() {
                   href="https://dwd.wisconsin.gov/er"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline underline-offset-2 hover:text-ink/60"
+                  className="underline underline-offset-2 hover:text-ink/65"
                 >
                   dwd.wisconsin.gov/er
                 </a>
@@ -105,7 +105,7 @@ export default function FairHousingPage() {
               Questions? Email{" "}
               <a
                 href="mailto:anthony@exsellexperts.com"
-                className="underline underline-offset-2 hover:text-ink/60"
+                className="underline underline-offset-2 hover:text-ink/65"
               >
                 anthony@exsellexperts.com
               </a>{" "}

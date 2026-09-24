@@ -36,7 +36,7 @@ function Item({
       className={
         active
           ? "border-b-2 border-ink pb-1 text-ink"
-          : "pb-1 text-ink-soft/55 hover:text-ink"
+          : "pb-1 text-ink-soft/70 hover:text-ink"
       }
     >
       {children}

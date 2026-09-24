@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <h1 className="font-display text-[clamp(2.5rem,5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
           Privacy Policy
         </h1>
-        <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/55">
+        <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/65">
           Last updated: May 14, 2026
         </p>
 
@@ -155,7 +155,7 @@ export default function PrivacyPage() {
               personal information by emailing{" "}
               <a
                 href="mailto:anthony@exsellexperts.com"
-                className="underline underline-offset-2 hover:text-ink/60"
+                className="underline underline-offset-2 hover:text-ink/65"
               >
                 anthony@exsellexperts.com
               </a>
@@ -193,7 +193,7 @@ export default function PrivacyPage() {
               Questions about this Privacy Policy? Email{" "}
               <a
                 href="mailto:anthony@exsellexperts.com"
-                className="underline underline-offset-2 hover:text-ink/60"
+                className="underline underline-offset-2 hover:text-ink/65"
               >
                 anthony@exsellexperts.com
               </a>{" "}

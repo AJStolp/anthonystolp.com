@@ -98,7 +98,7 @@ export function Approach() {
       className="border-b border-ink/10 bg-cream"
     >
       <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
-        <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/55">
+        <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/70">
           How I work
         </p>
         <h2

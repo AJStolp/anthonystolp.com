@@ -25,7 +25,7 @@ export default function TermsPage() {
         <h1 className="font-display text-[clamp(2.5rem,5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
           Terms of Service
         </h1>
-        <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/55">
+        <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/65">
           Last updated: May 14, 2026
         </p>
 
@@ -152,7 +152,7 @@ export default function TermsPage() {
               Questions? Email{" "}
               <a
                 href="mailto:anthony@exsellexperts.com"
-                className="underline underline-offset-2 hover:text-ink/60"
+                className="underline underline-offset-2 hover:text-ink/65"
               >
                 anthony@exsellexperts.com
               </a>{" "}

@@ -25,7 +25,7 @@ export default function AboutPage() {
       <Nav />
       <main className="min-h-dvh bg-cream pt-28 pb-24 text-ink md:pt-36">
         <div className="mx-auto max-w-5xl px-6 md:px-12">
-          <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/65">
+          <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
             About
           </p>
 
@@ -43,7 +43,7 @@ export default function AboutPage() {
                   className="absolute inset-x-0 bottom-0 mx-auto h-full w-auto object-contain object-bottom"
                 />
               </div>
-              <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-ink-soft/50">
+              <p className="mt-3 text-[10px] uppercase tracking-[0.28em] text-ink-soft/70">
                 Anthony Stolp · WI #114204-94
               </p>
             </div>
