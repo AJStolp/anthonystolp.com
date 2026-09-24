@@ -126,7 +126,7 @@ function parseBody(body: string): { h2?: string; paras: string[] }[] {
 function StatTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="border border-ink/10 p-5">
-      <p className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/55">
+      <p className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
         {label}
       </p>
       <p className="mt-2 font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
@@ -171,7 +171,7 @@ function MarketSnapshot({
       <h2 className="font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
         {geoShort} market snapshot
       </h2>
-      <p className="mt-2 text-[13px] leading-[1.6] text-ink-soft/65">
+      <p className="mt-2 text-[13px] leading-[1.6] text-ink-soft/70">
         Based on Redfin&rsquo;s rolling 90-day data, latest {snap.periodLabel}
         {snap.zipCount > 1 ? `, across ${snap.zipCount} zip codes` : ""}.
       </p>
@@ -180,7 +180,7 @@ function MarketSnapshot({
           <StatTile key={t.label} label={t.label} value={t.value} />
         ))}
       </div>
-      <p className="mt-4 text-[11px] leading-[1.6] text-ink-soft/50">
+      <p className="mt-4 text-[11px] leading-[1.6] text-ink-soft/70">
         Data from{" "}
         <a
           href="https://www.redfin.com/news/data-center/"
@@ -311,7 +311,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
       </header>
 
       <section className="mx-auto flex max-w-3xl flex-col items-start px-6 py-16 md:py-28">
-        <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/60">
+        <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
           {eyebrow}
         </p>
         <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink">
@@ -371,7 +371,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
         {/* Legal/tax disclaimer — guide pages only */}
         {isGuide ? (
           <section className="mt-14 w-full max-w-2xl">
-            <p className="border-l-2 border-ink/15 pl-4 text-[13px] leading-[1.7] text-ink-soft/60">
+            <p className="border-l-2 border-ink/15 pl-4 text-[13px] leading-[1.7] text-ink-soft/70">
               This page is general information, not legal or tax advice. Every
               situation is different, so please talk to a qualified attorney or
               CPA about yours. Anthony and his team at ExSell Experts, Epique
@@ -423,7 +423,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           </section>
         ) : null}
 
-        <div className="mt-16 border-t border-ink/10 pt-8 text-[12px] leading-[1.6] text-ink-soft/65">
+        <div className="mt-16 border-t border-ink/10 pt-8 text-[12px] leading-[1.6] text-ink-soft/70">
           <p>
             Anthony Stolp, ExSell Experts | Epique Realty. Honest pricing,
             real staging, no scripts. Greater Milwaukee, southeast Wisconsin.
