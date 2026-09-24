@@ -8,8 +8,8 @@
     "start": "next start",
     "type-check": "tsc --noEmit",
     "test:e2e": "bun tools/ensure-local-deps.mjs && playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:a11y": "playwright test accessibility",
+    "test:e2e:ui": "bun tools/ensure-local-deps.mjs && playwright test --ui",
+    "test:a11y": "bun tools/ensure-local-deps.mjs && playwright test accessibility",
     "audit:deps": "bun tools/audit-dependencies.mjs",
     "lint": "eslint . --max-warnings=11"
   },

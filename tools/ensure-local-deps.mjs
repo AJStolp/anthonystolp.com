@@ -20,6 +20,11 @@
  * on every run rather than asserted once, because the trade only holds while
  * that install stays fast.
  *
+ * Every Playwright script runs this itself, not only `dev`. Left to the
+ * `webServer`, the swap happens after Playwright has loaded from the linked
+ * tree, the specs then load a second copy from the local one, and every test
+ * dies with "did not expect test.describe() to be called here".
+ *
  * A normal checkout has a real directory here and this is a no-op.
  */
 import { lstatSync, unlinkSync } from "node:fs";
