@@ -17,7 +17,7 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-dvh items-center justify-center bg-cream px-6">
       <div className="w-full max-w-sm">
-        <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/60">
+        <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/70">
           Admin
         </p>
         <h1 className="mt-4 font-display text-3xl font-semibold tracking-[-0.02em] text-ink">

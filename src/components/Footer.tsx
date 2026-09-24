@@ -24,7 +24,7 @@ export function Footer() {
           <div className="md:col-span-7 lg:col-span-8">
             <div className="grid max-w-2xl grid-cols-1 gap-10 sm:grid-cols-3 sm:gap-8">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.32em] text-ink/50">
+                <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
                   Head Office
                 </p>
                 <p className="mt-4 text-sm leading-[1.7] text-ink/75">
@@ -34,11 +34,11 @@ export function Footer() {
                   <br />
                   Germantown, WI
                   <br />
-                  <span className="text-ink/55">WI Lic. #114204-94</span>
+                  <span className="text-ink/65">WI Lic. #114204-94</span>
                 </p>
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-[0.32em] text-ink/50">
+                <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
                   Email Us
                 </p>
                 <a
@@ -49,7 +49,7 @@ export function Footer() {
                 </a>
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-[0.32em] text-ink/50">
+                <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
                   Call Us
                 </p>
                 <a
@@ -97,7 +97,7 @@ export function Footer() {
         </div>
 
         {/* Small credits — AJ's other projects + partner shoutouts */}
-        <div className="mt-12 flex flex-col gap-3 text-[10px] uppercase tracking-[0.28em] text-ink/45">
+        <div className="mt-12 flex flex-col gap-3 text-[10px] uppercase tracking-[0.28em] text-ink/65">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-6">
             <span>Also by me</span>
             <a
@@ -127,7 +127,7 @@ export function Footer() {
 
         {/* Legal row */}
         <div className="mt-6 flex flex-col gap-4 border-t border-ink/10 pt-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] uppercase tracking-[0.28em] text-ink/50">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] uppercase tracking-[0.28em] text-ink/65">
             <span>© {year} Anthony Stolp</span>
             <a href="/privacy" className="hover:text-ink">
               Privacy
