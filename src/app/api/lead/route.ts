@@ -7,6 +7,7 @@ import { getSupabase } from "@/lib/supabase-server";
 import { resolveToken, type LinkTokenContext } from "@/lib/link-tokens";
 import { createLoftyLead } from "@/lib/lofty";
 import { escapeHtml } from "@/lib/utils";
+import { northwoodsCc } from "@/lib/northwoods";
 
 // ── Validation ─────────────────────────────────────────────────────────────
 //
@@ -128,6 +129,8 @@ const sourceLabel: Record<string, string> = {
   "search-redirect": "Search redirect (active listings)",
   "market-report-subscribe": "Market report subscriber",
   "open-house": "Open house sign-in",
+  northwoods: "Northwoods contact form",
+  "northwoods-search": "Northwoods search (active listings)",
 };
 
 const hasAgentLabel: Record<string, string> = {
@@ -429,6 +432,7 @@ async function sendNotificationEmail(lead: LeadInput): Promise<boolean> {
   const res = await resend.emails.send({
     from: `Anthony Stolp Site <${FROM_EMAIL}>`,
     to: TO_EMAIL,
+    cc: northwoodsCc(lead.source),
     replyTo: lead.email ?? undefined,
     subject,
     text,

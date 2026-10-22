@@ -4,7 +4,16 @@ import Link from "next/link";
 
 import { ArrowUp } from "lucide-react";
 
-export function Footer() {
+type Props = {
+  // The large name across the bottom. Team pages pass their own.
+  wordmark?: string;
+  // Optional line under the wordmark.
+  tagline?: string;
+  // Team pages list each person's email and cell in place of the office line.
+  contacts?: { name: string; email: string; phone: string }[];
+};
+
+export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props = {}) {
   const year = new Date().getFullYear();
 
   const scrollTop = () => {
@@ -41,23 +50,54 @@ export function Footer() {
                 <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
                   Email Us
                 </p>
-                <a
-                  href="mailto:anthony@exsellexperts.com"
-                  className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
-                >
-                  anthony@exsellexperts.com
-                </a>
+                {contacts ? (
+                  <ul className="mt-4 space-y-2">
+                    {contacts.map((c) => (
+                      <li key={c.email}>
+                        <a
+                          href={`mailto:${c.email}`}
+                          className="block break-all text-sm text-ink/75 transition-colors hover:text-ink"
+                        >
+                          {c.email}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <a
+                    href="mailto:anthony@exsellexperts.com"
+                    className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
+                  >
+                    anthony@exsellexperts.com
+                  </a>
+                )}
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
                   Call Us
                 </p>
-                <a
-                  href="tel:+12628853310"
-                  className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
-                >
-                  (262) 885-3310
-                </a>
+                {contacts ? (
+                  <ul className="mt-4 space-y-2">
+                    {contacts.map((c) => (
+                      <li key={c.phone}>
+                        <a
+                          href={`tel:+1${c.phone.replace(/\D/g, "")}`}
+                          className="block text-sm text-ink/75 transition-colors hover:text-ink"
+                        >
+                          <span className="text-ink/65">{c.name.split(" ")[0]}</span>{" "}
+                          {c.phone}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <a
+                    href="tel:+12628853310"
+                    className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
+                  >
+                    (262) 885-3310
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -92,8 +132,13 @@ export function Footer() {
             className="font-display text-ink leading-none tracking-[-0.045em] font-bold"
             style={{ fontSize: "clamp(2.5rem, 8vw, 7rem)" }}
           >
-            ANTHONY STOLP
+            {wordmark}
           </div>
+          {tagline ? (
+            <p className="mt-4 text-[11px] uppercase tracking-[0.32em] text-ink/65">
+              {tagline}
+            </p>
+          ) : null}
         </div>
 
         {/* Small credits — AJ's other projects + partner shoutouts */}

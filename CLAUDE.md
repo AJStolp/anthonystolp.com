@@ -111,11 +111,11 @@ Read the pointer. Do not paste whole files into context.
 | Next 16 API changes | `node_modules/next/dist/docs/` — read before writing, training data is stale |
 | Domain terms | `CONTEXT.md` (root) |
 | Why a choice was made | `docs/adr/`, one decision per numbered file |
-| What to work on next | GitHub Issues via `gh`. See `docs/agents/issue-tracker.md` |
-| Triage vocabulary | `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md` |
+| What to work on next | The board: `board/README.md`, worked with `python ../headspace/board.py` |
+| Statuses and `ready` | `../headspace/WORKFLOW.md` |
 | Env vars | `.env.local.example` |
 
-**GitHub Issues is the only backlog.** No parallel to do file, no next step list inside a doc. Found something worth fixing and not fixing it now? `gh issue create`.
+**The board is the only backlog.** No parallel to do file, no next step list inside a doc, and no GitHub Issues. Found something worth fixing and not fixing it now? File a ticket.
 
 **No living state file.** Session state is produced on demand by `/handoff` into `docs/handoffs/`, gitignored and disposable, deleted once consumed. Nothing describing "where we are" is ever committed.
 
