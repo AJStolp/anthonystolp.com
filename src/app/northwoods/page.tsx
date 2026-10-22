@@ -187,7 +187,7 @@ export default function NorthwoodsPage() {
               ))}
             </div>
             <p className="mt-6 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
-              ExSell Experts at Epique Realty
+              ExSell Experts | Epique Realty
             </p>
           </div>
         </section>
@@ -206,7 +206,7 @@ export default function NorthwoodsPage() {
         />
         <Footer
           wordmark="NORTHWOODS"
-          tagline="Cousins Jay and Anthony Stolp, REALTORS® · ExSell Experts at Epique Realty"
+          tagline="Cousins Jay and Anthony Stolp, REALTORS® · ExSell Experts | Epique Realty"
         />
       </main>
     </>
