@@ -5,25 +5,48 @@ import { Nav } from "@/components/Nav";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { NorthwoodsSearch } from "@/components/NorthwoodsSearch";
-import { NORTHWOODS_SOURCES, NORTHWOODS_TEAM, telHref, type TeamMember } from "@/lib/northwoods";
-import { OG_IMAGES } from "@/lib/og";
+import {
+  NORTHWOODS_BROKERAGE,
+  NORTHWOODS_SOURCES,
+  NORTHWOODS_TEAM,
+  telHref,
+  type TeamMember,
+} from "@/lib/northwoods";
 
 // Landing page for the printed Marinette County flyer. The QR code points at
 // /northwoods?utm_source=flyer&utm_medium=print&utm_campaign=northwoods, which
 // the site's existing attribution records on every lead from this page.
 
+const SITE_URL = "https://anthonystolp.com";
+const PAGE_URL = `${SITE_URL}/northwoods`;
+
+const TITLE = "Marinette County Land, Cabins and Lake Homes · Jay and Anthony Stolp";
+const DESCRIPTION =
+  "Rural land with no address, just coordinates? We will get back there, walk it, fly it, and market it right. Land, cabins, and lake homes across Marinette County, WI.";
+const OG_IMAGE = {
+  url: "/images/northwoods/og-pembine.jpg",
+  width: 1200,
+  height: 630,
+  alt: "Aerial view of a river winding through fall forest near Pembine, Marinette County",
+};
+
 export const metadata: Metadata = {
-  title: "Northwoods Real Estate · Marinette County",
-  description:
-    "Jay and Anthony Stolp, REALTORS® who grew up in the Northwoods. Homes, lake lots, and land across Marinette County, with drone aerial photography for sellers.",
+  // Absolute: the root template would append "· Anthony Stolp" a second time.
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
   alternates: { canonical: "/northwoods" },
   openGraph: {
     title: "From the ground and air, we know this land.",
-    description:
-      "Jay and Anthony Stolp, REALTORS® serving Marinette County and the surrounding Northwoods.",
+    description: DESCRIPTION,
     url: "/northwoods",
     type: "website",
-    images: OG_IMAGES,
+    images: [OG_IMAGE],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "From the ground and air, we know this land.",
+    description: DESCRIPTION,
+    images: [OG_IMAGE.url],
   },
 };
 
@@ -50,6 +73,125 @@ const STORY = [
 
 const SERVICES = ["Residential", "Lakefront", "Land", "Investment", "Commercial"];
 
+// Wisconsin only. The Upper Peninsula stays in the story until both hold
+// Michigan licenses.
+const TOWNS = [
+  "Pembine",
+  "Wausaukee",
+  "Crivitz",
+  "Amberg",
+  "Marinette",
+  "Peshtigo",
+  "Coleman",
+  "Porterfield",
+];
+const WATERS = ["High Falls", "Caldron Falls", "Lake Noquebay"];
+
+// "a, b, and c", the way the copy names places.
+function listOf(items: string[]): string {
+  return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
+}
+
+const LAND_STEPS = [
+  {
+    title: "We find it",
+    body: "Coordinates, a parcel number, or a fire lane and a landmark. If you can point to it on a map, we will get back there.",
+  },
+  {
+    title: "We shoot it right",
+    body: "We walk the land and fly it. Ground photos and drone aerials that show the timber, the trails, the water, and how the whole parcel lays out.",
+  },
+  {
+    title: "We market it properly",
+    body: "A listing that shows buyers what is actually worth the drive, in front of the people looking for exactly this kind of place.",
+  },
+];
+
+// Rendered on the page and emitted as FAQPage JSON-LD from the same array, so
+// the structured data can never say something the page does not.
+const FAQS = [
+  {
+    q: "Can you sell land that has no address, only GPS coordinates?",
+    a: "Yes. A lot of rural land in Marinette County has no street address, no driveway, and no mailbox. Send us the coordinates or the parcel number and we will find it, walk it, and photograph it from the ground and the air.",
+  },
+  {
+    q: "Do you take drone photos of land and lake property?",
+    a: "Yes. Drone aerials alongside ground photos are how we market land and lake property, so buyers see the acreage, the shoreline, and the setting before they ever make the drive.",
+  },
+  {
+    q: "My land sat on the market with bad photos. Can you relist it?",
+    a: "Yes, once that listing has expired or been withdrawn. We will come out, reshoot it properly from the ground and the air, and put it back on the market the right way.",
+  },
+  {
+    q: "What areas of the Northwoods do you cover?",
+    a: `Marinette County, Wisconsin, including ${listOf(TOWNS)}, plus lake and river property on ${listOf(WATERS)}.`,
+  },
+  {
+    q: "Can you help us buy a cabin or hunting land up north?",
+    a: "Yes. We spend most weekends up here and know the backroads, the lakes, and the parcels that do not come up often. Tell us what you are after and we will send listings the moment they hit the MLS.",
+  },
+];
+
+const areaServed = [
+  { "@type": "AdministrativeArea", name: "Marinette County, Wisconsin" },
+  ...TOWNS.map((t) => ({ "@type": "City", name: `${t}, Wisconsin` })),
+];
+
+// Anthony keeps the home page's id so search engines read one person.
+function agentId(m: TeamMember): string {
+  return m.name === "Anthony Stolp"
+    ? `${SITE_URL}/#agent`
+    : `${PAGE_URL}#${m.name.split(" ")[0].toLowerCase()}`;
+}
+
+const brokerage = {
+  "@type": "RealEstateOrganization",
+  name: NORTHWOODS_BROKERAGE,
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": `${PAGE_URL}#page`,
+      url: PAGE_URL,
+      name: TITLE,
+      description: DESCRIPTION,
+      primaryImageOfPage: `${SITE_URL}${OG_IMAGE.url}`,
+    },
+    ...NORTHWOODS_TEAM.map((m) => ({
+      "@type": "RealEstateAgent",
+      "@id": agentId(m),
+      name: m.name,
+      jobTitle: "REALTOR®",
+      telephone: `+1-${m.phone.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")}`,
+      email: m.email.toLowerCase(),
+      ...(m.photo ? { image: `${SITE_URL}${m.photo}` } : {}),
+      url: PAGE_URL,
+      worksFor: brokerage,
+      areaServed,
+    })),
+    {
+      "@type": "Service",
+      "@id": `${PAGE_URL}#aerial-photography`,
+      name: "Drone aerial photography for land and lake property",
+      serviceType: "Real estate aerial photography",
+      provider: NORTHWOODS_TEAM.map((m) => ({ "@id": agentId(m) })),
+      areaServed,
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${PAGE_URL}#faq`,
+      mainEntity: FAQS.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+  ],
+};
+
 const eyebrow = "text-[11px] font-medium uppercase tracking-[0.38em]";
 const sectionHeading =
   "font-display text-[clamp(1.75rem,3.5vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.02em]";
@@ -61,6 +203,12 @@ export default function NorthwoodsPage() {
         Skip to content
       </a>
       <main id="main" className="relative w-full overflow-x-hidden bg-cream text-ink">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <Nav />
 
         {/* 1. Hero */}
@@ -76,16 +224,16 @@ export default function NorthwoodsPage() {
           {/* Scrim keeps the headline at AA contrast over any part of the photo. */}
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/55 to-ink/35"
+            className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/60 to-ink/55"
           />
           <div className="relative mx-auto w-full max-w-6xl px-6 pb-14 md:px-12 md:pb-20">
-            <p className={`${eyebrow} text-cream/80`}>
+            <p className="inline-block bg-ink/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-cream md:tracking-[0.38em]">
               Marinette County · Northwoods
             </p>
             <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.25rem,7vw,5rem)] font-semibold uppercase leading-[1.02] tracking-[-0.02em] text-cream">
               From the ground and air, we know this land.
             </h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-[1.6] text-cream/85 md:text-[19px]">
+            <p className="mt-5 max-w-xl text-[17px] leading-[1.6] text-cream md:text-[19px]">
               This Place Runs Deep in Our Family.
             </p>
 
@@ -115,7 +263,7 @@ export default function NorthwoodsPage() {
             <div className="mt-10 grid grid-cols-1 gap-10 md:mt-14 md:grid-cols-3 md:gap-10">
               {STORY.map((s) => (
                 <div key={s.n} className="border-t border-ink/15 pt-6">
-                  <p className="font-display text-sm font-semibold text-accent">{s.n}</p>
+                  <p className="font-display text-sm font-semibold text-ink/65">{s.n}</p>
                   <h3 className="mt-2 text-[17px] font-semibold text-ink">{s.title}</h3>
                   <p className="mt-3 text-[15px] leading-[1.75] text-ink/75">{s.body}</p>
                 </div>
@@ -131,7 +279,7 @@ export default function NorthwoodsPage() {
           className="scroll-mt-20 border-b border-ink/10 bg-cream-deep"
         >
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
-            <p className={`${eyebrow} text-ink-soft/70`}>Active listings</p>
+            <p className={`${eyebrow} text-ink/70`}>Active listings</p>
             <h2 id="search-heading" className={`mt-4 ${sectionHeading}`}>
               Search Northwoods listings.
             </h2>
@@ -170,6 +318,56 @@ export default function NorthwoodsPage() {
           </div>
         </section>
 
+        {/* Rural land: the thing that sets them apart, and what land owners search for. */}
+        <section
+          id="land"
+          aria-labelledby="land-heading"
+          className="scroll-mt-20 border-b border-ink/10"
+        >
+          <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-24">
+            <p className={`${eyebrow} text-ink-soft/70`}>Rural land and acreage</p>
+            <h2 id="land-heading" className={`mt-4 max-w-3xl ${sectionHeading}`}>
+              No address? Just coordinates? We will get back there.
+            </h2>
+            <div className="mt-6 max-w-2xl space-y-5 text-[16px] leading-[1.75] text-ink/75">
+              <p>
+                A lot of the best land in Marinette County has no driveway, no
+                mailbox, and no street number. Send us the GPS coordinates or the
+                parcel number and we will find it, walk it, and fly it, so buyers
+                see the real thing instead of a blurry shot from the road.
+              </p>
+              <p>
+                Had an agent who snapped a few phone pictures from the ditch and
+                called it marketing? We got you.
+              </p>
+            </div>
+            <ol className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-10">
+              {LAND_STEPS.map((step, i) => (
+                <li key={step.title} className="border-t border-ink/15 pt-6">
+                  <p className="font-display text-sm font-semibold text-ink/65">
+                    {String(i + 1).padStart(2, "0")}
+                  </p>
+                  <h3 className="mt-2 text-[17px] font-semibold text-ink">{step.title}</h3>
+                  <p className="mt-3 text-[15px] leading-[1.75] text-ink/75">{step.body}</p>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-12 max-w-3xl text-[14px] leading-[1.7] text-ink/70">
+              Land, cabins, and lake homes in {listOf(TOWNS)}, and on the water at{" "}
+              {listOf(WATERS)}.
+            </p>
+            <a
+              href="#contact"
+              className="group mt-8 inline-flex w-full items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.28em] text-cream transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
+            >
+              Tell us about your land
+              <span aria-hidden className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </a>
+          </div>
+        </section>
+
         {/* 6. Team */}
         <section
           id="team"
@@ -187,8 +385,25 @@ export default function NorthwoodsPage() {
               ))}
             </div>
             <p className="mt-6 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
-              ExSell Experts | Epique Realty
+              {NORTHWOODS_BROKERAGE}
             </p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section aria-labelledby="faq-heading" className="border-b border-ink/10 bg-cream-deep">
+          <div className="mx-auto max-w-3xl px-6 py-16 md:px-12 md:py-24">
+            <h2 id="faq-heading" className={sectionHeading}>
+              Questions land owners ask us.
+            </h2>
+            <dl className="mt-8 divide-y divide-ink/10 border-t border-ink/10">
+              {FAQS.map((f) => (
+                <div key={f.q} className="py-6">
+                  <dt className="text-[16px] font-semibold text-ink">{f.q}</dt>
+                  <dd className="mt-2 text-[15px] leading-[1.75] text-ink/75">{f.a}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
@@ -207,7 +422,7 @@ export default function NorthwoodsPage() {
         <Footer
           wordmark="NORTHWOODS"
           contacts={NORTHWOODS_TEAM}
-          tagline="Cousins Jay and Anthony Stolp, REALTORS® · ExSell Experts | Epique Realty"
+          tagline={`Cousins Jay and Anthony Stolp, REALTORS® · ${NORTHWOODS_BROKERAGE}`}
         />
       </main>
     </>
