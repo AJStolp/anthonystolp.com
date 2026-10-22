@@ -206,6 +206,7 @@ export default function NorthwoodsPage() {
         />
         <Footer
           wordmark="NORTHWOODS"
+          contacts={NORTHWOODS_TEAM}
           tagline="Cousins Jay and Anthony Stolp, REALTORS® · ExSell Experts | Epique Realty"
         />
       </main>
