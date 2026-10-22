@@ -179,7 +179,7 @@ export default function NorthwoodsPage() {
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-24">
             <p className={`${eyebrow} text-ink-soft/70`}>Call or text us</p>
             <h2 id="team-heading" className={`mt-4 ${sectionHeading}`}>
-              Jay and Anthony.
+              Anthony and Jay.
             </h2>
             <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
               {NORTHWOODS_TEAM.map((m) => (
