@@ -4,7 +4,14 @@ import Link from "next/link";
 
 import { ArrowUp } from "lucide-react";
 
-export function Footer() {
+type Props = {
+  // The large name across the bottom. Team pages pass their own.
+  wordmark?: string;
+  // Optional line under the wordmark.
+  tagline?: string;
+};
+
+export function Footer({ wordmark = "ANTHONY STOLP", tagline }: Props = {}) {
   const year = new Date().getFullYear();
 
   const scrollTop = () => {
@@ -92,8 +99,13 @@ export function Footer() {
             className="font-display text-ink leading-none tracking-[-0.045em] font-bold"
             style={{ fontSize: "clamp(2.5rem, 8vw, 7rem)" }}
           >
-            ANTHONY STOLP
+            {wordmark}
           </div>
+          {tagline ? (
+            <p className="mt-4 text-[11px] uppercase tracking-[0.32em] text-ink/65">
+              {tagline}
+            </p>
+          ) : null}
         </div>
 
         {/* Small credits — AJ's other projects + partner shoutouts */}

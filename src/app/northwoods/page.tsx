@@ -204,7 +204,10 @@ export default function NorthwoodsPage() {
           }
           intro="Tell us what you are after, a cabin, a lake lot, acreage, or selling what you have. Jay and Anthony both read every message and reply within the day."
         />
-        <Footer />
+        <Footer
+          wordmark="JAY & ANTHONY STOLP"
+          tagline="Your Northwoods team · ExSell Experts at Epique Realty"
+        />
       </main>
     </>
   );
