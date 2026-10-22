@@ -28,8 +28,8 @@ export const NORTHWOODS_TEAM: TeamMember[] = [
   },
 ];
 
-// How the brokerage is written on the Northwoods page, which AJ wants as the
-// pipe form rather than the profile's "ExSell Experts at Epique Realty".
+// How the Northwoods page writes the brokerage: the pipe form, as the trust
+// strip and niche pages already do, not the profile's "at" form.
 export const NORTHWOODS_BROKERAGE = "ExSell Experts | Epique Realty";
 
 // Lead sources the page sends. Kept apart from the site's own sources so the
