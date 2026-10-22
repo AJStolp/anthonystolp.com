@@ -24,7 +24,7 @@ export const NORTHWOODS_TEAM: TeamMember[] = [
     title: "REALTOR®",
     phone: "(414) 807-2478",
     email: "Jaystolp@exsellexperts.com",
-    photo: null,
+    photo: "/images/northwoods/jay-headshot.png",
   },
 ];
 

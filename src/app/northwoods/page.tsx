@@ -27,9 +27,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Swap for a Marinette County aerial when one is shot. This is Lake Superior
-// shoreline from the drone portfolio.
-const HERO_PHOTO = "/images/services/aerial.jpeg";
+// Drone shot of the river corridor near Pembine, Marinette County.
+const HERO_PHOTO = "/images/northwoods/hero-pembine.jpg";
 
 const STORY = [
   {
@@ -68,7 +67,7 @@ export default function NorthwoodsPage() {
         <section className="relative flex min-h-[88svh] items-end pt-24">
           <Image
             src={HERO_PHOTO}
-            alt="Aerial view of a forested shoreline on clear blue water"
+            alt="Aerial view of a river winding through fall forest near Pembine, Marinette County"
             fill
             priority
             sizes="100vw"
@@ -77,7 +76,7 @@ export default function NorthwoodsPage() {
           {/* Scrim keeps the headline at AA contrast over any part of the photo. */}
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/55 to-ink/10"
+            className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/55 to-ink/35"
           />
           <div className="relative mx-auto w-full max-w-6xl px-6 pb-14 md:px-12 md:pb-20">
             <p className={`${eyebrow} text-cream/80`}>
