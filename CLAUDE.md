@@ -28,7 +28,7 @@ bunx playwright test --project=chromium-mobile  # one viewport; desktop + mobile
 bunx supabase db query --linked --file supabase/migrations/00NN_x.sql   # apply a migration
 ```
 
-`bun run lint` is ESLint with a warning ceiling. Type checking happens through `bun run build`. No Prettier.
+No lint script, no ESLint or Prettier config. Type checking happens through `bun run build`.
 
 `playwright.config.ts` has no `webServer`, so it will not start the server for you, and it runs serialized at `workers: 1`.
 
@@ -112,10 +112,10 @@ Read the pointer. Do not paste whole files into context.
 | Domain terms | `CONTEXT.md` (root) |
 | Why a choice was made | `docs/adr/`, one decision per numbered file |
 | What to work on next | The board: `board/README.md`, worked with `python ../headspace/board.py` |
-| Statuses, `ready`, branches, releases | `../headspace/WORKFLOW.md` |
+| Statuses and `ready` | `../headspace/WORKFLOW.md` |
 | Env vars | `.env.local.example` |
 
-**The board is the only backlog.** No parallel to do file, no next step list inside a doc, and no GitHub Issues. Found something worth fixing and not fixing it now? File a ticket. Work starts from a ticket, not after it.
+**The board is the only backlog.** No parallel to do file, no next step list inside a doc, and no GitHub Issues. Found something worth fixing and not fixing it now? File a ticket.
 
 **No living state file.** Session state is produced on demand by `/handoff` into `docs/handoffs/`, gitignored and disposable, deleted once consumed. Nothing describing "where we are" is ever committed.
 
@@ -143,15 +143,15 @@ If a procedure written here ever contradicts a skill, the skill wins and the par
 
 Done means the acceptance criteria are verified, not that it compiles.
 
-The gate is: `bun run build` passes (it is the typecheck), `bun run lint` passes, the diffstat has been read, and the change has been observed doing what it claims. The commit body carries one evidence line:
+There is no linter here, so the gate is: `bun run build` passes (it is the typecheck), the diffstat has been read, and the change has been observed doing what it claims. The commit body carries one evidence line:
 
 ```
 Verified: submitted home-value form on local dev, row appears in
 /admin/leads with visitorId stitched, Resend email received
-Closes T-023
+Closes #23
 ```
 
-No evidence line, no commit. An agent may commit; an agent may not close a ticket.
+No evidence line, no commit. An agent may commit; an agent may not close an issue.
 
 **Push to main deploys to production**, and production is a live funnel with paid traffic pointed at it. Treat every merge as a release and never merge one you have not exercised.
 
@@ -167,11 +167,9 @@ Skip when there is nothing to see: pure helpers, migration SQL, docs. If you can
 
 ### 3. Branch and PR workflow
 
-Always branch off `dev` and open the PR against `dev`: `git checkout dev && git pull && git checkout -b feature/T-NNN-...`. The ticket id in the branch name is what lets a promotion carry the ticket, so a branch without one ships work the board cannot see. Never commit to `dev` or `main` directly.
+Always branch off main: `git checkout main && git pull && git checkout -b feat/...`. Never commit to main directly.
 
-`main` is reached only by a promotion PR from `dev`, with its release ticket, that AJ merges. Do not open one by hand.
-
-A branch is not a storage location: if work is worth keeping and is not landing this week, it becomes a ticket and the branch is deleted.
+Prefixes are `feat/`, `fix/`, `chore/`, `docs/`. A branch is not a storage location: if work is worth keeping and is not landing this week, it becomes an issue and the branch is deleted.
 
 ### 4. Do not describe other repos here
 

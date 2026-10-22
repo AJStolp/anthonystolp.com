@@ -52,8 +52,8 @@ function measuredContrastFailures(incomplete: Result[]): Result[] {
         const want = parseFloat(data?.expectedContrastRatio ?? "");
         // axe writes 0 when it measured nothing, as for text over a photo.
         // That is the unknowable case above, not a ratio of zero, so a page
-        // with a photo hero proves its contrast another way (T-014 did it by
-        // sampling the rendered pixels behind each line).
+        // with a photo hero proves its contrast another way, as the Northwoods
+        // page did by sampling the rendered pixels behind each line.
         return typeof got === "number" && got > 0 && !Number.isNaN(want) && got < want;
       }),
     );

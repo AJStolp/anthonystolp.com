@@ -5,7 +5,13 @@ import { Nav } from "@/components/Nav";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { NorthwoodsSearch } from "@/components/NorthwoodsSearch";
-import { NORTHWOODS_SOURCES, NORTHWOODS_TEAM, telHref, type TeamMember } from "@/lib/northwoods";
+import {
+  NORTHWOODS_BROKERAGE,
+  NORTHWOODS_SOURCES,
+  NORTHWOODS_TEAM,
+  telHref,
+  type TeamMember,
+} from "@/lib/northwoods";
 
 // Landing page for the printed Marinette County flyer. The QR code points at
 // /northwoods?utm_source=flyer&utm_medium=print&utm_campaign=northwoods, which
@@ -68,7 +74,7 @@ const STORY = [
 const SERVICES = ["Residential", "Lakefront", "Land", "Investment", "Commercial"];
 
 // Wisconsin only. The Upper Peninsula stays in the story until both hold
-// Michigan licenses (T-015).
+// Michigan licenses.
 const TOWNS = [
   "Pembine",
   "Wausaukee",
@@ -80,6 +86,11 @@ const TOWNS = [
   "Porterfield",
 ];
 const WATERS = ["High Falls", "Caldron Falls", "Lake Noquebay"];
+
+// "a, b, and c", the way the copy names places.
+function listOf(items: string[]): string {
+  return `${items.slice(0, -1).join(", ")}, and ${items.at(-1)}`;
+}
 
 const LAND_STEPS = [
   {
@@ -105,7 +116,7 @@ const FAQS = [
   },
   {
     q: "Do you take drone photos of land and lake property?",
-    a: "Yes. We fly every property we list, along with ground photos, so buyers see the acreage, the shoreline, and the setting before they ever make the drive.",
+    a: "Yes. Drone aerials alongside ground photos are how we market land and lake property, so buyers see the acreage, the shoreline, and the setting before they ever make the drive.",
   },
   {
     q: "My land sat on the market with bad photos. Can you relist it?",
@@ -113,7 +124,7 @@ const FAQS = [
   },
   {
     q: "What areas of the Northwoods do you cover?",
-    a: `Marinette County, Wisconsin, including ${TOWNS.slice(0, -1).join(", ")}, and ${TOWNS.at(-1)}, plus lake and river property on ${WATERS.slice(0, -1).join(", ")}, and ${WATERS.at(-1)}.`,
+    a: `Marinette County, Wisconsin, including ${listOf(TOWNS)}, plus lake and river property on ${listOf(WATERS)}.`,
   },
   {
     q: "Can you help us buy a cabin or hunting land up north?",
@@ -126,9 +137,16 @@ const areaServed = [
   ...TOWNS.map((t) => ({ "@type": "City", name: `${t}, Wisconsin` })),
 ];
 
+// Anthony keeps the home page's id so search engines read one person.
+function agentId(m: TeamMember): string {
+  return m.name === "Anthony Stolp"
+    ? `${SITE_URL}/#agent`
+    : `${PAGE_URL}#${m.name.split(" ")[0].toLowerCase()}`;
+}
+
 const brokerage = {
   "@type": "RealEstateOrganization",
-  name: "ExSell Experts | Epique Realty",
+  name: NORTHWOODS_BROKERAGE,
 };
 
 const jsonLd = {
@@ -142,10 +160,9 @@ const jsonLd = {
       description: DESCRIPTION,
       primaryImageOfPage: `${SITE_URL}${OG_IMAGE.url}`,
     },
-    ...NORTHWOODS_TEAM.map((m, i) => ({
+    ...NORTHWOODS_TEAM.map((m) => ({
       "@type": "RealEstateAgent",
-      // Anthony keeps the home page's id so search engines read one person.
-      "@id": i === 0 ? `${SITE_URL}/#agent` : `${PAGE_URL}#${m.name.split(" ")[0].toLowerCase()}`,
+      "@id": agentId(m),
       name: m.name,
       jobTitle: "REALTOR®",
       telephone: `+1-${m.phone.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")}`,
@@ -160,9 +177,7 @@ const jsonLd = {
       "@id": `${PAGE_URL}#aerial-photography`,
       name: "Drone aerial photography for land and lake property",
       serviceType: "Real estate aerial photography",
-      provider: NORTHWOODS_TEAM.map((m, i) => ({
-        "@id": i === 0 ? `${SITE_URL}/#agent` : `${PAGE_URL}#${m.name.split(" ")[0].toLowerCase()}`,
-      })),
+      provider: NORTHWOODS_TEAM.map((m) => ({ "@id": agentId(m) })),
       areaServed,
     },
     {
@@ -338,9 +353,8 @@ export default function NorthwoodsPage() {
               ))}
             </ol>
             <p className="mt-12 max-w-3xl text-[14px] leading-[1.7] text-ink/70">
-              Land, cabins, and lake homes in {TOWNS.slice(0, -1).join(", ")}, and{" "}
-              {TOWNS.at(-1)}, and on the water at {WATERS.slice(0, -1).join(", ")},
-              and {WATERS.at(-1)}.
+              Land, cabins, and lake homes in {listOf(TOWNS)}, and on the water at{" "}
+              {listOf(WATERS)}.
             </p>
             <a
               href="#contact"
@@ -371,7 +385,7 @@ export default function NorthwoodsPage() {
               ))}
             </div>
             <p className="mt-6 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
-              ExSell Experts | Epique Realty
+              {NORTHWOODS_BROKERAGE}
             </p>
           </div>
         </section>
@@ -408,7 +422,7 @@ export default function NorthwoodsPage() {
         <Footer
           wordmark="NORTHWOODS"
           contacts={NORTHWOODS_TEAM}
-          tagline="Cousins Jay and Anthony Stolp, REALTORS® · ExSell Experts | Epique Realty"
+          tagline={`Cousins Jay and Anthony Stolp, REALTORS® · ${NORTHWOODS_BROKERAGE}`}
         />
       </main>
     </>
