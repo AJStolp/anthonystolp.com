@@ -25,6 +25,7 @@ const PAGES = [
   ["terms", "/terms"],
   ["fair housing", "/fair-housing"],
   ["unsubscribe", "/unsubscribe"],
+  ["northwoods", "/northwoods"],
 ] as const;
 
 // WCAG 2.2 AA: 4.5:1 for body text, 3:1 for large text. axe already knows
@@ -49,7 +50,11 @@ function measuredContrastFailures(incomplete: Result[]): Result[] {
         const data = check.data as ContrastData | undefined;
         const got = data?.contrastRatio;
         const want = parseFloat(data?.expectedContrastRatio ?? "");
-        return typeof got === "number" && !Number.isNaN(want) && got < want;
+        // axe writes 0 when it measured nothing, as for text over a photo.
+        // That is the unknowable case above, not a ratio of zero, so a page
+        // with a photo hero proves its contrast another way (T-014 did it by
+        // sampling the rendered pixels behind each line).
+        return typeof got === "number" && got > 0 && !Number.isNaN(want) && got < want;
       }),
     );
     if (nodes.length) out.push({ ...rule, nodes });
