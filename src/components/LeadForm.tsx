@@ -33,7 +33,24 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function LeadForm() {
+type Props = {
+  // Lead source sent to /api/lead. Pages with their own funnel label pass one.
+  source?: string;
+  heading?: React.ReactNode;
+  intro?: string;
+};
+
+export function LeadForm({
+  source = "contact-form",
+  heading = (
+    <>
+      Tell me where
+      <br />
+      you are.
+    </>
+  ),
+  intro = "A quick note, a quick call. No pressure, no scripts. I read every message myself and reply within the day.",
+}: Props = {}) {
   const sectionRef = useRef<HTMLElement | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [honeypot, setHoneypot] = useState("");
@@ -97,7 +114,7 @@ export function LeadForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          source: "contact-form",
+          source,
           hp_company: honeypot,
           ...(attributionRef.current ?? {}),
         }),
@@ -136,13 +153,10 @@ export function LeadForm() {
             Let&apos;s talk
           </p>
           <h2 className="lead-fade mt-6 font-display text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.025em]">
-            Tell me where
-            <br />
-            you are.
+            {heading}
           </h2>
           <p className="lead-fade mt-8 max-w-md text-[15px] leading-[1.7] text-cream/70">
-            A quick note, a quick call. No pressure, no scripts. I read every
-            message myself and reply within the day.
+            {intro}
           </p>
 
           <div className="lead-fade mt-12">
