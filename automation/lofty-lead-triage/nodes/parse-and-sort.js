@@ -63,6 +63,11 @@ return kept.map(p => {
     list_office: r.list_office || '',
     mls_number: r.mls_number || '',
     mail_address: r.mail_address || '',
+    // Carried so the digest can suppress the tel:/mailto: links entirely. A do-not-contact
+    // lead that still renders a tappable phone number is one distracted thumb away from a
+    // call that should never have happened.
+    mail_only: !!r.mail_only,
+    mail_only_reason: r.mail_only_reason || '',
     lead_id: String(r.lead_id),
     location: r.location || '',
     phone: r.phone || '',

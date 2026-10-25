@@ -61,8 +61,12 @@ const workEmailsSuppressed = l => (Array.isArray(l.emails) ? l.emails : []).filt
 // Mail is the primary channel now, so a lead with a good mailing address is workable even
 // with no phone and no personal email. Gate on any usable route, not just phone/email.
 const hasContact = l => !!(phone(l) || email(l) || mailAddress(l));
-const DEAD_STAGES = new Set(['Do Not Contact', 'Closed', 'Archived', 'Trash']);
-const reachable = l => !DEAD_STAGES.has(String(l.stage || '')) && !(l.cannotCall && l.cannotEmail && l.cannotText);
+// A lead that says "do not contact" is not the same as a lead that is worthless. Physical mail
+// is not a channel the do-not-call registry governs, and a card is refusable in a way a ringing
+// phone is not. So a do-not-contact signal DEMOTES a lead to mail-only rather than dropping it,
+// and only the true graveyard stages are dropped outright. See reachable() below, which is
+// defined after attr() because the remarks check needs it.
+const DEAD_STAGES = new Set(['Closed', 'Archived', 'Trash']);
 const isWI = l => String(l.state || '').toUpperCase() === 'WI';
 const nearPrefixes = String(cfg.nearZipPrefixes || '').split(',').map(s => s.trim()).filter(Boolean);
 const nearZip = l => { if (!nearPrefixes.length) return true; const z = String(l.zipCode || '').slice(0, 3); return z ? nearPrefixes.includes(z) : true; };
@@ -77,6 +81,43 @@ const attr = (l, name) => {
 };
 const num = (v) => { const n = Number(String(v == null ? '' : v).replace(/[^0-9.]/g, '')); return Number.isFinite(n) && n > 0 ? n : null; };
 const int = (v) => { const n = num(v); return n == null ? null : Math.round(n); };
+
+// --- do-not-contact detection, and the mail-only demotion ---------------------------------
+// Where a DNC actually shows up on a +plus record, in descending order of reliability:
+//   1. the Lofty stage,
+//   2. the per-phone DNC custom attributes. They exist as columns and were empty on every
+//      record inspected on 2026-08-27, so they can confirm a DNC but never rule one out,
+//   3. all three cannot* flags set together,
+//   4. the previous agent's own words in the MLS remarks. Observed live on a $949k Delafield
+//      expired: "Do not contact Sellers Taken off market for reasons and will be relisting
+//      soon." Nothing structured carried that signal. The remarks were the only place it
+//      existed, and the lead was receiving automated email until a human happened to read them.
+// (4) is why this check is worth having at all.
+const DNC_ATTRS = [
+  'Contact 1 Phone 1 DNC', 'Contact 1 Phone 2 DNC', 'Contact 1 Phone 3 DNC', 'Contact 1 Phone 4 DNC',
+  'Contact 2 Phone 1 DNC', 'Contact 2 Phone 2 DNC', 'Contact 2 Phone 3 DNC',
+  'Basic Phone 1 DNC', 'Basic Phone 2 DNC'
+];
+const DNC_TRUTHY = new Set(['y', 'yes', 'true', '1', 'dnc']);
+const DNC_REMARKS = /\bdo\s*not\s*(contact|call|solicit|disturb|phone)\b/i;
+
+// Returns a short human-readable reason, or null when there is no do-not-contact signal.
+const dncReason = (l) => {
+  if (String(l.stage || '') === 'Do Not Contact') return 'Lofty stage is Do Not Contact';
+  const flagged = DNC_ATTRS.find(n => DNC_TRUTHY.has(String(attr(l, n) || '').toLowerCase()));
+  if (flagged) return `${flagged} is set`;
+  if (l.cannotCall && l.cannotEmail && l.cannotText) return 'every contact channel is disabled on the record';
+  if (DNC_REMARKS.test(String(attr(l, 'Remarks') || ''))) return 'the listing remarks ask that the seller not be contacted';
+  return null;
+};
+
+// Kept, but mail only. A do-not-contact with no mailing address has no remaining route, so it
+// is the one case that still drops.
+const reachable = (l) => {
+  if (DEAD_STAGES.has(String(l.stage || ''))) return false;
+  if (dncReason(l)) return !!mailAddress(l);
+  return !(l.cannotCall && l.cannotEmail && l.cannotText);
+};
 
 // Sale Date is ISO ("2022-01-25"); Last Ownership Transfer Date is US ("01/25/2022 12:00 AM").
 const parseOwnDate = (s) => {
@@ -140,6 +181,9 @@ const shape = (l, bucket, ref) => {
     // Reachability
     has_phone: !!phone(l),
     has_email: !!email(l),
+    // When set, this lead may be written to and must not be called, emailed or texted.
+    mail_only: !!dncReason(l),
+    mail_only_reason: dncReason(l),
     work_emails_suppressed: workEmailsSuppressed(l),
     lofty_score: typeof l.score === 'number' ? l.score : null,
     added_to_pond: l.createTime || null
@@ -180,6 +224,8 @@ const batch = all.map(x => {
     phone: x.phone,
     email: x.email,
     mail_address: x.shaped.mail_address,
+    mail_only: x.shaped.mail_only,
+    mail_only_reason: x.shaped.mail_only_reason,
     listing_status: x.shaped.listing_status,
     list_price: x.shaped.list_price,
     bedrooms: x.shaped.bedrooms,
@@ -229,6 +275,11 @@ const SYSTEM = [
   '  mail-only no matter how many addresses the record appears to carry.',
   '- mailable matters: mail is Anthony\'s primary channel. A lead with no mailing address is much',
   '  less useful even if otherwise good.',
+  '- mail_only is absolute. When it is true the record carries a do-not-contact signal, given in',
+  '  mail_only_reason. Write outreach_angle for a letter and nothing else. Never suggest calling,',
+  '  emailing or texting that person, never phrase the angle as an opener or a conversation, and',
+  '  do not treat the flag as a reason to score them low. A do-not-contact seller with real equity',
+  '  is still a good letter, and the tier should reflect the property, not the channel.',
   '- lofty_score is Lofty\'s own number. It clusters narrowly and means little — use it only to',
   '  break ties, never as a primary driver.',
   '',
@@ -244,8 +295,9 @@ const SYSTEM = [
   'Write plainly. No em dashes, no rhetorical flourish, no sales language. Use periods and commas.',
   'Anthony reads these on a phone between other work, so lead with the fact that matters most.',
   '',
-  'Tiers: A = clearly worth a personal letter and a follow-up call. B = worth including in the next',
-  'mailer batch. C = low priority, leave it. SKIP = do not contact (see hard skip rules).',
+  'Tiers: A = clearly worth a personal letter and a follow-up call, unless mail_only is true, in',
+  'which case A means the letter alone is worth writing. B = worth including in the next mailer',
+  'batch. C = low priority, leave it. SKIP = not to be approached at all (see hard skip rules).',
   '',
   'Respond with ONLY a JSON array, no preamble, no markdown, no code fences. Each element:',
   '{',

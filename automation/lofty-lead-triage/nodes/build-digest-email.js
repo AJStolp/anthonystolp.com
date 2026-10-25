@@ -21,16 +21,17 @@ const claimBtn = i => (i.bucket === 'pond' && cfg.claimBaseUrl && cfg.claimSecre
   ? `<a href="${cfg.claimBaseUrl}/lofty-claim?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.claimSecret || '')}" style="display:inline-block;background:#1a7f37;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Claim now &rarr;</a>`
   : '';
 
-// One-tap postcard, handled by the companion lofty-mailer-webhook workflow. Same guard as
+// One-tap letter, handled by the companion lofty-mailer-webhook workflow. Same guard as
 // the Claim now button, so it simply does not render until that workflow is deployed and
 // configured. Shown for any lead with a mailing address, including A tier: AJ works A by
-// phone, but there is no reason to withhold the option.
+// phone, but there is no reason to withhold the option. On a mail_only lead it is the ONLY
+// action rendered.
 //
 // Dedup and the weekly cap are enforced by the WEBHOOK, not here. n8n static data is
 // per-workflow, so this workflow cannot know what has already been mailed. Tapping an
 // already-mailed lead is harmless and returns an "already mailed" page.
 const mailBtn = i => (i.mail_address && cfg.mailBaseUrl && cfg.mailSecret && !/PUT_|YOUR_/.test(String(cfg.mailBaseUrl)) && !/PUT_|YOUR_/.test(String(cfg.mailSecret)))
-  ? `<a href="${cfg.mailBaseUrl}/lofty-mail?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.mailSecret || '')}" style="display:inline-block;background:#6639ba;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Send postcard &rarr;</a>`
+  ? `<a href="${cfg.mailBaseUrl}/lofty-mail?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.mailSecret || '')}" style="display:inline-block;background:#6639ba;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Send letter &rarr;</a>`
   : '';
 
 // One line of hard property facts, only the parts we actually have.
@@ -47,10 +48,18 @@ const facts = i => {
   return f.join(' &middot; ');
 };
 
+// A do-not-contact lead keeps its Send letter button and loses everything else. The phone
+// number and email address are not rendered at all, tappable or otherwise, because a number
+// on the screen is an invitation and the whole point is that this one must not be called.
+const dncBadge = i => i.mail_only
+  ? `<div style="margin:4px 0 2px;font-size:12px"><span style="display:inline-block;background:#cf222e;color:#ffffff;font-weight:700;padding:2px 8px;border-radius:11px">MAIL ONLY</span>`
+    + `<span style="color:#57606a">&nbsp;${esc(i.mail_only_reason || 'do-not-contact on the record')}. Do not call, email or text.</span></div>`
+  : '';
+
 const card = i => {
   const c = [];
-  if (i.phone) c.push(`<a href="tel:${esc(String(i.phone).replace(/\D/g, ''))}" style="color:#0969da;text-decoration:none">${esc(fmtPhone(i.phone))}</a>`);
-  if (i.email) c.push(`<a href="mailto:${esc(i.email)}" style="color:#0969da;text-decoration:none">${esc(i.email)}</a>`);
+  if (!i.mail_only && i.phone) c.push(`<a href="tel:${esc(String(i.phone).replace(/\D/g, ''))}" style="color:#0969da;text-decoration:none">${esc(fmtPhone(i.phone))}</a>`);
+  if (!i.mail_only && i.email) c.push(`<a href="mailto:${esc(i.email)}" style="color:#0969da;text-decoration:none">${esc(i.email)}</a>`);
   const price = money(i.list_price);
   const factLine = facts(i);
   return `<div style="margin:0 0 12px;padding:11px 13px;border-left:4px solid ${color(i.tier)};background:#f6f8fa;border-radius:4px">`
@@ -58,6 +67,7 @@ const card = i => {
     + ` &nbsp;<strong>${esc(i.headline || i.name)}</strong></div>`
     + `<div style="margin:4px 0 2px;font-size:13px;color:#57606a">`
     + `${esc(i.name)}${i.mail_address ? ` &middot; ${esc(i.mail_address)}` : ` &middot; ${esc(i.location)}`}</div>`
+    + dncBadge(i)
     + (factLine ? `<div style="margin:2px 0;font-size:13px;color:#57606a">${factLine}</div>` : '')
     + `<div style="margin:2px 0;font-size:13px;color:#57606a">`
     + `${esc(i.listing_status || 'Listing')}${price ? ` at ${price}` : ''}`
