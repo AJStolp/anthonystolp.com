@@ -4,12 +4,12 @@ n8n workflow that runs **every 15 minutes**, pulls fresh, workable leads from yo
 pond + your claimed pipeline, has Claude score and rank them (geography weighted hard), and
 emails a decision-ready **"claim now / work your pipeline"** digest.
 
-**One-tap claim.** Each pond lead card has a **Claim now** button that assigns the lead to
-you in Lofty (`POST /v1.0/leads/{id}/assignment`) and drops it into your pipeline — no app
-or login round-trip, just a "Claimed ✓" page. Cards also keep an **Open in Lofty** button
-to view the full record. See [Claim now button (one-tap)](#claim-now-button-one-tap).
+**Claim in Lofty.** Each pond lead card has a **Claim in Lofty** button that opens the lead
+in Lofty, where **Claim Lead Now** takes it. Pipeline cards have **Open in Lofty**. Claiming
+can't happen from the email: since 2026-10-21 Lofty answers `no authority` when AJ's API key
+assigns a pond lead (see the assignment endpoint below).
 
-Import files: `lofty-lead-triage-daily.json` + `lofty-claim-webhook.json`
+Import file: `lofty-lead-triage-daily.json`
 
 ---
 
@@ -117,9 +117,6 @@ credential (the import ships placeholder credential IDs).
 | `sheetId` | `PUT_YOUR_GOOGLE_SHEET_ID_HERE` | The spreadsheet's ID (from its URL). **Required.** |
 | `sheetTab` | `Triage` | Tab name. Create the tab with the header row below. |
 | `digestTo` | `anthony.stolp@gmail.com` | Where the digest is emailed. |
-| `claimBaseUrl` | `https://n8n.unchonk.com/webhook` | Your n8n webhook base (no trailing slash); pre-filled with your instance. The Claim now button links to `${claimBaseUrl}/lofty-claim`. |
-| `claimAssignee` | `PUT_YOUR_LOFTY_ACCOUNT_EMAIL_HERE` | The Lofty **account** the lead gets assigned to — your Lofty login email (the assign endpoint takes an account, not the numeric `myUserId`). |
-| `claimSecret` | `PUT_A_LONG_RANDOM_SECRET_HERE` | Shared secret in the Claim now link (`&t=`). **Must be identical** to `claimSecret` in the `lofty-claim-webhook` workflow's Claim Config node. The **Claim now button stays hidden until this is set** to a real value (avoids a dead/unauthorized link); Open in Lofty still shows meanwhile. |
 
 ### 3. Prepare the Google Sheet
 
@@ -178,14 +175,12 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
   workflow reads only the newest 100 per run, which is ample for steady-state inflow.
 - `POST /v1.0/notes` — body `{ leadId, content, isPin }` (all required), returns
   `{ noteId }`. Used only by the optional, disabled write-back node.
-- `POST /v1.0/leads/{leadId}/assignment` — claim/assign a lead. Body is an **array**:
-  `[{ "role": "Agent", "assignee": "<lofty account>" }]`; returns the `leadId`. Used by the
-  Claim now button (separate `lofty-claim-webhook` workflow). **Auth caveat:** the developer
-  docs show this endpoint expecting `Authorization: Bearer …`, while the rest of this
-  workflow authenticates with the legacy `Authorization: token …` header. The webhook reuses
-  the same **Lofty API** credential — **test one claim first** (see below); if it 401s, make
-  a second header-auth credential with `Authorization: Bearer <token>` and point the Assign
-  node at it.
+- `POST /v1.0/leads/{leadId}/assignment` — not used. Body is an **array**:
+  `[{ "role": "Agent", "assignee": "<lofty account>" }]`. It assigned pond leads to AJ until
+  2026-10-18; from 2026-10-21 it answers `{"message":"no authority"}`, because AJ is a
+  Standard User under Epique and Epique owns the WI Leads pond. The body the developer docs
+  show, `{"assignees":[{"userId":…}]}`, gets `400 Failed to read request`. Claiming inside
+  Lofty still works, so the digest links there instead.
 
 ### Known limits / deliberate scope cuts
 - **Single page (100 leads) per run.** Steady-state new-lead counts are far below 100, so
@@ -201,15 +196,15 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 - **Lead IDs are JSON numbers ≈ 1.1e15** — under JS's safe-integer limit, so standard
   parsing is fine and IDs are coerced to strings for display. Revisit only if Lofty ever
   issues IDs above ~9.0e15.
-- **Claiming is one-tap, not zero-tap.** The Claim now button assigns the lead via
-  `POST /v1.0/leads/{id}/assignment`, but you still tap it per lead — there's no auto-claim
-  (deliberate: you decide which to take). Re-engagement is still a phase-2 item.
+- **Claiming happens in Lofty, not the email.** There is no auto-claim either: it would
+  need the same assignment permission. Only Epique can restore it, or route high scoring
+  pond leads to AJ with a Lofty routing rule. Re-engagement is still a phase-2 item.
 
 ---
 
 ## Send postcard button (one-tap direct mail)
 
-`lofty-mailer-webhook.json` is a separate workflow, like the claim webhook, so a mailer fault
+`lofty-mailer-webhook.json` is a separate workflow so a mailer fault
 can never break the digest. The digest renders a **Send postcard** button on any card with a
 mailing address; tapping it mails one postcard through [thanks.io](https://thanks.io).
 
@@ -280,57 +275,8 @@ The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is 
 
 ---
 
-## Claim now button (one-tap)
-
-Each pond lead in the digest carries a **Claim now** button (next to **Open in Lofty**).
-Tapping it — from your phone, in the email — assigns that lead to you in Lofty and it lands
-in your pipeline, with no website login and no app handoff, just a "Claimed ✓" page.
-
-**Architecture (two workflows):**
-```
-Triage digest email  --(Claim now link: GET {claimBaseUrl}/lofty-claim?lead_id=…&t=secret)-->
-  lofty-claim-webhook:
-    Claim Webhook (GET)        respond mode = "responseNode"
-      -> Claim Config (Set: claimAssignee, claimSecret)
-      -> Verify & Authorize    (token must match claimSecret; lead_id must be numeric)
-      -> IF Token OK
-           true  -> Lofty: Assign Lead (POST …/assignment, neverError) -> Build Result HTML
-           false ------------------------------------------------------------> Respond
-      -> Respond (text/html confirmation page)
-```
-
-**Why a second workflow:** email buttons can only issue a GET. The button hits an n8n
-**webhook** that does the assign server-side and returns a confirmation page. n8n must be
-publicly reachable for the tap to arrive — yours is (self-hosted on EC2), so the production
-webhook URL is `https://<your-ec2-host>/webhook/lofty-claim`.
-
-**Setup:**
-1. Import `lofty-claim-webhook.json`. Open **Lofty: Assign Lead** and re-select the
-   **Lofty API** credential (import ships a placeholder id).
-2. In **Claim Config**, set `claimAssignee` (your Lofty login email) and `claimSecret`.
-3. In the triage workflow's **Config**, set `claimBaseUrl` to your n8n webhook base and
-   `claimSecret` to the **same** value as step 2. Mismatched secrets = every claim is
-   rejected as "Not authorized."
-4. **Activate** the claim webhook workflow (the production webhook URL only works while the
-   workflow is active).
-
-**Security:** the only guard is the shared `claimSecret` in the link's `&t=` param — enough
-for a personal, non-guessable link. Anyone with the full link can claim that lead, so don't
-post it publicly. Rotate `claimSecret` in both workflows if a link leaks.
-
-**Test before trusting it (do this once):**
-1. With the webhook workflow active, grab a real unclaimed pond `lead_id` and open
-   `https://<host>/webhook/lofty-claim?lead_id=<id>&t=<claimSecret>` in a browser.
-2. Expect a green **Claimed ✓** page, and the lead to appear in your Lofty pipeline.
-3. If you get **Claim failed** with a 401-ish code, it's the auth caveat above — switch the
-   Assign node to a `Bearer` credential and retry.
-4. Confirm a wrong/missing `t=` returns **Not authorized** (no assignment happens).
-
----
-
 ## Files
 - `lofty-lead-triage-daily.json` — importable n8n workflow (triage + digest, every 15 min).
-- `lofty-claim-webhook.json` — importable n8n workflow handling the Claim now button.
 - `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
 - `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
 - `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.

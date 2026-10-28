@@ -6,7 +6,7 @@
 // ago and they keep. A/B leads get a full card; C leads are counted but not rendered, so the
 // inbox stays short without anything disappearing silently.
 const items = $input.all().map(i => i.json); // already sorted by score desc, SKIPs removed
-const cfg = $('Read Config').first().json; // for the per-lead Claim now link
+const cfg = $('Read Config').first().json; // for the per-lead Send postcard link
 const date = (items[0] && items[0].date) || $now.toFormat('yyyy-LL-dd');
 const pond = items.filter(i => i.bucket === 'pond');
 const pipe = items.filter(i => i.bucket === 'pipeline');
@@ -17,14 +17,17 @@ const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g,
 const color = t => t === 'A' ? '#1a7f37' : t === 'B' ? '#9a6700' : '#6e7781';
 const money = n => (n == null || n === '') ? null : '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
 const fmtPhone = p => { const d = String(p || '').replace(/\D/g, ''); if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`; if (d.length === 11 && d[0] === '1') return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`; return p || ''; };
-const claimBtn = i => (i.bucket === 'pond' && cfg.claimBaseUrl && cfg.claimSecret && !/PUT_|YOUR_/.test(String(cfg.claimBaseUrl)) && !/PUT_|YOUR_/.test(String(cfg.claimSecret)))
-  ? `<a href="${cfg.claimBaseUrl}/lofty-claim?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.claimSecret || '')}" style="display:inline-block;background:#1a7f37;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Claim now &rarr;</a>`
-  : '';
+// Lofty no longer lets AJ's API key assign pond leads ("no authority" since 2026-10-21), so
+// a pond lead's button opens it in Lofty, where Claim Lead Now is one more tap. A pipeline
+// lead is already his, so its button only opens it.
+const loftyBtn = i => i.bucket === 'pond'
+  ? `<a href="https://crm.lofty.com/admin/home/detail?leadId=${esc(i.lead_id)}" style="display:inline-block;background:#1a7f37;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Claim in Lofty &rarr;</a>`
+  : `<a href="https://crm.lofty.com/admin/home/detail?leadId=${esc(i.lead_id)}" style="display:inline-block;background:#0969da;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;padding:5px 12px;border-radius:5px;margin-right:6px">Open in Lofty &rarr;</a>`;
 
-// One-tap postcard, handled by the companion lofty-mailer-webhook workflow. Same guard as
-// the Claim now button, so it simply does not render until that workflow is deployed and
-// configured. Shown for any lead with a mailing address, including A tier: AJ works A by
-// phone, but there is no reason to withhold the option.
+// One-tap postcard, handled by the companion lofty-mailer-webhook workflow. It does not
+// render until that workflow is deployed and configured. Shown for any lead with a mailing
+// address, including A tier: AJ works A by phone, but there is no reason to withhold the
+// option.
 //
 // Dedup and the weekly cap are enforced by the WEBHOOK, not here. n8n static data is
 // per-workflow, so this workflow cannot know what has already been mailed. Tapping an
@@ -68,8 +71,7 @@ const card = i => {
     + (i.outreach_angle ? `<div style="margin:3px 0;font-size:13px"><strong>Angle:</strong> ${esc(i.outreach_angle)}</div>` : '')
     + (i.confidence ? `<div style="margin:3px 0;font-size:12px;color:#8c959f">confidence: ${esc(i.confidence)}</div>` : '')
     + (c.length ? `<div style="margin:5px 0;font-size:13px">${c.join(' &middot; ')}</div>` : `<div style="margin:5px 0;font-size:13px;color:#8c959f">no phone or email on file</div>`)
-    + `<div style="margin:8px 0 1px">${claimBtn(i)}${mailBtn(i)}`
-    + `<a href="https://crm.lofty.com/admin/home/detail?leadId=${esc(i.lead_id)}" style="display:inline-block;background:#0969da;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;padding:5px 12px;border-radius:5px">Open in Lofty &rarr;</a></div>`
+    + `<div style="margin:8px 0 1px">${loftyBtn(i)}${mailBtn(i)}</div>`
     + `</div>`;
 };
 
