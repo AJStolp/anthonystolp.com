@@ -152,7 +152,7 @@ const pondNew = pond
   .map((l, i) => ({ shaped: shape(l, 'pond', i), bucket: 'pond', lead_id: String(l.leadId), phone: phone(l), email: email(l) }));
 
 // PIPELINE: leads already claimed by me. Once per day only (first successful run at/after
-// 7am), so the 30-min cadence doesn't re-email the whole book every half hour. The
+// 7am), so the 5-min cadence doesn't re-email the whole book every run. The
 // pipelineEmailedDate flag is committed only after a successful send (see "Mark Emailed Seen").
 const todayStr = $now.toFormat('yyyy-LL-dd');
 let mine = [];

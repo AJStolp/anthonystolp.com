@@ -1,13 +1,17 @@
 # Lofty Lead-Pond Triage (n8n)
 
-n8n workflow that runs **every 15 minutes**, pulls fresh, workable leads from your Lofty
-pond + your claimed pipeline, has Claude score and rank them (geography weighted hard), and
-emails a decision-ready **"claim now / work your pipeline"** digest.
+n8n workflow that runs **every 5 minutes**, pulls fresh, workable leads from your Lofty
+pond + your claimed pipeline, has Claude score and rank them (geography weighted hard),
+**claims every A and B pond lead for you**, and emails a digest of what it claimed and what
+to work.
 
-**Claim in Lofty.** Each pond lead card has a **Claim in Lofty** button that opens the lead
-in Lofty, where **Claim Lead Now** takes it. Pipeline cards have **Open in Lofty**. Claiming
-can't happen from the email: since 2026-10-21 Lofty answers `no authority` when AJ's API key
-assigns a pond lead (see the assignment endpoint below).
+**Auto claim.** The WI Leads pond is shared by every Epique agent in Wisconsin, and the
+good leads go fast: on 2026-10-28 all three A and B leads from the 6:15 digest were taken by
+other agents before 7:30. So the workflow claims A and B pond leads itself, right after they
+are scored and before the email is built. Each pond card then says **Claimed for you**,
+**Taken by another agent first** (Lofty answers `no authority` because someone else already
+has it), or **Auto claim failed** with Lofty's reason and a **Claim in Lofty** button.
+Pipeline cards have **Open in Lofty**. There is no cap: every A and B lead is claimed.
 
 Import file: `lofty-lead-triage-daily.json`
 
@@ -16,7 +20,7 @@ Import file: `lofty-lead-triage-daily.json`
 ## What it does (flow)
 
 ```
-Schedule (every 15 min, America/Chicago)
+Schedule (every 5 min, America/Chicago)
   -> Config (Set: ids, model, sheet, recipient)
   -> Read Watermark (passthrough of config; dedup is a seen-id set, see below)
   -> Lofty GET /v1.0/leads?stage=New Leads&sort=CreateTime&desc=true   (pond)
@@ -25,6 +29,9 @@ Schedule (every 15 min, America/Chicago)
                      build the Anthropic request)        --> empty? stops here, no email
   -> Anthropic POST /v1/messages (score + triage, strict JSON)
   -> Parse & Sort
+  -> Pick Claims (pond A and B) -> IF Has Claims
+       true  -> Lofty POST /v1.0/leads/{id}/assignment (one per lead) -> Merge Claims
+       false ------------------------------------------------------> Merge Claims
   -> Build Digest Email -> Send (Resend) -> Mark Emailed Seen (commit seen-ids)
   -> [disabled] Write Note back to Lofty
 ```
@@ -52,8 +59,8 @@ Schedule (every 15 min, America/Chicago)
 - **Bounded model call:** `max_tokens` 8192 + `maxPerRun` cap so a giant import can't
   truncate the JSON response.
 - **Pipeline only once a day** (first successful run at/after 07:00, tracked by a
-  `pipelineEmailedDate` flag in static data and committed post-send) so the 15-min cadence
-  doesn't re-email your claimed book every half hour. Fresh pond leads still go out as soon
+  `pipelineEmailedDate` flag in static data and committed post-send) so the 5-min cadence
+  doesn't re-email your claimed book every run. Fresh pond leads still go out as soon
   as they appear.
 
 ---
@@ -117,6 +124,7 @@ credential (the import ships placeholder credential IDs).
 | `sheetId` | `PUT_YOUR_GOOGLE_SHEET_ID_HERE` | The spreadsheet's ID (from its URL). **Required.** |
 | `sheetTab` | `Triage` | Tab name. Create the tab with the header row below. |
 | `digestTo` | `anthony.stolp@gmail.com` | Where the digest is emailed. |
+| `claimAssignee` | `PUT_YOUR_LOFTY_ACCOUNT_EMAIL_HERE` | Your Lofty login email: the account A and B pond leads are claimed for. The assign endpoint takes an account, not the numeric `myUserId`. While it is a placeholder, nothing is claimed and the digest shows **Claim in Lofty** buttons instead. |
 
 ### 3. Prepare the Google Sheet
 
@@ -128,10 +136,12 @@ date | tier | score | name | type | bucket | why | best_channel | suggested_acti
 
 ### 4. Schedule / timezone
 
-The trigger fires **every 15 minutes** (cron `*/15 * * * *`) in the workflow timezone,
-**America/Chicago**. Speed-to-lead matters in real estate, and an empty run is cheap — no
-new leads means no email and no Anthropic call, and each lead is still triaged only once.
-Change the cadence in the **Schedule Every 15 Min** node. The once-daily pipeline reminder
+The trigger fires **every 5 minutes** (cron `*/5 * * * *`) in the workflow timezone,
+**America/Chicago**. Other agents claim the good pond leads within the hour, so the claim has
+to happen soon after a lead lands. An empty run is cheap: two Lofty reads, no Anthropic call,
+no email, and each lead is still triaged only once. That is about 576 Lofty reads a day; if
+Lofty starts answering 429, move to 10 minutes. Change the cadence in the **Schedule Every
+5 Min** node. The once-daily pipeline reminder
 is gated separately in code (first run at/after 07:00), so it doesn't fire on every run.
 
 ---
@@ -175,12 +185,13 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
   workflow reads only the newest 100 per run, which is ample for steady-state inflow.
 - `POST /v1.0/notes` — body `{ leadId, content, isPin }` (all required), returns
   `{ noteId }`. Used only by the optional, disabled write-back node.
-- `POST /v1.0/leads/{leadId}/assignment` — not used. Body is an **array**:
-  `[{ "role": "Agent", "assignee": "<lofty account>" }]`. It assigned pond leads to AJ until
-  2026-10-18; from 2026-10-21 it answers `{"message":"no authority"}`, because AJ is a
-  Standard User under Epique and Epique owns the WI Leads pond. The body the developer docs
-  show, `{"assignees":[{"userId":…}]}`, gets `400 Failed to read request`. Claiming inside
-  Lofty still works, so the digest links there instead.
+- `POST /v1.0/leads/{leadId}/assignment` — the auto claim. Body is an **array**:
+  `[{ "role": "Agent", "assignee": "<lofty account>" }]`; returns `{ "leadId": … }` when the
+  claim lands. `{"message":"no authority"}` means the lead is no longer in the pond because
+  another agent claimed it first (opening it in Lofty then shows "Illegal Access"); it is
+  not a permission problem, as a claim on a lead still in the pond succeeded the same day
+  (2026-10-28). The body the developer docs show, `{"assignees":[{"userId":…}]}`, gets
+  `400 Failed to read request`.
 
 ### Known limits / deliberate scope cuts
 - **Single page (100 leads) per run.** Steady-state new-lead counts are far below 100, so
@@ -196,9 +207,9 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 - **Lead IDs are JSON numbers ≈ 1.1e15** — under JS's safe-integer limit, so standard
   parsing is fine and IDs are coerced to strings for display. Revisit only if Lofty ever
   issues IDs above ~9.0e15.
-- **Claiming happens in Lofty, not the email.** There is no auto-claim either: it would
-  need the same assignment permission. Only Epique can restore it, or route high scoring
-  pond leads to AJ with a Lofty routing rule. Re-engagement is still a phase-2 item.
+- **Claims are not retried.** A claim that fails for a reason other than `no authority` is
+  shown in the digest with a **Claim in Lofty** button, and the lead is still marked seen, so
+  the next run does not try again. Re-engagement is still a phase-2 item.
 
 ---
 
@@ -276,14 +287,16 @@ The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is 
 ---
 
 ## Files
-- `lofty-lead-triage-daily.json` — importable n8n workflow (triage + digest, every 15 min).
+- `lofty-lead-triage-daily.json` — importable n8n workflow (triage + auto claim + digest, every 5 min).
 - `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
 - `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
+- `test-auto-claim.mjs` — tests for which leads are claimed and how Lofty's answers are read. `node automation/lofty-lead-triage/test-auto-claim.mjs`
 - `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
 - `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
+- `nodes/pick-claims.js`, `nodes/merge-claims.js` — bodies of the **Pick Claims** and **Merge Claims** code nodes.
 - `nodes/build-digest-email.js` — paste-ready body of the **Build Digest Email** code node.
 - `nodes/mailer-{verify-and-cap,build-postcard,record-sent}.js` — bodies for the mailer workflow.
 - `README.md` — this file.
 
-The three `nodes/*.js` files are the source of truth for those node bodies. The workflow JSON
+The triage `nodes/*.js` files are the source of truth for those node bodies. The workflow JSON
 carries its own copies, so after editing a node file, paste it into the n8n editor to deploy.
