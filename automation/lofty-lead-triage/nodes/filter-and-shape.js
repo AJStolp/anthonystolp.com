@@ -70,9 +70,15 @@ const isWI = l => String(l.state || '').toUpperCase() === 'WI';
 // 2026-11-02 every one of them was far away (Hayward, Menomonie, Richland Center). Sending
 // them to Claude to judge does not work, because a lead it SKIPs is never marked seen, so the
 // same far-away leads went back to Claude on every 5-minute run.
-const counties = new Set(String(cfg.counties || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean));
-const countyOf = l => String(attr(l, 'County') || '').trim().toUpperCase().replace(/ COUNTY$/, '');
-const inTerritory = l => !counties.size || counties.has(countyOf(l));
+// The same list names the counties in the prompt below, so the filter and what Claude is told
+// cannot drift apart. An empty list is a broken Config, not "everywhere": the prompt tells
+// Claude location does not matter, and an A or B lead is claimed in Lofty automatically.
+const countyNames = String(cfg.counties || '').split(',').map(c => c.trim()).filter(Boolean);
+if (!countyNames.length) throw new Error('Config counties is empty. Set the territory before the triage runs.');
+const normCounty = c => String(c || '').trim().toUpperCase().replace(/ COUNTY$/, '');
+const counties = new Set(countyNames.map(normCounty));
+const countyOf = l => normCounty(attr(l, 'County'));
+const inTerritory = l => counties.has(countyOf(l));
 
 // --- customAttributes: where every real signal on a +plus lead actually lives -------------
 // Shape is [{attributeName, attributeType, value}]. Values are strings, and "0" / "" are
@@ -204,8 +210,8 @@ const batch = all.map(x => {
 
 const SYSTEM = [
   'You triage seller prospects for Anthony Stolp, a residential real estate agent based in',
-  'Ozaukee County, Wisconsin (ExSell Experts / Epique Realty). He works eight counties, all equally:',
-  'Ozaukee, Washington, Sheboygan, Milwaukee, Fond du Lac, Manitowoc, Calumet and Waukesha.',
+  `Ozaukee County, Wisconsin (ExSell Experts / Epique Realty). He works these ${countyNames.length} counties, all equally:`,
+  `${countyNames.slice(0, -1).join(', ')}${countyNames.length > 1 ? ' and ' : ''}${countyNames[countyNames.length - 1]}.`,
   '',
   'These are NOT website inquiries. They are public listing records: homes that were listed for',
   'sale and did not sell. `listing_status` is Expired (the listing agreement ran out), Canceled',
@@ -218,8 +224,8 @@ const SYSTEM = [
   'schedule. Rank by which are WORTH his time, not by which are most urgent.',
   '',
   'Score each lead on the evidence actually present:',
-  '- Geography: every lead you are given is already inside the eight counties. Location does not',
-  '  change the score: a Manitowoc lead and a Mequon lead are judged on the same evidence.',
+  '- Geography: every lead you are given is already inside those counties. Location does not',
+  '  change the score: two leads in different counties are judged on the same evidence.',
   '- owner_occupied "Y" means a resident who tried to move and failed — the strongest signal here.',
   '  "N" is an absentee owner or investor: a colder, more transactional conversation. Rank it lower',
   '  unless the numbers are compelling.',

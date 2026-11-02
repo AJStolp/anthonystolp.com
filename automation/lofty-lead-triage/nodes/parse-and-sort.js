@@ -1,10 +1,10 @@
 // Parse Claude's JSON, drop SKIPs, sort by score desc, merge back the property facts.
 //
-// NOTE ON SUPPRESSION: everything that reaches this node is committed to the seen-set by
-// "Mark Emailed Seen" after a successful send, so a lead dropped here is dropped for good.
-// That is deliberate for tier SKIP (own-brokerage listings and uncontactable records — they
-// will never become workable). Everything else is passed through and the DIGEST decides what
-// to render, so a merely-weak lead is still counted and never silently vanishes.
+// NOTE ON SUPPRESSION: "Mark Emailed Seen" commits the leads this node OUTPUTS, after a
+// successful send. A SKIP is filtered out here, so it is never committed and goes back to
+// Claude on the next run (anthonystolp T-023). Everything else is passed through and the
+// DIGEST decides what to render, so a merely-weak lead is still counted and never silently
+// vanishes.
 const resp = $json;
 const text = (resp.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
 // The prompt asks for a bare array, but a reply can still open with a line of reasoning

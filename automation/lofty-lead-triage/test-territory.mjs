@@ -58,13 +58,17 @@ is('Racine, Kenosha, Walworth and others are dropped', run(cfg, outside).batch.l
 const mixed = run(cfg, [lead('FOND DU LAC', 'Ripon'), lead('RACINE', 'Burlington'), lead(null, 'Hayward')]);
 is('no County is dropped', cities(mixed), 'Ripon');
 
-is('a blank list keeps every county', run({ ...cfg, counties: '' }, outside).batch.length, 6);
+const threw = (f) => { try { f(); return 'ran'; } catch { return 'threw'; } };
+is('a blank list stops the run', threw(() => run({ ...cfg, counties: '' }, eight)), 'threw');
+is('"Waukesha County" in Config matches', run({ ...cfg, counties: 'Waukesha County' }, eight).batch.length, 1);
 
 // What Claude is told.
 const system = run(cfg, eight).anthropicBody.system;
 is('prompt names all eight counties', ['Ozaukee', 'Washington', 'Sheboygan', 'Milwaukee', 'Fond du Lac', 'Manitowoc', 'Calumet', 'Waukesha'].every(c => system.includes(c)), true);
 is('prompt weights them equally', /all equally/.test(system), true);
-is('prompt does not ask Claude to place counties', /null county/.test(system), false);
+is('prompt lists them as the Config gives them', /Fond du Lac, Manitowoc, Calumet and Waukesha\./.test(system), true);
+const two = run({ ...cfg, counties: 'Ozaukee,Sheboygan' }, eight).anthropicBody.system;
+is('prompt follows a changed list', /these 2 counties, all equally:\nOzaukee and Sheboygan\./.test(two) && !two.includes('Manitowoc'), true);
 
 // The workflow file carries the same territory and code.
 const wf = JSON.parse(fs.readFileSync(path.join(DIR, 'lofty-lead-triage-daily.json'), 'utf8'));
@@ -79,7 +83,7 @@ is('workflow Parse & Sort matches the node file', node('Parse & Sort').parameter
 // 2026-11-02, execution 14346: Claude opened with a paragraph of reasoning, then a fenced
 // array, and Parse & Sort threw on the whole run.
 const parse = (text) => new Function('$', '$json', '$now', 'console', parseSrc)(
-  (n) => ({ first: () => ({ json: { rawById: { 4: { bucket: 'pond', lead_id: '44' } } } }) }),
+  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: { 4: { bucket: 'pond', lead_id: '44' } } } : {} }) }),
   { content: [{ type: 'text', text }] }, { toFormat: () => '2026-11-02' }, quiet).map(i => i.json);
 const reply = '[{"ref":4,"name":"Andrew Sullivan","tier":"B","score":61}]';
 is('bare array parses', parse(reply).map(p => p.tier).join(), 'B');
@@ -89,7 +93,9 @@ is('a reply with no array still fails the run', (() => { try { parse('no leads t
 // 2026-10-30: two runs claimed 5 and 3 leads, then Send Digest failed on
 // "Paired item data for item from node 'Merge Claims' is unavailable". `.item` needs pairing
 // that Merge Claims cannot give once more than one claim ran; `.first()` needs none.
-is('Send Digest reads Config without item pairing', /\$\('Config'\)\.item/.test(node('Send Digest (Resend)').parameters.jsonBody), false);
+const body = node('Send Digest (Resend)').parameters.jsonBody;
+is('Send Digest reads Config without item pairing', /\$\(["']Config["']\)\.item/.test(body), false);
+is('Send Digest reads Config with .first()', body.includes("$('Config').first().json.digestTo"), true);
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

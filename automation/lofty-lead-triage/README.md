@@ -58,8 +58,9 @@ Schedule (every 5 min, America/Chicago)
   zip prefixes, which cut across county lines: `530,531,532,534` let in Racine, Kenosha and
   Walworth, and dropped Manitowoc (`542`), Fond du Lac city (`549`) and part of Calumet (`541`).
   About 1 lead in 12 has no `County`, and those are dropped too. Sending them to Claude to
-  place does not work: a lead it marks `SKIP` is never added to the seen set, so it went back to
-  Claude on every run (2026-11-02, the first run after the change). Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
+  place does not work: the first run that tried it failed on Claude's reply (2026-11-02), and a
+  lead it marks `SKIP` is never added to the seen set, so the same far-away leads would go back
+  to Claude on every run. Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
   County, 1 of them in the eight.
 - **Bounded model call:** `max_tokens` 8192 + `maxPerRun` cap so a giant import can't
   truncate the JSON response.
@@ -90,7 +91,8 @@ Consequences worth knowing:
 - **Honest tiers.** The prompt is explicitly told a batch may contain zero A leads. It no longer
   forces an A/B/C spread.
 - **Tier `SKIP`** drops own-brokerage (Epique / ExSell) listings and fully uncontactable records
-  in `Parse & Sort`. These are dropped permanently, since `Mark Emailed Seen` commits them.
+  in `Parse & Sort`. `Mark Emailed Seen` commits only what `Parse & Sort` outputs, so a SKIP is
+  never marked seen and goes back to Claude on the next run (T-023).
 - **Weak leads are rendered as a count, not suppressed.** Only A/B get a card; C leads still
   appear as "N more triaged and set aside", so nothing vanishes silently.
 - **Keep `maxPerRun` at 25 or below.** Output runs ~300 tokens per lead; a larger batch risks
@@ -123,7 +125,7 @@ credential (the import ships placeholder credential IDs).
 | `pondId` | `1004768` | Your "WI Leads" pond (verified). |
 | `myUserId` | `844773616097576` | Your numeric Lofty user id (from your API key's JWT). |
 | `pondStage` | `New Leads` | Exact stage name (case-sensitive; "New" 404s). |
-| `counties` | `Ozaukee,Washington,Sheboygan,Milwaukee,Fond du Lac,Manitowoc,Calumet,Waukesha` | Your territory. Only WI leads whose `County` attribute is one of these reach Claude (case does not matter, a trailing "County" is ignored). All eight are weighted equally in scoring. Changing the list also means changing the county names in Filter & Shape's prompt. Leave blank to let every county through. |
+| `counties` | `Ozaukee,Washington,Sheboygan,Milwaukee,Fond du Lac,Manitowoc,Calumet,Waukesha` | Your territory. Only WI leads whose `County` attribute is one of these reach Claude (case does not matter, and a trailing "County" is ignored on either side). The prompt names its counties from this same list and weights them equally, so editing the list is the whole change. It must not be blank: the run stops with an error rather than treating blank as everywhere. |
 | `maxPerRun` | `50` | Hard cap on pond leads per run (newest kept) so a bulk import can't truncate the model output. Logged when hit. |
 | `model` | `claude-sonnet-4-6` | Change here to swap models — not hardcoded in the request body. |
 | `sheetId` | `PUT_YOUR_GOOGLE_SHEET_ID_HERE` | The spreadsheet's ID (from its URL). **Required.** |
@@ -295,7 +297,7 @@ The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is 
 - `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
 - `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
 - `test-auto-claim.mjs` — tests for which leads are claimed and how Lofty's answers are read. `node automation/lofty-lead-triage/test-auto-claim.mjs`
-- `test-territory.mjs` — tests for which counties reach Claude, what the prompt says about them, and that Send Digest survives a run with several claims. `node automation/lofty-lead-triage/test-territory.mjs`
+- `test-territory.mjs` — tests for which counties reach Claude, what the prompt says about them, how Claude's reply is parsed, and that Send Digest reads Config with `.first()`, which needs no item pairing. No run with several claims is executed. `node automation/lofty-lead-triage/test-territory.mjs`
 - `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
 - `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
 - `nodes/pick-claims.js`, `nodes/merge-claims.js` — bodies of the **Pick Claims** and **Merge Claims** code nodes.
