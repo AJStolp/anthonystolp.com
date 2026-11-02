@@ -25,7 +25,7 @@ Schedule (every 5 min, America/Chicago)
   -> Read Watermark (passthrough of config; dedup is a seen-id set, see below)
   -> Lofty GET /v1.0/leads?stage=New Leads&sort=CreateTime&desc=true   (pond)
   -> Lofty GET /v1.0/leads?assignedUserId=<you>&sort=CreateTime&desc=true (pipeline)
-  -> Filter & Shape (drop already-seen / non-WI / no-contact / unreachable / claimed-by-others;
+  -> Filter & Shape (drop already-seen / non-WI / outside your counties / no-contact / unreachable / claimed-by-others;
                      build the Anthropic request)        --> empty? stops here, no email
   -> Anthropic POST /v1/messages (score + triage, strict JSON)
   -> Parse & Sort
@@ -52,10 +52,14 @@ Schedule (every 5 min, America/Chicago)
   seen-id set above is the only dedup, so every workable lead is surfaced once, no matter how
   far back in the pond it sits. (A `reachable()` guard also drops any lead flagged
   `Do Not Contact` / fully un-contactable that slips into the pipeline query.)
-- **Region pre-filter:** the pond is fed statewide bulk imports (a single 100-lead dump can
-  span Eau Claire to Green Bay). Only WI leads in your drivable zip prefixes reach Claude,
-  so you don't pay to C-tier a lead 3 hours away. Observed: a 100-lead dump → 84 in-WI → 32
-  drivable.
+- **County pre-filter:** the pond is fed statewide bulk imports (a single 100-lead dump can
+  span Eau Claire to Green Bay). Only WI leads whose `County` attribute is one of the eight in
+  `counties` reach Claude, so you don't pay to C-tier a lead 3 hours away. It used to filter on
+  zip prefixes, which cut across county lines: `530,531,532,534` let in Racine, Kenosha and
+  Walworth, and dropped Manitowoc (`542`), Fond du Lac city (`549`) and part of Calumet (`541`).
+  About 1 lead in 12 has no `County`; those go to Claude, which is told the same eight counties
+  and sets `SKIP` on anything outside them. Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
+  County, 1 of them in the eight.
 - **Bounded model call:** `max_tokens` 8192 + `maxPerRun` cap so a giant import can't
   truncate the JSON response.
 - **Pipeline only once a day** (first successful run at/after 07:00, tracked by a
@@ -118,12 +122,12 @@ credential (the import ships placeholder credential IDs).
 | `pondId` | `1004768` | Your "WI Leads" pond (verified). |
 | `myUserId` | `844773616097576` | Your numeric Lofty user id (from your API key's JWT). |
 | `pondStage` | `New Leads` | Exact stage name (case-sensitive; "New" 404s). |
-| `nearZipPrefixes` | `530,531,532,534` | Drivable-region pre-filter: only WI leads whose zip starts with one of these reach Claude. `530`/`531`/`532`/`534` = SE Wisconsin (Ozaukee, Milwaukee, Washington, Waukesha, Racine, Kenosha, Walworth). Far-WI dumps (Madison `537`, Green Bay `541`, Wausau `544`, Eau Claire `547`…) are dropped. Leave blank to disable and let Claude rank everything. |
+| `counties` | `Ozaukee,Washington,Sheboygan,Milwaukee,Fond du Lac,Manitowoc,Calumet,Waukesha` | Your territory. Only WI leads whose `County` attribute is one of these reach Claude (case does not matter, a trailing "County" is ignored). All eight are weighted equally in scoring. Changing the list also means changing the county names in Filter & Shape's prompt. Leave blank to let every county through. |
 | `maxPerRun` | `50` | Hard cap on pond leads per run (newest kept) so a bulk import can't truncate the model output. Logged when hit. |
 | `model` | `claude-sonnet-4-6` | Change here to swap models — not hardcoded in the request body. |
 | `sheetId` | `PUT_YOUR_GOOGLE_SHEET_ID_HERE` | The spreadsheet's ID (from its URL). **Required.** |
 | `sheetTab` | `Triage` | Tab name. Create the tab with the header row below. |
-| `digestTo` | `anthony.stolp@gmail.com` | Where the digest is emailed. |
+| `digestTo` | `anthony@exsellexperts.com` | Where the digest is emailed. |
 | `claimAssignee` | `PUT_YOUR_LOFTY_ACCOUNT_EMAIL_HERE` | Your Lofty login email: the account A and B pond leads are claimed for. The assign endpoint takes an account, not the numeric `myUserId`. While it is a placeholder, nothing is claimed and the digest shows **Claim in Lofty** buttons instead. |
 
 ### 3. Prepare the Google Sheet
@@ -160,8 +164,8 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 
 2. **Manual run, write-back OFF** (it ships OFF): execute the workflow once. The first run
    on a fresh seen-set surfaces the whole workable backlog (capped at `maxPerRun`); confirm:
-   only in-WI New-Leads appear, far-WI leads (e.g.
-   Elkhorn) rank low, pond vs pipeline buckets are right, the Sheet gets rows, and the
+   only New Leads in your eight counties appear, a lead with no County outside them (e.g.
+   Elkhorn) comes back `SKIP`, pond vs pipeline buckets are right, the Sheet gets rows, and the
    digest email reads cleanly.
 
 3. **Enable the schedule** once a manual run is clean. Run again with nothing new and
@@ -291,6 +295,7 @@ The per-lead `outreach_angle` in the digest is for the phone calls, where AJ is 
 - `lofty-mailer-webhook.json` — importable n8n workflow handling the Send postcard button.
 - `test-mailer-guards.mjs` — guard tests for the mailer. `node automation/lofty-lead-triage/test-mailer-guards.mjs`
 - `test-auto-claim.mjs` — tests for which leads are claimed and how Lofty's answers are read. `node automation/lofty-lead-triage/test-auto-claim.mjs`
+- `test-territory.mjs` — tests for which counties reach Claude, what the prompt says about them, and that Send Digest survives a run with several claims. `node automation/lofty-lead-triage/test-territory.mjs`
 - `nodes/filter-and-shape.js` — paste-ready body of the **Filter & Shape** code node.
 - `nodes/parse-and-sort.js` — paste-ready body of the **Parse & Sort** code node.
 - `nodes/pick-claims.js`, `nodes/merge-claims.js` — bodies of the **Pick Claims** and **Merge Claims** code nodes.

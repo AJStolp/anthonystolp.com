@@ -1,6 +1,6 @@
 // Filter, bucket, shape, and build the Anthropic request body.
 // Anti-redundancy: drop already-seen ids (committed post-send; once-only dedup), non-WI,
-// far-from-area (zip prefix), no-contact, unreachable (Do Not Contact / dead stage), and
+// outside AJ's counties, no-contact, unreachable (Do Not Contact / dead stage), and
 // claimed-by-others. The stage=New Leads query already excludes the dead graveyard, so no
 // date floor is needed — the seen-set guarantees each lead is triaged exactly once.
 //
@@ -64,8 +64,13 @@ const hasContact = l => !!(phone(l) || email(l) || mailAddress(l));
 const DEAD_STAGES = new Set(['Do Not Contact', 'Closed', 'Archived', 'Trash']);
 const reachable = l => !DEAD_STAGES.has(String(l.stage || '')) && !(l.cannotCall && l.cannotEmail && l.cannotText);
 const isWI = l => String(l.state || '').toUpperCase() === 'WI';
-const nearPrefixes = String(cfg.nearZipPrefixes || '').split(',').map(s => s.trim()).filter(Boolean);
-const nearZip = l => { if (!nearPrefixes.length) return true; const z = String(l.zipCode || '').slice(0, 3); return z ? nearPrefixes.includes(z) : true; };
+// AJ's territory, by the lead's County attribute. Zip prefixes cut across county lines (542 is
+// Manitowoc but 534 is Racine), so the county is the test. Lofty writes it in mixed case
+// ("DANE", "Juneau"). About 1 lead in 12 has no County; those go to Claude, which is told the
+// same eight counties and skips anything outside them.
+const counties = new Set(String(cfg.counties || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean));
+const countyOf = l => String(attr(l, 'County') || '').trim().toUpperCase().replace(/ COUNTY$/, '');
+const inTerritory = l => { const c = countyOf(l); return !counties.size || !c || counties.has(c); };
 
 // --- customAttributes: where every real signal on a +plus lead actually lives -------------
 // Shape is [{attributeName, attributeType, value}]. Values are strings, and "0" / "" are
@@ -146,9 +151,9 @@ const shape = (l, bucket, ref) => {
   };
 };
 
-// POND: unseen, in WI, in drivable region, contactable, reachable, still unclaimed.
+// POND: unseen, in WI, in AJ's counties, contactable, reachable, still unclaimed.
 const pondNew = pond
-  .filter(l => l.assignedUserId === -1 && isWI(l) && nearZip(l) && hasContact(l) && reachable(l) && !seen.has(String(l.leadId)))
+  .filter(l => l.assignedUserId === -1 && isWI(l) && inTerritory(l) && hasContact(l) && reachable(l) && !seen.has(String(l.leadId)))
   .map((l, i) => ({ shaped: shape(l, 'pond', i), bucket: 'pond', lead_id: String(l.leadId), phone: phone(l), email: email(l) }));
 
 // PIPELINE: leads already claimed by me. Once per day only (first successful run at/after
@@ -197,8 +202,8 @@ const batch = all.map(x => {
 
 const SYSTEM = [
   'You triage seller prospects for Anthony Stolp, a residential real estate agent based in',
-  'Ozaukee County, Wisconsin (ExSell Experts / Epique Realty). He works Ozaukee County and north',
-  'Milwaukee County, and will consider adjacent Washington and Waukesha County.',
+  'Ozaukee County, Wisconsin (ExSell Experts / Epique Realty). He works eight counties, all equally:',
+  'Ozaukee, Washington, Sheboygan, Milwaukee, Fond du Lac, Manitowoc, Calumet and Waukesha.',
   '',
   'These are NOT website inquiries. They are public listing records: homes that were listed for',
   'sale and did not sell. `listing_status` is Expired (the listing agreement ran out), Canceled',
@@ -211,10 +216,11 @@ const SYSTEM = [
   'schedule. Rank by which are WORTH his time, not by which are most urgent.',
   '',
   'Score each lead on the evidence actually present:',
-  '- Geography (HARD signal): Ozaukee County (Cedarburg, Mequon, Grafton, Port Washington,',
-  '  Saukville, Thiensville) and the north Milwaukee suburbs are best. Milwaukee city proper is',
-  '  workable but a different market. Score down anything far away (Madison, Green Bay, Eau Claire,',
-  '  La Crosse, far northern/western WI) and say so in the reasoning.',
+  '- Geography (HARD rule): every lead is inside the eight counties or SKIP. Within them, location',
+  '  does not change the score: a Manitowoc lead and a Mequon lead are judged on the same evidence.',
+  '  Most leads arrive already filtered by county. One with a null county is judged from its city and',
+  '  zip: if it is not in one of the eight counties (for example Racine, Kenosha, Walworth, Dodge,',
+  '  Jefferson, Dane), set tier "SKIP" and name the county in the reasoning.',
   '- owner_occupied "Y" means a resident who tried to move and failed — the strongest signal here.',
   '  "N" is an absentee owner or investor: a colder, more transactional conversation. Rank it lower',
   '  unless the numbers are compelling.',
@@ -234,7 +240,7 @@ const SYSTEM = [
   '',
   'HARD SKIP: if list_office is Epique Realty or ExSell (any spelling), set tier "SKIP" — that is',
   'his own brokerage and soliciting it is off limits. Also set "SKIP" for anything with no mailing',
-  'address AND no phone AND no email.',
+  'address AND no phone AND no email, and for anything outside the eight counties.',
   '',
   'BE HONEST, DO NOT MANUFACTURE A SPREAD. If a batch is genuinely mediocre, say so by scoring it',
   'low. It is correct and useful for a run to contain zero A leads. Never inflate a tier to fill a',
