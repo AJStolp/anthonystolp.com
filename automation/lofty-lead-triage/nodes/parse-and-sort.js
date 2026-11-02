@@ -7,7 +7,12 @@
 // to render, so a merely-weak lead is still counted and never silently vanishes.
 const resp = $json;
 const text = (resp.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-const clean = text.replace(/```json|```/g, '').trim();
+// The prompt asks for a bare array, but a reply can still open with a line of reasoning
+// (2026-11-02, execution 14346: "I need to check each lead's geography...") and fail the whole
+// run. Read from the first [ to the last ], so text around the array is ignored.
+const stripped = text.replace(/```json|```/g, '');
+const start = stripped.indexOf('['), end = stripped.lastIndexOf(']');
+const clean = (start >= 0 && end > start ? stripped.slice(start, end + 1) : stripped).trim();
 let parsed;
 try {
   parsed = JSON.parse(clean);

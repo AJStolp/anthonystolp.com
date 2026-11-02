@@ -66,11 +66,13 @@ const reachable = l => !DEAD_STAGES.has(String(l.stage || '')) && !(l.cannotCall
 const isWI = l => String(l.state || '').toUpperCase() === 'WI';
 // AJ's territory, by the lead's County attribute. Zip prefixes cut across county lines (542 is
 // Manitowoc but 534 is Racine), so the county is the test. Lofty writes it in mixed case
-// ("DANE", "Juneau"). About 1 lead in 12 has no County; those go to Claude, which is told the
-// same eight counties and skips anything outside them.
+// ("DANE", "Juneau"). About 1 lead in 12 has no County, and those are dropped too: on
+// 2026-11-02 every one of them was far away (Hayward, Menomonie, Richland Center). Sending
+// them to Claude to judge does not work, because a lead it SKIPs is never marked seen, so the
+// same far-away leads went back to Claude on every 5-minute run.
 const counties = new Set(String(cfg.counties || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean));
 const countyOf = l => String(attr(l, 'County') || '').trim().toUpperCase().replace(/ COUNTY$/, '');
-const inTerritory = l => { const c = countyOf(l); return !counties.size || !c || counties.has(c); };
+const inTerritory = l => !counties.size || counties.has(countyOf(l));
 
 // --- customAttributes: where every real signal on a +plus lead actually lives -------------
 // Shape is [{attributeName, attributeType, value}]. Values are strings, and "0" / "" are
@@ -216,11 +218,8 @@ const SYSTEM = [
   'schedule. Rank by which are WORTH his time, not by which are most urgent.',
   '',
   'Score each lead on the evidence actually present:',
-  '- Geography (HARD rule): every lead is inside the eight counties or SKIP. Within them, location',
-  '  does not change the score: a Manitowoc lead and a Mequon lead are judged on the same evidence.',
-  '  Most leads arrive already filtered by county. One with a null county is judged from its city and',
-  '  zip: if it is not in one of the eight counties (for example Racine, Kenosha, Walworth, Dodge,',
-  '  Jefferson, Dane), set tier "SKIP" and name the county in the reasoning.',
+  '- Geography: every lead you are given is already inside the eight counties. Location does not',
+  '  change the score: a Manitowoc lead and a Mequon lead are judged on the same evidence.',
   '- owner_occupied "Y" means a resident who tried to move and failed — the strongest signal here.',
   '  "N" is an absentee owner or investor: a colder, more transactional conversation. Rank it lower',
   '  unless the numbers are compelling.',
@@ -240,7 +239,7 @@ const SYSTEM = [
   '',
   'HARD SKIP: if list_office is Epique Realty or ExSell (any spelling), set tier "SKIP" — that is',
   'his own brokerage and soliciting it is off limits. Also set "SKIP" for anything with no mailing',
-  'address AND no phone AND no email, and for anything outside the eight counties.',
+  'address AND no phone AND no email.',
   '',
   'BE HONEST, DO NOT MANUFACTURE A SPREAD. If a batch is genuinely mediocre, say so by scoring it',
   'low. It is correct and useful for a run to contain zero A leads. Never inflate a tier to fill a',

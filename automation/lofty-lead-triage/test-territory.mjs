@@ -56,7 +56,7 @@ const outside = [
 is('Racine, Kenosha, Walworth and others are dropped', run(cfg, outside).batch.length, 0);
 
 const mixed = run(cfg, [lead('FOND DU LAC', 'Ripon'), lead('RACINE', 'Burlington'), lead(null, 'Hayward')]);
-is('no County goes to Claude to judge', cities(mixed), 'Hayward,Ripon');
+is('no County is dropped', cities(mixed), 'Ripon');
 
 is('a blank list keeps every county', run({ ...cfg, counties: '' }, outside).batch.length, 6);
 
@@ -64,7 +64,7 @@ is('a blank list keeps every county', run({ ...cfg, counties: '' }, outside).bat
 const system = run(cfg, eight).anthropicBody.system;
 is('prompt names all eight counties', ['Ozaukee', 'Washington', 'Sheboygan', 'Milwaukee', 'Fond du Lac', 'Manitowoc', 'Calumet', 'Waukesha'].every(c => system.includes(c)), true);
 is('prompt weights them equally', /all equally/.test(system), true);
-is('prompt skips outside the eight', /outside the eight counties/.test(system), true);
+is('prompt does not ask Claude to place counties', /null county/.test(system), false);
 
 // The workflow file carries the same territory and code.
 const wf = JSON.parse(fs.readFileSync(path.join(DIR, 'lofty-lead-triage-daily.json'), 'utf8'));
@@ -73,6 +73,18 @@ const cfgField = (n) => node('Config').parameters.assignments.assignments.find(a
 is('Config carries the eight counties', cfgField('counties')?.value, COUNTIES);
 is('Config no longer has nearZipPrefixes', cfgField('nearZipPrefixes'), undefined);
 is('workflow Filter & Shape matches the node file', node('Filter & Shape').parameters.jsCode === src, true);
+const parseSrc = fs.readFileSync(path.join(DIR, 'nodes', 'parse-and-sort.js'), 'utf8');
+is('workflow Parse & Sort matches the node file', node('Parse & Sort').parameters.jsCode === parseSrc, true);
+
+// 2026-11-02, execution 14346: Claude opened with a paragraph of reasoning, then a fenced
+// array, and Parse & Sort threw on the whole run.
+const parse = (text) => new Function('$', '$json', '$now', 'console', parseSrc)(
+  (n) => ({ first: () => ({ json: { rawById: { 4: { bucket: 'pond', lead_id: '44' } } } }) }),
+  { content: [{ type: 'text', text }] }, { toFormat: () => '2026-11-02' }, quiet).map(i => i.json);
+const reply = '[{"ref":4,"name":"Andrew Sullivan","tier":"B","score":61}]';
+is('bare array parses', parse(reply).map(p => p.tier).join(), 'B');
+is('reasoning before a fenced array parses', parse('I need to check each lead.\n\n```json\n' + reply + '\n```').map(p => p.name).join(), 'Andrew Sullivan');
+is('a reply with no array still fails the run', (() => { try { parse('no leads today'); return 'parsed'; } catch { return 'threw'; } })(), 'threw');
 
 // 2026-10-30: two runs claimed 5 and 3 leads, then Send Digest failed on
 // "Paired item data for item from node 'Merge Claims' is unavailable". `.item` needs pairing

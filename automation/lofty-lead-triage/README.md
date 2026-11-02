@@ -57,8 +57,9 @@ Schedule (every 5 min, America/Chicago)
   `counties` reach Claude, so you don't pay to C-tier a lead 3 hours away. It used to filter on
   zip prefixes, which cut across county lines: `530,531,532,534` let in Racine, Kenosha and
   Walworth, and dropped Manitowoc (`542`), Fond du Lac city (`549`) and part of Calumet (`541`).
-  About 1 lead in 12 has no `County`; those go to Claude, which is told the same eight counties
-  and sets `SKIP` on anything outside them. Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
+  About 1 lead in 12 has no `County`, and those are dropped too. Sending them to Claude to
+  place does not work: a lead it marks `SKIP` is never added to the seen set, so it went back to
+  Claude on every run (2026-11-02, the first run after the change). Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
   County, 1 of them in the eight.
 - **Bounded model call:** `max_tokens` 8192 + `maxPerRun` cap so a giant import can't
   truncate the JSON response.
@@ -164,8 +165,7 @@ is gated separately in code (first run at/after 07:00), so it doesn't fire on ev
 
 2. **Manual run, write-back OFF** (it ships OFF): execute the workflow once. The first run
    on a fresh seen-set surfaces the whole workable backlog (capped at `maxPerRun`); confirm:
-   only New Leads in your eight counties appear, a lead with no County outside them (e.g.
-   Elkhorn) comes back `SKIP`, pond vs pipeline buckets are right, the Sheet gets rows, and the
+   only New Leads in your eight counties appear, pond vs pipeline buckets are right, the Sheet gets rows, and the
    digest email reads cleanly.
 
 3. **Enable the schedule** once a manual run is clean. Run again with nothing new and
