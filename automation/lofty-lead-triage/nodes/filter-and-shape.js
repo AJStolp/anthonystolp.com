@@ -1,6 +1,6 @@
 // Filter, bucket, shape, and build the Anthropic request body.
 // Anti-redundancy: drop already-seen ids (committed post-send; once-only dedup), non-WI,
-// far-from-area (zip prefix), no-contact, unreachable (Do Not Contact / dead stage), and
+// outside AJ's counties, no-contact, unreachable (Do Not Contact / dead stage), and
 // claimed-by-others. The stage=New Leads query already excludes the dead graveyard, so no
 // date floor is needed — the seen-set guarantees each lead is triaged exactly once.
 //
@@ -64,8 +64,21 @@ const hasContact = l => !!(phone(l) || email(l) || mailAddress(l));
 const DEAD_STAGES = new Set(['Do Not Contact', 'Closed', 'Archived', 'Trash']);
 const reachable = l => !DEAD_STAGES.has(String(l.stage || '')) && !(l.cannotCall && l.cannotEmail && l.cannotText);
 const isWI = l => String(l.state || '').toUpperCase() === 'WI';
-const nearPrefixes = String(cfg.nearZipPrefixes || '').split(',').map(s => s.trim()).filter(Boolean);
-const nearZip = l => { if (!nearPrefixes.length) return true; const z = String(l.zipCode || '').slice(0, 3); return z ? nearPrefixes.includes(z) : true; };
+// AJ's territory, by the lead's County attribute. Zip prefixes cut across county lines (542 is
+// Manitowoc but 534 is Racine), so the county is the test. Lofty writes it in mixed case
+// ("DANE", "Juneau"). About 1 lead in 12 has no County, and those are dropped too: on
+// 2026-11-02 every one of them was far away (Hayward, Menomonie, Richland Center). Sending
+// them to Claude to judge does not work, because a lead it SKIPs is never marked seen, so the
+// same far-away leads went back to Claude on every 5-minute run.
+// The same list names the counties in the prompt below, so the filter and what Claude is told
+// cannot drift apart. An empty list is a broken Config, not "everywhere": the prompt tells
+// Claude location does not matter, and an A or B lead is claimed in Lofty automatically.
+const countyNames = String(cfg.counties || '').split(',').map(c => c.trim()).filter(Boolean);
+if (!countyNames.length) throw new Error('Config counties is empty. Set the territory before the triage runs.');
+const normCounty = c => String(c || '').trim().toUpperCase().replace(/ COUNTY$/, '');
+const counties = new Set(countyNames.map(normCounty));
+const countyOf = l => normCounty(attr(l, 'County'));
+const inTerritory = l => counties.has(countyOf(l));
 
 // --- customAttributes: where every real signal on a +plus lead actually lives -------------
 // Shape is [{attributeName, attributeType, value}]. Values are strings, and "0" / "" are
@@ -146,9 +159,9 @@ const shape = (l, bucket, ref) => {
   };
 };
 
-// POND: unseen, in WI, in drivable region, contactable, reachable, still unclaimed.
+// POND: unseen, in WI, in AJ's counties, contactable, reachable, still unclaimed.
 const pondNew = pond
-  .filter(l => l.assignedUserId === -1 && isWI(l) && nearZip(l) && hasContact(l) && reachable(l) && !seen.has(String(l.leadId)))
+  .filter(l => l.assignedUserId === -1 && isWI(l) && inTerritory(l) && hasContact(l) && reachable(l) && !seen.has(String(l.leadId)))
   .map((l, i) => ({ shaped: shape(l, 'pond', i), bucket: 'pond', lead_id: String(l.leadId), phone: phone(l), email: email(l) }));
 
 // PIPELINE: leads already claimed by me. Once per day only (first successful run at/after
@@ -197,8 +210,8 @@ const batch = all.map(x => {
 
 const SYSTEM = [
   'You triage seller prospects for Anthony Stolp, a residential real estate agent based in',
-  'Ozaukee County, Wisconsin (ExSell Experts / Epique Realty). He works Ozaukee County and north',
-  'Milwaukee County, and will consider adjacent Washington and Waukesha County.',
+  `Ozaukee County, Wisconsin (ExSell Experts / Epique Realty). He works these ${countyNames.length} counties, all equally:`,
+  `${countyNames.slice(0, -1).join(', ')}${countyNames.length > 1 ? ' and ' : ''}${countyNames[countyNames.length - 1]}.`,
   '',
   'These are NOT website inquiries. They are public listing records: homes that were listed for',
   'sale and did not sell. `listing_status` is Expired (the listing agreement ran out), Canceled',
@@ -211,10 +224,8 @@ const SYSTEM = [
   'schedule. Rank by which are WORTH his time, not by which are most urgent.',
   '',
   'Score each lead on the evidence actually present:',
-  '- Geography (HARD signal): Ozaukee County (Cedarburg, Mequon, Grafton, Port Washington,',
-  '  Saukville, Thiensville) and the north Milwaukee suburbs are best. Milwaukee city proper is',
-  '  workable but a different market. Score down anything far away (Madison, Green Bay, Eau Claire,',
-  '  La Crosse, far northern/western WI) and say so in the reasoning.',
+  '- Geography: every lead you are given is already inside those counties. Location does not',
+  '  change the score: two leads in different counties are judged on the same evidence.',
   '- owner_occupied "Y" means a resident who tried to move and failed — the strongest signal here.',
   '  "N" is an absentee owner or investor: a colder, more transactional conversation. Rank it lower',
   '  unless the numbers are compelling.',
