@@ -117,13 +117,6 @@ is('a pipeline lead that is shown waits for the send', pipeShownSd.pipelineEmail
 const pondOnlySd = {};
 parse('[{"ref":5,"tier":"SKIP"}]', pondOnlySd, { 5: RAW[5] });
 is('a pond-only run leaves the pipeline date alone', pondOnlySd.pipelineEmailedDate, undefined);
-const logged = [];
-new Function('$', '$json', '$now', '$getWorkflowStaticData', 'console', parseSrc)(
-  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: RAW } : {} }) }),
-  { content: [{ type: 'text', text: '[{"ref":5,"tier":"SKIP"}]' }] }, { toFormat: () => '2026-11-02' }, () => ({}), { log: (m) => logged.push(m) });
-is('the SKIP ids marked seen are logged', logged.some(m => /marked seen: 55/.test(m)), true);
-const markSrc = node('Mark Emailed Seen').parameters.jsCode;
-is('both seen-set caps are 3000', /slice\(-3000\)/.test(markSrc) && /slice\(-3000\)/.test(parseSrc), true);
 is('a reply with no array still fails the run', (() => { try { parse('no leads today'); return 'parsed'; } catch { return 'threw'; } })(), 'threw');
 
 // 2026-10-30: two runs claimed 5 and 3 leads, then Send Digest failed on

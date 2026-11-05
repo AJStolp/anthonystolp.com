@@ -35,13 +35,9 @@ if (skipIds.length) {
   const sd = $getWorkflowStaticData('global');
   const seen = new Set(Array.isArray(sd.seenLeadIds) ? sd.seenLeadIds : []);
   skipIds.forEach(id => seen.add(id));
-  // 3000 is also the cap in "Mark Emailed Seen". Change one, change both, or a run with a SKIP
-  // trims the set to the smaller size and the oldest leads go back to Claude.
   sd.seenLeadIds = [...seen].slice(-3000);
 }
-// A SKIP is permanent, so name the ids: a wrong one can be found in the execution log and
-// taken back out of seenLeadIds by hand.
-if (skipped.length) console.log(`Dropped ${skipped.length} SKIP leads (own brokerage / uncontactable); marked seen: ${skipIds.join(', ') || 'none'}`);
+if (skipped.length) console.log(`Dropped ${skipped.length} SKIP leads (own brokerage / uncontactable); ${skipIds.length} marked seen`);
 
 let kept = parsed.filter(p => !isSkip(p));
 
