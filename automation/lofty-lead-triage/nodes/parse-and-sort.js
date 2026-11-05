@@ -35,9 +35,18 @@ if (skipIds.length) {
   const sd = $getWorkflowStaticData('global');
   const seen = new Set(Array.isArray(sd.seenLeadIds) ? sd.seenLeadIds : []);
   skipIds.forEach(id => seen.add(id));
+  // 3000 is also the cap in "Mark Emailed Seen". Change one, change both, or a run with a SKIP
+  // trims the set to the smaller size and the oldest leads go back to Claude.
   sd.seenLeadIds = [...seen].slice(-3000);
+  // A SKIP is permanent, so keep a record of which ids it suppressed: a wrong SKIP is found in
+  // skipLog (workflow static data, saved by every production run) and its id taken back out of
+  // seenLeadIds by hand. The console line below is not that record: a production Code node only
+  // reaches n8n's stdout when the instance sets CODE_ENABLE_STDOUT=true, which is off by default.
+  // Bounded to the most recent 500 runs that marked a SKIP.
+  const skipLog = Array.isArray(sd.skipLog) ? sd.skipLog : [];
+  sd.skipLog = [...skipLog, { date: today, ids: skipIds }].slice(-500);
 }
-if (skipped.length) console.log(`Dropped ${skipped.length} SKIP leads (own brokerage / uncontactable); ${skipIds.length} marked seen`);
+if (skipped.length) console.log(`Dropped ${skipped.length} SKIP leads (own brokerage / uncontactable); marked seen: ${skipIds.join(', ') || 'none'}`);
 
 let kept = parsed.filter(p => !isSkip(p));
 
