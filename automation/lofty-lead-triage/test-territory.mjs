@@ -117,15 +117,27 @@ is('a pipeline lead that is shown waits for the send', pipeShownSd.pipelineEmail
 const pondOnlySd = {};
 parse('[{"ref":5,"tier":"SKIP"}]', pondOnlySd, { 5: RAW[5] });
 is('a pond-only run leaves the pipeline date alone', pondOnlySd.pipelineEmailedDate, undefined);
-// anthonystolp T-033: a SKIP is permanent, so the ids it marks seen are logged, and the two
-// seen-set caps stay equal.
+// anthonystolp T-033: a SKIP is permanent, so the pond ids it marks seen are recorded in
+// skipLog (static data, which n8n keeps; console output it does not by default) and logged.
+// The pipeline SKIP beside them is never marked seen, so it must not be named.
 const logged = [];
+const skipSd = { skipLog: [{ date: '2026-11-01', ids: ['33'] }] };
 new Function('$', '$json', '$now', '$getWorkflowStaticData', 'console', parseSrc)(
   (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: RAW } : {} }) }),
-  { content: [{ type: 'text', text: '[{"ref":5,"tier":"SKIP"}]' }] }, { toFormat: () => '2026-11-02' }, () => ({}), { log: (m) => logged.push(m) });
-is('the SKIP ids marked seen are logged', logged.some(m => /marked seen: 55/.test(m)), true);
-const caps = (src) => (src.match(/slice\(-(\d+)\)/g) || []).join();
-is('both seen-set caps agree', caps(node('Mark Emailed Seen').parameters.jsCode), caps(parseSrc));
+  { content: [{ type: 'text', text: '[{"ref":4,"tier":"SKIP"},{"ref":5,"tier":"SKIP"},{"ref":100000,"tier":"SKIP"}]' }] },
+  { toFormat: () => '2026-11-02' }, () => skipSd, { log: (m) => logged.push(m) });
+is('skipLog appends the pond SKIP ids marked seen', JSON.stringify(skipSd.skipLog), '[{"date":"2026-11-01","ids":["33"]},{"date":"2026-11-02","ids":["44","55"]}]');
+is('the log line names exactly the ids marked seen', logged.filter(m => /marked seen: /.test(m)).map(m => m.split('marked seen: ')[1]).join('|'), '44, 55');
+const fullLog = { skipLog: Array.from({ length: 500 }, (_, i) => ({ date: 'd', ids: [String(i)] })) };
+parse('[{"ref":5,"tier":"SKIP"}]', fullLog);
+is('skipLog stays bounded at 500 runs, newest kept', fullLog.skipLog.length + '|' + fullLog.skipLog.at(-1).ids.join(), '500|55');
+const noLogSd = {};
+parse('[{"ref":100000,"tier":"SKIP"}]', noLogSd);
+is('a run that marks nothing seen adds no skipLog entry', noLogSd.skipLog, undefined);
+// Only the seenLeadIds trims are compared, so skipLog's own cap does not count as a third.
+const seenCap = (src) => [...src.matchAll(/seenLeadIds = \[\.\.\.seen\]\.slice\(-(\d+)\)/g)].map(m => m[1]).join();
+is('both seen-set caps agree', seenCap(node('Mark Emailed Seen').parameters.jsCode), seenCap(parseSrc));
+is('each node has exactly one seen-set cap', seenCap(parseSrc).split(',').length + '|' + seenCap(node('Mark Emailed Seen').parameters.jsCode).split(',').length + '|' + /^\d+$/.test(seenCap(parseSrc)), '1|1|true');
 is('a reply with no array still fails the run', (() => { try { parse('no leads today'); return 'parsed'; } catch { return 'threw'; } })(), 'threw');
 
 // 2026-10-30: two runs claimed 5 and 3 leads, then Send Digest failed on

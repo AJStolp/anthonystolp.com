@@ -1,5 +1,5 @@
 // Filter, bucket, shape, and build the Anthropic request body.
-// Anti-redundancy: drop already-seen ids (committed post-send; once-only dedup), non-WI,
+// Anti-redundancy: drop already-seen ids (once-only dedup; see below for when an id is committed), non-WI,
 // outside AJ's counties, no-contact, unreachable (Do Not Contact / dead stage), and
 // claimed-by-others. The stage=New Leads query already excludes the dead graveyard, so no
 // date floor is needed — the seen-set guarantees each lead is triaged exactly once.
