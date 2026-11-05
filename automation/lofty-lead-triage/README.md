@@ -58,9 +58,8 @@ Schedule (every 5 min, America/Chicago)
   zip prefixes, which cut across county lines: `530,531,532,534` let in Racine, Kenosha and
   Walworth, and dropped Manitowoc (`542`), Fond du Lac city (`549`) and part of Calumet (`541`).
   About 1 lead in 12 has no `County`, and those are dropped too. Sending them to Claude to
-  place does not work: the first run that tried it failed on Claude's reply (2026-11-02), and a
-  lead it marks `SKIP` is never added to the seen set, so the same far-away leads would go back
-  to Claude on every run. Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
+  place does not work: the first run that tried it failed on Claude's reply (2026-11-02), and
+  Claude is not reliable at placing a lead from its city alone. Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
   County, 1 of them in the eight.
 - **Bounded model call:** `max_tokens` 8192 + `maxPerRun` cap so a giant import can't
   truncate the JSON response.
@@ -91,8 +90,9 @@ Consequences worth knowing:
 - **Honest tiers.** The prompt is explicitly told a batch may contain zero A leads. It no longer
   forces an A/B/C spread.
 - **Tier `SKIP`** drops own-brokerage (Epique / ExSell) listings and fully uncontactable records
-  in `Parse & Sort`. `Mark Emailed Seen` commits only what `Parse & Sort` outputs, so a SKIP is
-  never marked seen and goes back to Claude on the next run (T-023).
+  in `Parse & Sort`, which adds a pond SKIP to the seen set itself rather than waiting for
+  `Mark Emailed Seen`. A SKIP is never shown, so there is no send to wait for, and a batch of
+  nothing but SKIPs still commits them. Before T-023 they went back to Claude on every run.
 - **Weak leads are rendered as a count, not suppressed.** Only A/B get a card; C leads still
   appear as "N more triaged and set aside", so nothing vanishes silently.
 - **Keep `maxPerRun` at 25 or below.** Output runs ~300 tokens per lead; a larger batch risks
