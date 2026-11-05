@@ -53,6 +53,15 @@ kept = kept.filter(p => !!raw[String(p.ref)]);
 
 kept.sort((a, b) => (b.score || 0) - (a.score || 0));
 
+// The pipeline reminder goes out once a day: "Mark Emailed Seen" sets pipelineEmailedDate after
+// the send. When Claude SKIPs every pipeline lead it was given, nothing reaches the digest, no
+// send happens, and the same leads went back to Claude on every run until midnight
+// (anthonystolp T-030). There is nothing to wait for, so mark today done here.
+const pipelineSent = Object.values(raw).some(r => r.bucket === 'pipeline');
+if (pipelineSent && !kept.some(p => raw[String(p.ref)].bucket === 'pipeline')) {
+  $getWorkflowStaticData('global').pipelineEmailedDate = today;
+}
+
 return kept.map(p => {
   const r = raw[String(p.ref)];
   return { json: {
