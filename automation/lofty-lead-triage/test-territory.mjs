@@ -110,7 +110,7 @@ is('a run with no SKIP leaves the seen-set alone', noSkipSd.seenLeadIds, undefin
 // anthonystolp T-030: a pipeline batch Claude SKIPs entirely reached nothing, so
 // pipelineEmailedDate was never set and the same pipeline went back to Claude all day.
 const pipeSkipSd = {};
-is('an all-SKIP pipeline marks today done', parse('[{"ref":100000,"tier":"SKIP"}]', pipeSkipSd).length + '|' + pipeSkipSd.pipelineEmailedDate, '0|2026-11-02');
+is('an all-SKIP pipeline marks today done', parse('[{"ref":100000,"tier":"SKIP"}]', pipeSkipSd, { 100000: RAW[100000] }).length + '|' + pipeSkipSd.pipelineEmailedDate, '0|2026-11-02');
 const pipeShownSd = {};
 parse('[{"ref":100000,"tier":"B","score":50}]', pipeShownSd);
 is('a pipeline lead that is shown waits for the send', pipeShownSd.pipelineEmailedDate, undefined);
