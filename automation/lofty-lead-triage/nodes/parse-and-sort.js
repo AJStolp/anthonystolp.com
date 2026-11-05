@@ -1,10 +1,12 @@
 // Parse Claude's JSON, drop SKIPs, sort by score desc, merge back the property facts.
 //
 // NOTE ON SUPPRESSION: "Mark Emailed Seen" commits the leads this node OUTPUTS, after a
-// successful send. A SKIP is filtered out here, so it is never committed and goes back to
-// Claude on the next run (anthonystolp T-023). Everything else is passed through and the
-// DIGEST decides what to render, so a merely-weak lead is still counted and never silently
-// vanishes.
+// successful send. A SKIP (own brokerage, or no way to reach them) never becomes workable and
+// is never shown, so it does not wait for a send: a pond SKIP is committed to the seen-set
+// HERE. Before that, a SKIP went back to Claude on every run, and a batch of nothing but SKIPs
+// ended the run with nothing committed at all (anthonystolp T-023). Everything else is passed
+// through and the DIGEST decides what to render, so a merely-weak lead is still counted and
+// never silently vanishes.
 const resp = $json;
 const text = (resp.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
 // The prompt asks for a bare array, but a reply can still open with a line of reasoning
@@ -24,10 +26,20 @@ if (!Array.isArray(parsed)) throw new Error('Expected a JSON array from Claude, 
 const raw = $('Filter & Shape').first().json.rawById || {};
 const today = $now.toFormat('yyyy-LL-dd');
 
-const skipped = parsed.filter(p => String(p.tier || '').toUpperCase() === 'SKIP').length;
-if (skipped) console.log(`Dropped ${skipped} SKIP leads (own brokerage / uncontactable)`);
+const isSkip = p => String(p.tier || '').toUpperCase() === 'SKIP';
+const skipped = parsed.filter(isSkip);
+// Only pond leads live in the seen-set; pipeline leads are reminders, re-sent once a day.
+// A SKIP whose ref cannot be joined has no lead id to commit, so it is retried like any orphan.
+const skipIds = skipped.map(p => raw[String(p.ref)]).filter(r => r && r.bucket === 'pond').map(r => String(r.lead_id));
+if (skipIds.length) {
+  const sd = $getWorkflowStaticData('global');
+  const seen = new Set(Array.isArray(sd.seenLeadIds) ? sd.seenLeadIds : []);
+  skipIds.forEach(id => seen.add(id));
+  sd.seenLeadIds = [...seen].slice(-3000);
+}
+if (skipped.length) console.log(`Dropped ${skipped.length} SKIP leads (own brokerage / uncontactable); ${skipIds.length} marked seen`);
 
-let kept = parsed.filter(p => String(p.tier || '').toUpperCase() !== 'SKIP');
+let kept = parsed.filter(p => !isSkip(p));
 
 // Join on the short `ref` we handed the model, never on leadId: it mangles long numeric ids
 // when echoing them (seen live: a 16-digit id came back as 10 digits). A row we cannot join
