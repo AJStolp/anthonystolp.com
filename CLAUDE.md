@@ -18,7 +18,9 @@ Single tenant by design, with the seam kept local. Live site with live ad spend 
 
 ```bash
 bun dev                 # :3000
-bun run build           # production build; this is also the typecheck
+bun run lint            # eslint, with a --max-warnings ceiling
+bun run type-check      # tsc --noEmit
+bun run build           # production build; also type-checks
 bun run start           # serve the build
 
 bunx playwright test                            # e2e — dev server must ALREADY be running
@@ -28,7 +30,7 @@ bunx playwright test --project=chromium-mobile  # one viewport; desktop + mobile
 bunx supabase db query --linked --file supabase/migrations/00NN_x.sql   # apply a migration
 ```
 
-No lint script, no ESLint or Prettier config. Type checking happens through `bun run build`.
+ESLint is configured in `eslint.config.mjs`; there is no Prettier config. `.github/workflows/ci.yml` runs lint, type-check and build on push and pull request for `dev` and `main`, and `bun tools/test-ci-workflow.mjs` proves that workflow goes red on broken code.
 
 `playwright.config.ts` has no `webServer`, so it will not start the server for you, and it runs serialized at `workers: 1`.
 
@@ -143,7 +145,7 @@ If a procedure written here ever contradicts a skill, the skill wins and the par
 
 Done means the acceptance criteria are verified, not that it compiles.
 
-There is no linter here, so the gate is: `bun run build` passes (it is the typecheck), the diffstat has been read, and the change has been observed doing what it claims. The commit body carries one evidence line:
+The gate is: `bun run lint`, `bun run type-check` and `bun run build` pass (CI runs the same three), the diffstat has been read, and the change has been observed doing what it claims. The commit body carries one evidence line:
 
 ```
 Verified: submitted home-value form on local dev, row appears in
