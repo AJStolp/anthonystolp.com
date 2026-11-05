@@ -41,8 +41,10 @@ Schedule (every 5 min, America/Chicago)
   static data, and committed **only after a successful send** (`Mark Emailed Seen`). Each
   run skips ids already in the set, so a lead is triaged **once**, when it
   first appears. Because the set is committed post-send, a failed run or a per-run cap
-  overflow never makes a lead silently disappear — it's just retried next run. The set is
-  bounded to the most recent 3000 ids.
+  overflow never makes a lead silently disappear — it's just retried next run. The one
+  exception is a pond lead Claude tiers `SKIP`, which `Parse & Sort` commits itself, before
+  any send, since it is never shown (see Tier `SKIP` below). The set is bounded to the most
+  recent 3000 ids, a cap written in both of those nodes.
 - **No email on empty runs:** if there's nothing new, the workflow stops before Anthropic
   — no wasted model call, no noise email. (Midday/evening only ping you when there's
   something to claim.)

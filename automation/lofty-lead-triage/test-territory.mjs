@@ -83,8 +83,8 @@ is('workflow Parse & Sort matches the node file', node('Parse & Sort').parameter
 // 2026-11-02, execution 14346: Claude opened with a paragraph of reasoning, then a fenced
 // array, and Parse & Sort threw on the whole run.
 const RAW = { 4: { bucket: 'pond', lead_id: '44' }, 5: { bucket: 'pond', lead_id: '55' }, 100000: { bucket: 'pipeline', lead_id: '99' } };
-const parse = (text, sd = {}) => new Function('$', '$json', '$now', '$getWorkflowStaticData', 'console', parseSrc)(
-  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: RAW } : {} }) }),
+const parse = (text, sd = {}, rawById = RAW) => new Function('$', '$json', '$now', '$getWorkflowStaticData', 'console', parseSrc)(
+  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById } : {} }) }),
   { content: [{ type: 'text', text }] }, { toFormat: () => '2026-11-02' }, () => sd, quiet).map(i => i.json);
 const reply = '[{"ref":4,"name":"Andrew Sullivan","tier":"B","score":61}]';
 is('bare array parses', parse(reply).map(p => p.tier).join(), 'B');
@@ -107,6 +107,23 @@ is('the seen-set stays bounded at 3000, newest kept', fullSd.seenLeadIds.length 
 const noSkipSd = {};
 parse(reply, noSkipSd);
 is('a run with no SKIP leaves the seen-set alone', noSkipSd.seenLeadIds, undefined);
+// anthonystolp T-030: a pipeline batch Claude SKIPs entirely reached nothing, so
+// pipelineEmailedDate was never set and the same pipeline went back to Claude all day.
+const pipeSkipSd = {};
+is('an all-SKIP pipeline marks today done', parse('[{"ref":100000,"tier":"SKIP"}]', pipeSkipSd).length + '|' + pipeSkipSd.pipelineEmailedDate, '0|2026-11-02');
+const pipeShownSd = {};
+parse('[{"ref":100000,"tier":"B","score":50}]', pipeShownSd);
+is('a pipeline lead that is shown waits for the send', pipeShownSd.pipelineEmailedDate, undefined);
+const pondOnlySd = {};
+parse('[{"ref":5,"tier":"SKIP"}]', pondOnlySd, { 5: RAW[5] });
+is('a pond-only run leaves the pipeline date alone', pondOnlySd.pipelineEmailedDate, undefined);
+const logged = [];
+new Function('$', '$json', '$now', '$getWorkflowStaticData', 'console', parseSrc)(
+  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: RAW } : {} }) }),
+  { content: [{ type: 'text', text: '[{"ref":5,"tier":"SKIP"}]' }] }, { toFormat: () => '2026-11-02' }, () => ({}), { log: (m) => logged.push(m) });
+is('the SKIP ids marked seen are logged', logged.some(m => /marked seen: 55/.test(m)), true);
+const markSrc = node('Mark Emailed Seen').parameters.jsCode;
+is('both seen-set caps are 3000', /slice\(-3000\)/.test(markSrc) && /slice\(-3000\)/.test(parseSrc), true);
 is('a reply with no array still fails the run', (() => { try { parse('no leads today'); return 'parsed'; } catch { return 'threw'; } })(), 'threw');
 
 // 2026-10-30: two runs claimed 5 and 3 leads, then Send Digest failed on

@@ -35,9 +35,13 @@ if (skipIds.length) {
   const sd = $getWorkflowStaticData('global');
   const seen = new Set(Array.isArray(sd.seenLeadIds) ? sd.seenLeadIds : []);
   skipIds.forEach(id => seen.add(id));
+  // 3000 is also the cap in "Mark Emailed Seen". Change one, change both, or a run with a SKIP
+  // trims the set to the smaller size and the oldest leads go back to Claude.
   sd.seenLeadIds = [...seen].slice(-3000);
 }
-if (skipped.length) console.log(`Dropped ${skipped.length} SKIP leads (own brokerage / uncontactable); ${skipIds.length} marked seen`);
+// A SKIP is permanent, so name the ids: a wrong one can be found in the execution log and
+// taken back out of seenLeadIds by hand.
+if (skipped.length) console.log(`Dropped ${skipped.length} SKIP leads (own brokerage / uncontactable); marked seen: ${skipIds.join(', ') || 'none'}`);
 
 let kept = parsed.filter(p => !isSkip(p));
 
@@ -52,6 +56,15 @@ if (orphans.length) console.log(`WARNING: ${orphans.length} scored lead(s) had a
 kept = kept.filter(p => !!raw[String(p.ref)]);
 
 kept.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+// The pipeline reminder goes out once a day: "Mark Emailed Seen" sets pipelineEmailedDate after
+// the send. When Claude SKIPs every pipeline lead it was given, nothing reaches the digest, no
+// send happens, and the same leads went back to Claude on every run until midnight
+// (anthonystolp T-030). There is nothing to wait for, so mark today done here.
+const pipelineSent = Object.values(raw).some(r => r.bucket === 'pipeline');
+if (pipelineSent && !kept.some(p => raw[String(p.ref)].bucket === 'pipeline')) {
+  $getWorkflowStaticData('global').pipelineEmailedDate = today;
+}
 
 return kept.map(p => {
   const r = raw[String(p.ref)];
