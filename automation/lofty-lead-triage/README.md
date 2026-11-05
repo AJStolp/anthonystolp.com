@@ -38,11 +38,13 @@ Schedule (every 5 min, America/Chicago)
 
 ### Anti-redundancy (by design — nothing runs on stale/empty data)
 - **Seen-id dedup:** the lead ids already emailed are stored as a set in n8n workflow
-  static data, and committed **only after a successful send** (`Mark Emailed Seen`). Each
+  static data, and committed **after a successful send** (`Mark Emailed Seen`). Each
   run skips ids already in the set, so a lead is triaged **once**, when it
   first appears. Because the set is committed post-send, a failed run or a per-run cap
-  overflow never makes a lead silently disappear — it's just retried next run. The set is
-  bounded to the most recent 3000 ids.
+  overflow never makes a lead silently disappear — it's just retried next run. The one
+  exception is a pond lead Claude tiers `SKIP`, which `Parse & Sort` commits itself, before
+  any send, since it is never shown (see Tier `SKIP` below). The set is bounded to the most
+  recent 3000 ids, a cap written in both of those nodes.
 - **No email on empty runs:** if there's nothing new, the workflow stops before Anthropic
   — no wasted model call, no noise email. (Midday/evening only ping you when there's
   something to claim.)
@@ -93,6 +95,10 @@ Consequences worth knowing:
   in `Parse & Sort`, which adds a pond SKIP to the seen set itself rather than waiting for
   `Mark Emailed Seen`. A SKIP is never shown, so there is no send to wait for, and a batch of
   nothing but SKIPs still commits them. Before T-023 they went back to Claude on every run.
+  Because a SKIP is permanent, each run that marks one seen also appends `{ date, ids }` to
+  `skipLog` in the same static data (the most recent 500 runs). That is where a wrong SKIP is
+  found; take its id back out of `seenLeadIds` to have it triaged again. The console line
+  `Parse & Sort` prints only reaches n8n's log when the instance sets `CODE_ENABLE_STDOUT=true`.
 - **Weak leads are rendered as a count, not suppressed.** Only A/B get a card; C leads still
   appear as "N more triaged and set aside", so nothing vanishes silently.
 - **Keep `maxPerRun` at 25 or below.** Output runs ~300 tokens per lead; a larger batch risks
