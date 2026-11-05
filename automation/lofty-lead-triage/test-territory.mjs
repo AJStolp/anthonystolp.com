@@ -82,12 +82,31 @@ is('workflow Parse & Sort matches the node file', node('Parse & Sort').parameter
 
 // 2026-11-02, execution 14346: Claude opened with a paragraph of reasoning, then a fenced
 // array, and Parse & Sort threw on the whole run.
-const parse = (text) => new Function('$', '$json', '$now', 'console', parseSrc)(
-  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: { 4: { bucket: 'pond', lead_id: '44' } } } : {} }) }),
-  { content: [{ type: 'text', text }] }, { toFormat: () => '2026-11-02' }, quiet).map(i => i.json);
+const RAW = { 4: { bucket: 'pond', lead_id: '44' }, 5: { bucket: 'pond', lead_id: '55' }, 100000: { bucket: 'pipeline', lead_id: '99' } };
+const parse = (text, sd = {}) => new Function('$', '$json', '$now', '$getWorkflowStaticData', 'console', parseSrc)(
+  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: RAW } : {} }) }),
+  { content: [{ type: 'text', text }] }, { toFormat: () => '2026-11-02' }, () => sd, quiet).map(i => i.json);
 const reply = '[{"ref":4,"name":"Andrew Sullivan","tier":"B","score":61}]';
 is('bare array parses', parse(reply).map(p => p.tier).join(), 'B');
 is('reasoning before a fenced array parses', parse('I need to check each lead.\n\n```json\n' + reply + '\n```').map(p => p.name).join(), 'Andrew Sullivan');
+// anthonystolp T-023: a SKIP never reached Mark Emailed Seen, so it went back to Claude every
+// run, and a batch of only SKIPs returned [] and committed nothing.
+const onlySkip = {};
+is('a batch of only SKIPs still outputs nothing', parse('[{"ref":5,"tier":"SKIP"}]', onlySkip).length, 0);
+is('...but the SKIP is marked seen', (onlySkip.seenLeadIds || []).join(), '55');
+const mixedSd = { seenLeadIds: ['11'] };
+const mixedOut = parse('[{"ref":4,"tier":"B","score":61},{"ref":5,"tier":"skip"},{"ref":100000,"tier":"SKIP"}]', mixedSd);
+is('a B beside a SKIP is still output, unseen', mixedOut.map(p => p.lead_id).join() + '|' + mixedSd.seenLeadIds.includes('44'), '44|false');
+is('only the pond SKIP joins the seen-set', mixedSd.seenLeadIds.join(), '11,55');
+const orphanSd = {};
+parse('[{"ref":7,"tier":"SKIP"}]', orphanSd);
+is('a SKIP with an unknown ref commits nothing', orphanSd.seenLeadIds, undefined);
+const fullSd = { seenLeadIds: Array.from({ length: 3000 }, (_, i) => String(i + 1000)) };
+parse('[{"ref":5,"tier":"SKIP"}]', fullSd);
+is('the seen-set stays bounded at 3000, newest kept', fullSd.seenLeadIds.length + '|' + fullSd.seenLeadIds.at(-1), '3000|55');
+const noSkipSd = {};
+parse(reply, noSkipSd);
+is('a run with no SKIP leaves the seen-set alone', noSkipSd.seenLeadIds, undefined);
 is('a reply with no array still fails the run', (() => { try { parse('no leads today'); return 'parsed'; } catch { return 'threw'; } })(), 'threw');
 
 // 2026-10-30: two runs claimed 5 and 3 leads, then Send Digest failed on
