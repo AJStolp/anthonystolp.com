@@ -25,7 +25,8 @@ const pipe = Array.isArray(pipeResp.leads) ? pipeResp.leads : [];
 if (pondResp.code || pondResp.message) console.log('Pond response note:', pondResp.code, pondResp.message);
 
 // Dedup state (seen ids) is committed AFTER a successful send (see "Mark Emailed Seen"),
-// so a failed run or the per-run cap never makes a lead silently disappear.
+// so a failed run or the per-run cap never makes a lead silently disappear. The exception is
+// a pond SKIP, which "Parse & Sort" commits itself because it is never shown.
 
 const mailAddress = (l) => {
   const street = attr(l, 'Owner Street Address') || l.streetAddress;
@@ -68,8 +69,8 @@ const isWI = l => String(l.state || '').toUpperCase() === 'WI';
 // Manitowoc but 534 is Racine), so the county is the test. Lofty writes it in mixed case
 // ("DANE", "Juneau"). About 1 lead in 12 has no County, and those are dropped too: on
 // 2026-11-02 every one of them was far away (Hayward, Menomonie, Richland Center). Sending
-// them to Claude to judge does not work, because a lead it SKIPs is never marked seen, so the
-// same far-away leads went back to Claude on every 5-minute run.
+// them to Claude to judge does not work: the first run that tried it failed on Claude's reply,
+// and Claude is not reliable at placing a lead from its city alone.
 // The same list names the counties in the prompt below, so the filter and what Claude is told
 // cannot drift apart. An empty list is a broken Config, not "everywhere": the prompt tells
 // Claude location does not matter, and an A or B lead is claimed in Lofty automatically.

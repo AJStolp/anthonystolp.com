@@ -117,6 +117,15 @@ is('a pipeline lead that is shown waits for the send', pipeShownSd.pipelineEmail
 const pondOnlySd = {};
 parse('[{"ref":5,"tier":"SKIP"}]', pondOnlySd, { 5: RAW[5] });
 is('a pond-only run leaves the pipeline date alone', pondOnlySd.pipelineEmailedDate, undefined);
+// anthonystolp T-033: a SKIP is permanent, so the ids it marks seen are logged, and the two
+// seen-set caps stay equal.
+const logged = [];
+new Function('$', '$json', '$now', '$getWorkflowStaticData', 'console', parseSrc)(
+  (n) => ({ first: () => ({ json: n === 'Filter & Shape' ? { rawById: RAW } : {} }) }),
+  { content: [{ type: 'text', text: '[{"ref":5,"tier":"SKIP"}]' }] }, { toFormat: () => '2026-11-02' }, () => ({}), { log: (m) => logged.push(m) });
+is('the SKIP ids marked seen are logged', logged.some(m => /marked seen: 55/.test(m)), true);
+const caps = (src) => (src.match(/slice\(-(\d+)\)/g) || []).join();
+is('both seen-set caps agree', caps(node('Mark Emailed Seen').parameters.jsCode), caps(parseSrc));
 is('a reply with no array still fails the run', (() => { try { parse('no leads today'); return 'parsed'; } catch { return 'threw'; } })(), 'threw');
 
 // 2026-10-30: two runs claimed 5 and 3 leads, then Send Digest failed on
