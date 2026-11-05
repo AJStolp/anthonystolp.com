@@ -21,7 +21,7 @@ export default async function AdminPagesIndex() {
           <form action="/api/admin/logout" method="POST">
             <button
               type="submit"
-              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/60 underline-offset-4 hover:underline"
+              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/70 underline-offset-4 hover:underline"
             >
               Sign out
             </button>
@@ -29,7 +29,7 @@ export default async function AdminPagesIndex() {
         </div>
         <div className="mx-auto flex max-w-5xl items-baseline justify-between px-6 pb-6 md:pb-8">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/60">
+            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/70">
               Admin
             </p>
             <h1 className="mt-1 font-display text-2xl font-semibold tracking-[-0.02em] text-ink md:text-3xl">
@@ -47,7 +47,7 @@ export default async function AdminPagesIndex() {
 
       <div className="mx-auto max-w-5xl px-6 py-10">
         {pages.length === 0 ? (
-          <p className="text-ink-soft/60">
+          <p className="text-ink-soft/70">
             No niche pages yet.{" "}
             <Link
               href="/admin/pages/new"
@@ -59,7 +59,7 @@ export default async function AdminPagesIndex() {
         ) : (
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="border-b border-ink/15 text-left text-[11px] uppercase tracking-[0.24em] text-ink-soft/60">
+              <tr className="border-b border-ink/15 text-left text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
                 <th className="py-3 pr-4">Slug</th>
                 <th className="py-3 pr-4">Intent</th>
                 <th className="py-3 pr-4">Title</th>
@@ -81,7 +81,7 @@ export default async function AdminPagesIndex() {
                       <span className="text-ink-soft/40">○</span>
                     )}
                   </td>
-                  <td className="py-3 pr-4 text-ink-soft/60">
+                  <td className="py-3 pr-4 text-ink-soft/70">
                     {new Date(p.updated_at).toLocaleDateString()}
                   </td>
                   <td className="py-3 text-right">

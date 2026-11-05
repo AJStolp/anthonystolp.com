@@ -53,7 +53,7 @@ export function Hero({ featured }: Props) {
             {HOME_VALUE_ENABLED ? (
               <>
                 <HeroAddressInput />
-                <div className="mt-5 flex items-center gap-2 text-[13px] text-ink/60">
+                <div className="mt-5 flex items-center gap-2 text-[13px] text-ink/65">
                   <span>or</span>
                   <button
                     type="button"
@@ -129,9 +129,10 @@ function FeaturedCard({ p }: { p: PropertyRow }) {
       )}
 
       {/* Floating label panel — the whole point of the card is to make the
-          newest result legible above the fold. Translucent so it reads as
-          layered over the photo rather than pasted on top of it. */}
-      <div className="absolute left-4 top-4 max-w-[78%] rounded-[10px] bg-cream/90 px-5 py-4 shadow-[0_6px_20px_-8px_rgba(26,28,28,0.35)] backdrop-blur-md md:left-6 md:top-6">
+          newest result legible above the fold. Opaque on purpose: at 90%
+          cream a dark patch of photo pulls the accent label to 3.9:1, under
+          WCAG AA, and the shadow already lifts it off the photo. */}
+      <div className="absolute left-4 top-4 max-w-[78%] rounded-[10px] bg-cream px-5 py-4 shadow-[0_6px_20px_-8px_rgba(26,28,28,0.35)] md:left-6 md:top-6">
         <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-accent">
           {where}
         </p>

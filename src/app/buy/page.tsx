@@ -126,7 +126,7 @@ export default async function BuyPage() {
         <Nav />
 
         <section className="mx-auto flex max-w-3xl flex-col items-start px-6 pt-32 pb-16 md:pt-44 md:pb-24">
-          <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/60">
+          <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
             Buyers
           </p>
           <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink">
@@ -150,7 +150,7 @@ export default async function BuyPage() {
           <div className="mt-8 space-y-8">
             {PILLARS.map((p) => (
               <div key={p.n} className="flex gap-5">
-                <span className="font-display text-sm font-semibold text-ink-soft/40">
+                <span className="font-display text-sm font-semibold text-ink-soft/70">
                   {p.n}
                 </span>
                 <div>

@@ -93,7 +93,7 @@ export default function CardPage() {
         </div>
 
         {/* Brokerage disclosure for WI advertising compliance */}
-        <p className="mt-5 text-center text-[10px] uppercase tracking-[0.24em] text-ink-soft/50">
+        <p className="mt-5 text-center text-[10px] uppercase tracking-[0.24em] text-ink-soft/70">
           {p.brokerage} · {p.licenseState} #{p.licenseNumber}
         </p>
       </div>

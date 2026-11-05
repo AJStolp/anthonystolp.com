@@ -270,7 +270,7 @@ export default async function PropertyPage({
             {p.address}
           </h1>
           {locality && (
-            <p className="mt-3 text-[15px] uppercase tracking-[0.28em] text-ink/50">
+            <p className="mt-3 text-[15px] uppercase tracking-[0.28em] text-ink/65">
               {locality}
             </p>
           )}
@@ -278,7 +278,7 @@ export default async function PropertyPage({
           {price && (
             <div className="mt-8">
               {sold && (
-                <p className="text-[11px] uppercase tracking-[0.28em] text-ink/50">
+                <p className="text-[11px] uppercase tracking-[0.28em] text-ink/65">
                   List price
                 </p>
               )}
@@ -294,7 +294,7 @@ export default async function PropertyPage({
             <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-t border-ink/10 pt-8">
               {stats.map((s) => (
                 <div key={s.label}>
-                  <dt className="text-[11px] uppercase tracking-[0.28em] text-ink/50">
+                  <dt className="text-[11px] uppercase tracking-[0.28em] text-ink/65">
                     {s.label}
                   </dt>
                   <dd className="mt-2 font-display text-2xl font-semibold">
@@ -307,7 +307,7 @@ export default async function PropertyPage({
 
           {openHouse && (
             <div className="mt-10 border-l-2 border-accent-soft pl-5">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-ink/50">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-ink/65">
                 Open House
               </p>
               <p className="mt-2 text-lg font-medium">{openHouse}</p>
@@ -330,12 +330,12 @@ export default async function PropertyPage({
               />
             )}
             <div>
-              <p className="text-[11px] uppercase tracking-[0.28em] text-ink/50">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-ink/65">
                 Financing partner
               </p>
               <p className="mt-1 text-lg font-medium">{lender.name}</p>
               {lender.contact && (
-                <p className="text-[14px] text-ink/60">{lender.contact}</p>
+                <p className="text-[14px] text-ink/65">{lender.contact}</p>
               )}
               {lender.applyUrl && (
                 <a

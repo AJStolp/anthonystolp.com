@@ -185,14 +185,14 @@ function LeadCard({
           )}
         </div>
         <div className="flex items-center justify-between gap-3 md:col-span-3 md:justify-end">
-          <span className="text-[11px] uppercase tracking-[0.2em] text-ink-soft/55">
+          <span className="text-[11px] uppercase tracking-[0.2em] text-ink-soft/70">
             {relative}
           </span>
         </div>
       </button>
 
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-ink/10 pt-4">
-        <label className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/60">
+        <label className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
           Status
         </label>
         <select
@@ -208,7 +208,7 @@ function LeadCard({
           ))}
         </select>
         {statusSaving && (
-          <span className="text-[11px] text-ink-soft/55">Saving...</span>
+          <span className="text-[11px] text-ink-soft/70">Saving...</span>
         )}
         {lead.ai_draft && !expanded && (
           <span className="ml-auto text-[11px] uppercase tracking-[0.2em] text-accent">
@@ -221,7 +221,7 @@ function LeadCard({
         <div className="mt-5 space-y-5 border-t border-ink/10 pt-5">
           {lead.message && (
             <div>
-              <p className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/60">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
                 Their message
               </p>
               <p className="mt-2 whitespace-pre-wrap border-l-2 border-ink/15 pl-3 text-[14px] leading-[1.7] text-ink-soft">
@@ -252,7 +252,7 @@ function LeadCard({
           <div>
             <label
               htmlFor={`notes-${lead.id}`}
-              className="block text-[11px] uppercase tracking-[0.24em] text-ink-soft/60"
+              className="block text-[11px] uppercase tracking-[0.24em] text-ink-soft/70"
             >
               Notes
             </label>
@@ -266,7 +266,7 @@ function LeadCard({
               className="mt-2 w-full resize-y border border-ink/15 bg-cream p-3 text-[14px] text-ink outline-none placeholder:text-ink/30 focus-visible:border-ink"
             />
             {notesSaving && (
-              <p className="mt-1 text-[11px] text-ink-soft/55">Saving...</p>
+              <p className="mt-1 text-[11px] text-ink-soft/70">Saving...</p>
             )}
           </div>
 
@@ -325,7 +325,7 @@ function Meta({
 }) {
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-[0.2em] text-ink-soft/55">
+      <dt className="text-[10px] uppercase tracking-[0.2em] text-ink-soft/70">
         {label}
       </dt>
       <dd className="mt-0.5">{children}</dd>

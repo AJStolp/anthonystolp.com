@@ -38,7 +38,7 @@ export default async function EditMarketReport({
           <form action="/api/admin/logout" method="POST">
             <button
               type="submit"
-              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/60 underline-offset-4 hover:underline"
+              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/70 underline-offset-4 hover:underline"
             >
               Sign out
             </button>
@@ -46,7 +46,7 @@ export default async function EditMarketReport({
         </div>
         <div className="mx-auto flex max-w-3xl items-baseline justify-between px-6 pb-6 md:pb-8">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/60">
+            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/70">
               Admin / Reports
             </p>
             <h1 className="mt-1 font-display text-2xl font-semibold tracking-[-0.02em] text-ink md:text-3xl">

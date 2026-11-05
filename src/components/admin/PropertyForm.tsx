@@ -303,7 +303,7 @@ export function PropertyForm({ mode, initial, slug: editSlug }: Props) {
       </Row>
 
       <fieldset className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <legend className="col-span-full mb-2 text-[11px] uppercase tracking-[0.28em] text-ink-soft/60">
+        <legend className="col-span-full mb-2 text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
           Lender (optional) — shows a financing partner card on the page
         </legend>
         <Row label="Lender name">
@@ -391,7 +391,7 @@ function Row({
 }) {
   return (
     <label className="block">
-      <span className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/60">
+      <span className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
         {label}
       </span>
       <div className="mt-2">{children}</div>

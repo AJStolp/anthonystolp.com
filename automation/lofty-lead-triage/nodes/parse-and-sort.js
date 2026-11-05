@@ -1,13 +1,18 @@
 // Parse Claude's JSON, drop SKIPs, sort by score desc, merge back the property facts.
 //
-// NOTE ON SUPPRESSION: everything that reaches this node is committed to the seen-set by
-// "Mark Emailed Seen" after a successful send, so a lead dropped here is dropped for good.
-// That is deliberate for tier SKIP (own-brokerage listings and uncontactable records — they
-// will never become workable). Everything else is passed through and the DIGEST decides what
-// to render, so a merely-weak lead is still counted and never silently vanishes.
+// NOTE ON SUPPRESSION: "Mark Emailed Seen" commits the leads this node OUTPUTS, after a
+// successful send. A SKIP is filtered out here, so it is never committed and goes back to
+// Claude on the next run (anthonystolp T-023). Everything else is passed through and the
+// DIGEST decides what to render, so a merely-weak lead is still counted and never silently
+// vanishes.
 const resp = $json;
 const text = (resp.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-const clean = text.replace(/```json|```/g, '').trim();
+// The prompt asks for a bare array, but a reply can still open with a line of reasoning
+// (2026-11-02, execution 14346: "I need to check each lead's geography...") and fail the whole
+// run. Read from the first [ to the last ], so text around the array is ignored.
+const stripped = text.replace(/```json|```/g, '');
+const start = stripped.indexOf('['), end = stripped.lastIndexOf(']');
+const clean = (start >= 0 && end > start ? stripped.slice(start, end + 1) : stripped).trim();
 let parsed;
 try {
   parsed = JSON.parse(clean);

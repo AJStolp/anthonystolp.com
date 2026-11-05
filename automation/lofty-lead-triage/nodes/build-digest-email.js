@@ -6,7 +6,7 @@
 // ago and they keep. A/B leads get a full card; C leads are counted but not rendered, so the
 // inbox stays short without anything disappearing silently.
 const items = $input.all().map(i => i.json); // already sorted by score desc, SKIPs removed
-const cfg = $('Read Config').first().json; // for the per-lead Claim now link
+const cfg = $('Read Config').first().json; // for the per-lead Send postcard link
 const date = (items[0] && items[0].date) || $now.toFormat('yyyy-LL-dd');
 const pond = items.filter(i => i.bucket === 'pond');
 const pipe = items.filter(i => i.bucket === 'pipeline');
@@ -17,19 +17,30 @@ const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g,
 const color = t => t === 'A' ? '#1a7f37' : t === 'B' ? '#9a6700' : '#6e7781';
 const money = n => (n == null || n === '') ? null : '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
 const fmtPhone = p => { const d = String(p || '').replace(/\D/g, ''); if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`; if (d.length === 11 && d[0] === '1') return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`; return p || ''; };
-const claimBtn = i => (i.bucket === 'pond' && cfg.claimBaseUrl && cfg.claimSecret && !/PUT_|YOUR_/.test(String(cfg.claimBaseUrl)) && !/PUT_|YOUR_/.test(String(cfg.claimSecret)))
-  ? `<a href="${cfg.claimBaseUrl}/lofty-claim?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.claimSecret || '')}" style="display:inline-block;background:#1a7f37;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Claim now &rarr;</a>`
-  : '';
+// A or B pond leads were already claimed by "Pick Claims" before this node ran, so the card
+// says how that went. Claimed is his now: open it. Taken means another agent got there
+// first, and Lofty will show it as Illegal Access, so there is nothing to tap. Failed keeps
+// Lofty's words and offers Claim in Lofty, where Claim Lead Now can be tried by hand.
+const openBtn = i => `<a href="https://crm.lofty.com/admin/home/detail?leadId=${esc(i.lead_id)}" style="display:inline-block;background:#0969da;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;padding:5px 12px;border-radius:5px;margin-right:6px">Open in Lofty &rarr;</a>`;
+const claimBtn = i => `<a href="https://crm.lofty.com/admin/home/detail?leadId=${esc(i.lead_id)}" style="display:inline-block;background:#1a7f37;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Claim in Lofty &rarr;</a>`;
+const pill = (bg, text) => `<span style="display:inline-block;background:${bg};color:#ffffff;font-weight:700;font-size:13px;padding:5px 12px;border-radius:5px;margin-right:6px">${text}</span>`;
+const claimRow = i => {
+  if (i.claim === 'claimed') return pill('#1a7f37', 'Claimed for you &#10003;') + openBtn(i);
+  if (i.claim === 'taken') return pill('#6e7781', 'Taken by another agent first');
+  if (i.claim === 'failed') return pill('#9a6700', `Auto claim failed: ${esc(i.claim_note)}`) + claimBtn(i);
+  return i.bucket === 'pond' ? claimBtn(i) : openBtn(i);
+};
 
-// One-tap postcard, handled by the companion lofty-mailer-webhook workflow. Same guard as
-// the Claim now button, so it simply does not render until that workflow is deployed and
-// configured. Shown for any lead with a mailing address, including A tier: AJ works A by
-// phone, but there is no reason to withhold the option.
+// One-tap postcard, handled by the companion lofty-mailer-webhook workflow. It does not
+// render until that workflow is deployed and configured. Shown for any lead with a mailing
+// address, including A tier: AJ works A by phone, but there is no reason to withhold the
+// option.
 //
 // Dedup and the weekly cap are enforced by the WEBHOOK, not here. n8n static data is
 // per-workflow, so this workflow cannot know what has already been mailed. Tapping an
-// already-mailed lead is harmless and returns an "already mailed" page.
-const mailBtn = i => (i.mail_address && cfg.mailBaseUrl && cfg.mailSecret && !/PUT_|YOUR_/.test(String(cfg.mailBaseUrl)) && !/PUT_|YOUR_/.test(String(cfg.mailSecret)))
+// already-mailed lead is harmless and returns an "already mailed" page. A lead another
+// agent claimed is theirs to work, so it gets no postcard button.
+const mailBtn = i => (i.mail_address && i.claim !== 'taken' && cfg.mailBaseUrl && cfg.mailSecret && !/PUT_|YOUR_/.test(String(cfg.mailBaseUrl)) && !/PUT_|YOUR_/.test(String(cfg.mailSecret)))
   ? `<a href="${cfg.mailBaseUrl}/lofty-mail?lead_id=${encodeURIComponent(i.lead_id)}&t=${encodeURIComponent(cfg.mailSecret || '')}" style="display:inline-block;background:#6639ba;color:#ffffff;font-weight:700;font-size:13px;text-decoration:none;padding:5px 12px;border-radius:5px;margin-right:6px">Send postcard &rarr;</a>`
   : '';
 
@@ -68,8 +79,7 @@ const card = i => {
     + (i.outreach_angle ? `<div style="margin:3px 0;font-size:13px"><strong>Angle:</strong> ${esc(i.outreach_angle)}</div>` : '')
     + (i.confidence ? `<div style="margin:3px 0;font-size:12px;color:#8c959f">confidence: ${esc(i.confidence)}</div>` : '')
     + (c.length ? `<div style="margin:5px 0;font-size:13px">${c.join(' &middot; ')}</div>` : `<div style="margin:5px 0;font-size:13px;color:#8c959f">no phone or email on file</div>`)
-    + `<div style="margin:8px 0 1px">${claimBtn(i)}${mailBtn(i)}`
-    + `<a href="https://crm.lofty.com/admin/home/detail?leadId=${esc(i.lead_id)}" style="display:inline-block;background:#0969da;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;padding:5px 12px;border-radius:5px">Open in Lofty &rarr;</a></div>`
+    + `<div style="margin:8px 0 1px">${claimRow(i)}${mailBtn(i)}</div>`
     + `</div>`;
 };
 
@@ -80,8 +90,18 @@ const restLine = rest.length
   ? `<p style="margin:10px 0 0;font-size:13px;color:#8c959f">${rest.length} more triaged and set aside as low priority. They were reviewed, not lost.</p>`
   : '';
 
+// Lead with what the auto claim did, since that is what changed in Lofty. Without any claim
+// results (claimAssignee unset) this falls back to the plain count.
+const claimCount = k => shortlist.filter(i => i.claim === k).length;
+const claimParts = [
+  claimCount('claimed') && `${claimCount('claimed')} claimed for you`,
+  claimCount('taken') && `${claimCount('taken')} taken first`,
+  claimCount('failed') && `${claimCount('failed')} claim failed`
+].filter(Boolean);
+const summary = claimParts.length ? claimParts : [`${shortlist.length} worth a letter`];
+
 const headline = shortlist.length
-  ? `${shortlist.length} worth a letter &middot; ${pond.length} reviewed &middot; ${esc(date)}`
+  ? `${summary.join(' &middot; ')} &middot; ${pond.length} reviewed &middot; ${esc(date)}`
   : `Nothing worth your time in this batch &middot; ${pond.length} reviewed &middot; ${esc(date)}`;
 
 const html = `<div style="font:14px/1.5 system-ui,Segoe UI,Arial,sans-serif;max-width:680px;color:#1f2328">`
@@ -93,6 +113,6 @@ const html = `<div style="font:14px/1.5 system-ui,Segoe UI,Arial,sans-serif;max-
   + `</div>`;
 
 const subject = shortlist.length
-  ? `Lead review · ${date} · ${shortlist.length} worth a letter`
+  ? `Lead review · ${date} · ${summary.join(' · ')}`
   : `Lead review · ${date} · nothing worth your time (${pond.length} reviewed)`;
 return [{ json: { subject, html } }];

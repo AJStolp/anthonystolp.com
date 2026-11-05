@@ -41,7 +41,7 @@ export default async function AdminReportsIndex() {
           <form action="/api/admin/logout" method="POST">
             <button
               type="submit"
-              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/60 underline-offset-4 hover:underline"
+              className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/70 underline-offset-4 hover:underline"
             >
               Sign out
             </button>
@@ -49,7 +49,7 @@ export default async function AdminReportsIndex() {
         </div>
         <div className="mx-auto flex max-w-5xl items-baseline justify-between px-6 pb-6 md:pb-8">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/60">
+            <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/70">
               Admin
             </p>
             <h1 className="mt-1 font-display text-2xl font-semibold tracking-[-0.02em] text-ink md:text-3xl">
@@ -63,7 +63,7 @@ export default async function AdminReportsIndex() {
         {error ? (
           <p className="text-accent">Error: {error.message}</p>
         ) : reports.length === 0 ? (
-          <p className="text-ink-soft/60">
+          <p className="text-ink-soft/70">
             No reports yet. They will appear on the 1st of each month after the
             cron runs, or after a manual trigger of{" "}
             <code className="text-[12px]">/api/cron/market-reports</code>.
@@ -71,7 +71,7 @@ export default async function AdminReportsIndex() {
         ) : (
           <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr className="border-b border-ink/15 text-left text-[11px] uppercase tracking-[0.24em] text-ink-soft/60">
+              <tr className="border-b border-ink/15 text-left text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
                 <th className="py-3 pr-4">Month</th>
                 <th className="py-3 pr-4">Zip</th>
                 <th className="py-3 pr-4">Subject</th>
@@ -95,7 +95,7 @@ export default async function AdminReportsIndex() {
                   <td className="py-3 pr-4 text-ink-soft/80">
                     {r.draft_score ?? "—"}
                   </td>
-                  <td className="py-3 pr-4 text-ink-soft/60">
+                  <td className="py-3 pr-4 text-ink-soft/70">
                     {r.sent_at
                       ? `${r.sent_to_count} on ${new Date(r.sent_at).toLocaleDateString()}`
                       : "—"}

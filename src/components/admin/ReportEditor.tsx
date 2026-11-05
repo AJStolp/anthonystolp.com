@@ -159,7 +159,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
       ) : null}
 
       <div>
-        <label className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/60">
+        <label className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
           Subject
         </label>
         <input
@@ -207,7 +207,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
             />
           )}
         </div>
-        <p className="mt-2 text-[11px] text-ink-soft/55">
+        <p className="mt-2 text-[11px] text-ink-soft/70">
           Use the literal token <code>{`{{first_name}}`}</code> where the
           subscriber&apos;s first name should appear. The send pipeline
           substitutes it per recipient.
@@ -263,7 +263,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
 function Meta({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-[0.28em] text-ink-soft/55">
+      <p className="text-[10px] uppercase tracking-[0.28em] text-ink-soft/70">
         {label}
       </p>
       <p className="mt-1 text-[13px] text-ink">{children}</p>
@@ -287,7 +287,7 @@ function Tab({
       className={
         active
           ? "border-b-2 border-ink pb-2 text-[11px] uppercase tracking-[0.28em] text-ink"
-          : "pb-2 text-[11px] uppercase tracking-[0.28em] text-ink-soft/55 hover:text-ink"
+          : "pb-2 text-[11px] uppercase tracking-[0.28em] text-ink-soft/70 hover:text-ink"
       }
     >
       {children}

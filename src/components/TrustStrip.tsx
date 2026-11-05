@@ -15,7 +15,7 @@ export function TrustStrip() {
         </Item>
         <Item icon={MapPin} label="Service area">
           Ozaukee · Washington · Waukesha · Sheboygan
-          <span className="mt-0.5 block text-[11px] text-ink-soft/55">
+          <span className="mt-0.5 block text-[11px] text-ink-soft/70">
             Statewide when you need me
           </span>
         </Item>
@@ -45,7 +45,7 @@ function Item({
         <Icon className="h-5 w-5" strokeWidth={1.5} />
       </span>
       <div className="min-w-0">
-        <span className="block text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/55">
+        <span className="block text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/70">
           {label}
         </span>
         <span className="mt-1 block text-[12px] leading-[1.4] text-ink md:text-[13px]">

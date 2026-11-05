@@ -103,7 +103,7 @@ export function QrCustomizer({ slug }: { slug: string }) {
           </a>
         </div>
 
-        <p className="text-[11px] leading-[1.6] text-ink-soft/50">
+        <p className="text-[11px] leading-[1.6] text-ink-soft/70">
           A QR needs contrast to scan: keep the modules dark against a light
           backing, and place a transparent code on a light part of your design.
         </p>

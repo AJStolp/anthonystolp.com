@@ -40,6 +40,8 @@ type Props = {
   onClose: () => void;
   redirectUrl: string;
   campaignContext?: CampaignContext;
+  // Lead source sent to /api/lead. Pages with their own funnel label pass one.
+  source?: string;
 };
 
 export function SearchGate({
@@ -47,6 +49,7 @@ export function SearchGate({
   onClose,
   redirectUrl,
   campaignContext,
+  source = "search-redirect",
 }: Props) {
   const emailId = useId();
   const timeframeId = useId();
@@ -93,7 +96,7 @@ export function SearchGate({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            source: "search-redirect",
+            source,
             funnelStep: "completed",
             email: values.email,
             timeframe: values.timeframe,
@@ -123,7 +126,7 @@ export function SearchGate({
         );
       }
     },
-    [campaignContext, redirectUrl],
+    [campaignContext, redirectUrl, source, honeypot],
   );
 
   if (!open) return null;

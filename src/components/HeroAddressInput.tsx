@@ -177,7 +177,7 @@ export function HeroAddressInput() {
             aria-activedescendant={
               activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined
             }
-            className="flex-1 bg-transparent px-5 py-4 text-base text-ink outline-none placeholder:text-ink-soft/50"
+            className="flex-1 bg-transparent px-5 py-4 text-base text-ink outline-none placeholder:text-ink-soft/70"
           />
           <button
             type="submit"

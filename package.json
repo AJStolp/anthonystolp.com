@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "bun tools/ensure-local-deps.mjs && next dev",
+    "build": "bun tools/ensure-local-deps.mjs && next build",
     "start": "next start",
     "type-check": "tsc --noEmit",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:a11y": "playwright test accessibility",
+    "test:e2e": "bun tools/ensure-local-deps.mjs && playwright test",
+    "test:e2e:ui": "bun tools/ensure-local-deps.mjs && playwright test --ui",
+    "test:a11y": "bun tools/ensure-local-deps.mjs && playwright test accessibility",
     "audit:deps": "bun tools/audit-dependencies.mjs",
     "lint": "eslint . --max-warnings=11"
   },
@@ -21,14 +21,14 @@
     "gsap": "^3.15.0",
     "lenis": "^1.3.23",
     "lucide-react": "^1.14.0",
-    "next": "^16.3.5",
+    "next": "^16.4.3",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.75.0",
     "resend": "^6.12.3",
     "tailwind-merge": "^3.6.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -39,7 +39,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "^16.3.5",
+    "eslint-config-next": "^16.4.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "typescript-eslint": "^8.70.0"
@@ -51,5 +51,9 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "overrides": {
+    "source-map-js": "^1.2.2",
+    "zod": "^4.6.7"
+  }
 }

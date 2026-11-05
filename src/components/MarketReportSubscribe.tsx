@@ -89,7 +89,7 @@ export function MarketReportSubscribe() {
     >
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 md:grid-cols-12 md:gap-16 md:px-12">
         <div className="md:col-span-6">
-          <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/65">
+          <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
             Monthly market report
           </p>
           <h2
@@ -131,7 +131,7 @@ export function MarketReportSubscribe() {
               <div>
                 <label
                   htmlFor="mr-email"
-                  className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/60"
+                  className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/70"
                 >
                   Email
                 </label>
@@ -150,7 +150,7 @@ export function MarketReportSubscribe() {
               <div>
                 <label
                   htmlFor="mr-zip"
-                  className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/60"
+                  className="block text-[11px] uppercase tracking-[0.32em] text-ink-soft/70"
                 >
                   Your zip
                 </label>

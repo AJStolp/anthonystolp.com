@@ -10,6 +10,7 @@ const SCROLL_THRESHOLD = 80;
 const LINKS: { href: string; label: string }[] = [
   { href: "/buy", label: "Buy" },
   { href: HOME_VALUE_ENABLED ? "/home-value" : sellFallbackHref(), label: "Sell" },
+  { href: "/northwoods", label: "Northwoods" },
   { href: "/about", label: "About" },
   { href: "/#contact", label: "Contact" },
 ];
