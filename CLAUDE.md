@@ -131,7 +131,7 @@ Capabilities live in `.claude/skills/`. This file supplies state and boundaries;
 | Something is broken | `/diagnosing-bugs` (reproduce → hypothesise → instrument → fix → regression test) |
 | Building or fixing in code | `/tdd` |
 | Turning a conversation into work | `/to-spec`, then `/to-tickets` |
-| Picking up or moving work | `/triage` |
+| Picking up or moving work | The board, worked with `python ../headspace/board.py`; statuses in `../headspace/WORKFLOW.md` |
 | Before committing | `/code-review` |
 | Ending a session or nearing a context limit | `/handoff` |
 
@@ -150,10 +150,10 @@ The gate is: `bun run lint`, `bun run type-check` and `bun run build` pass (CI r
 ```
 Verified: submitted home-value form on local dev, row appears in
 /admin/leads with visitorId stitched, Resend email received
-Closes #23
+Refs T-NNN
 ```
 
-No evidence line, no commit. An agent may commit; an agent may not close an issue.
+No evidence line, no commit. An agent may commit; an agent may not close a ticket. When a ticket closes is in `../headspace/WORKFLOW.md`.
 
 **Push to main deploys to production**, and production is a live funnel with paid traffic pointed at it. Treat every merge as a release and never merge one you have not exercised.
 
@@ -169,9 +169,7 @@ Skip when there is nothing to see: pure helpers, migration SQL, docs. If you can
 
 ### 3. Branch and PR workflow
 
-Always branch off main: `git checkout main && git pull && git checkout -b feat/...`. Never commit to main directly.
-
-Prefixes are `feat/`, `fix/`, `chore/`, `docs/`. A branch is not a storage location: if work is worth keeping and is not landing this week, it becomes an issue and the branch is deleted.
+Branch off `dev` as `feature/T-NNN-...`, with the ticket id in the name. `main` is reached only by the promotion PR AJ merges. The branch model is the Branches section of `../headspace/WORKFLOW.md`.
 
 ### 4. Do not describe other repos here
 
