@@ -153,7 +153,7 @@ Verified: submitted home-value form on local dev, row appears in
 Refs T-NNN
 ```
 
-No evidence line, no commit. An agent may commit; an agent may not close a ticket. When a ticket closes is in `../headspace/WORKFLOW.md`.
+No evidence line, no commit. An agent may commit; an implementer never closes its own ticket. Who closes a ticket, and when, is in `../headspace/WORKFLOW.md`.
 
 **Push to main deploys to production**, and production is a live funnel with paid traffic pointed at it. Treat every merge as a release and never merge one you have not exercised.
 
