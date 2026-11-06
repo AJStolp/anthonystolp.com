@@ -65,12 +65,23 @@ const hasContact = l => !!(phone(l) || email(l) || mailAddress(l));
 const DEAD_STAGES = new Set(['Do Not Contact', 'Closed', 'Archived', 'Trash']);
 const reachable = l => !DEAD_STAGES.has(String(l.stage || '')) && !(l.cannotCall && l.cannotEmail && l.cannotText);
 const isWI = l => String(l.state || '').toUpperCase() === 'WI';
-// AJ's territory, by the lead's County attribute. Zip prefixes cut across county lines (542 is
-// Manitowoc but 534 is Racine), so the county is the test. Lofty writes it in mixed case
-// ("DANE", "Juneau"). About 1 lead in 12 has no County, and those are dropped too: on
-// 2026-11-02 every one of them was far away (Hayward, Menomonie, Richland Center). Sending
-// them to Claude to judge does not work: the first run that tried it failed on Claude's reply,
-// and Claude is not reliable at placing a lead from its city alone.
+// AJ's territory: a lead is in it when its County attribute OR its 5 digit zip names one of the
+// Config counties. Lofty writes County in mixed case ("DANE", "Juneau").
+//
+// County alone is not enough (anthonystolp T-039). From 2026-11-02 to 2026-11-06 it dropped
+// every lead in the busiest part of the territory: 15 of the 100 newest pond leads had no
+// County, six of them in Milwaukee and Glendale, and a Mequon (53092) lead came labeled
+// JEFFERSON. Not one reached the digest. So the zip is checked too, against ZIP_COUNTY below.
+//
+// Zip prefixes cut across county lines (542 is Manitowoc but 534 is Racine), so the table is
+// by full zip, built from the Census 2020 ZCTA to county relationship file
+// (tab20_zcta520_county20_natl.txt): a zip belongs to the county holding most of its land, and
+// is listed only when at least half its land is in the eight counties. Waterford (53185, 99%
+// Racine) and Brownsville (53006, 74% Dodge) are therefore out. The table covers the eight
+// counties only: a county added to Config is matched by its County attribute until it is added
+// here. A lead with neither a matching County nor a listed zip is dropped; sending those to
+// Claude to place does not work, as the first run that tried it failed on Claude's reply.
+//
 // The same list names the counties in the prompt below, so the filter and what Claude is told
 // cannot drift apart. An empty list is a broken Config, not "everywhere": the prompt tells
 // Claude location does not matter, and an A or B lead is claimed in Lofty automatically.
@@ -78,8 +89,40 @@ const countyNames = String(cfg.counties || '').split(',').map(c => c.trim()).fil
 if (!countyNames.length) throw new Error('Config counties is empty. Set the territory before the triage runs.');
 const normCounty = c => String(c || '').trim().toUpperCase().replace(/ COUNTY$/, '');
 const counties = new Set(countyNames.map(normCounty));
-const countyOf = l => normCounty(attr(l, 'County'));
-const inTerritory = l => counties.has(countyOf(l));
+const ZIP_COUNTY = Object.fromEntries(Object.entries({
+  'CALUMET':
+    '53014 53061 53088 54110 54123 54129 54160 54169 54952',
+  'FOND DU LAC':
+    '53010 53019 53049 53057 53065 53079 53919 53931 53963 54932 54935 54937 54971 54974 ' +
+    '54979',
+  'MANITOWOC':
+    '53015 53042 53063 54207 54214 54215 54220 54227 54228 54230 54232 54241 54245 54247',
+  'MILWAUKEE':
+    '53110 53129 53130 53132 53154 53172 53202 53203 53204 53205 53206 53207 53208 53209 ' +
+    '53210 53211 53212 53213 53214 53215 53216 53217 53218 53219 53220 53221 53222 53223 ' +
+    '53224 53225 53226 53227 53228 53233 53235 53295',
+  'OZAUKEE':
+    '53004 53012 53021 53024 53074 53080 53092 53097',
+  'SHEBOYGAN':
+    '53001 53011 53013 53020 53023 53031 53044 53070 53073 53075 53081 53083 53085 53093',
+  'WASHINGTON':
+    '53002 53017 53022 53027 53033 53037 53040 53076 53086 53090 53095',
+  'WAUKESHA':
+    '53005 53007 53018 53029 53045 53046 53051 53058 53066 53069 53072 53089 53103 53118 ' +
+    '53119 53122 53127 53146 53149 53150 53151 53153 53183 53186 53188 53189',
+}).flatMap(([county, zips]) => zips.split(' ').map(z => [z, county])));
+// The property's zip, not the owner's: an absentee owner's mailing zip says nothing about
+// where the house is.
+const zipCounty = l => ZIP_COUNTY[(String(l.zipCode || '').match(/^\d{5}/) || [])[0]] || null;
+// The territory county a lead belongs to, or null. A wrong County that is still one of the
+// eight wins over the zip; it is in the territory either way.
+const territoryCounty = l => {
+  const c = normCounty(attr(l, 'County'));
+  if (counties.has(c)) return c;
+  const z = zipCounty(l);
+  return z && counties.has(z) ? z : null;
+};
+const inTerritory = l => territoryCounty(l) !== null;
 
 // --- customAttributes: where every real signal on a +plus lead actually lives -------------
 // Shape is [{attributeName, attributeType, value}]. Values are strings, and "0" / "" are
@@ -126,7 +169,8 @@ const shape = (l, bucket, ref) => {
     listing_status: attr(l, 'Status') || null,
     mail_address: addr,
     mailable: !!addr,
-    county: attr(l, 'County') || null,
+    // The territory county when there is one, so Claude never sees Mequon labeled JEFFERSON.
+    county: territoryCounty(l) || attr(l, 'County') || null,
     location: [l.city, l.state, l.zipCode].filter(Boolean).join(', ') || null,
     // Money
     list_price: int(attr(l, 'Price')),
