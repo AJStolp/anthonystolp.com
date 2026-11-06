@@ -26,9 +26,11 @@ Schedule (every 5 min, America/Chicago)
   -> Lofty GET /v1.0/leads?stage=New Leads&sort=CreateTime&desc=true   (pond)
   -> Lofty GET /v1.0/leads?assignedUserId=<you>&sort=CreateTime&desc=true (pipeline)
   -> Filter & Shape (drop already-seen / non-WI / outside your counties / no-contact / unreachable / claimed-by-others;
-                     build the Anthropic request)        --> empty? stops here, no email
-  -> Anthropic POST /v1/messages (score + triage, strict JSON)
-  -> Parse & Sort
+                     reuse stored pipeline ratings; build the Anthropic request) --> empty? stops here, no email
+  -> IF Alert      true  -> Send Alert (Resend)        (Claude held after 3 failed runs; once per pause)
+  -> IF Needs Claude
+       true  -> Anthropic POST /v1/messages (score + triage, strict JSON) -> Parse & Sort
+       false ---------------------------------------------------------> Parse & Sort (every lead already rated)
   -> Pick Claims (pond A and B) -> IF Has Claims
        true  -> Lofty POST /v1.0/leads/{id}/assignment (one per lead) -> Merge Claims
        false ------------------------------------------------------> Merge Claims
@@ -54,21 +56,42 @@ Schedule (every 5 min, America/Chicago)
   seen-id set above is the only dedup, so every workable lead is surfaced once, no matter how
   far back in the pond it sits. (A `reachable()` guard also drops any lead flagged
   `Do Not Contact` / fully un-contactable that slips into the pipeline query.)
-- **County pre-filter:** the pond is fed statewide bulk imports (a single 100-lead dump can
-  span Eau Claire to Green Bay). Only WI leads whose `County` attribute is one of the eight in
-  `counties` reach Claude, so you don't pay to C-tier a lead 3 hours away. It used to filter on
-  zip prefixes, which cut across county lines: `530,531,532,534` let in Racine, Kenosha and
-  Walworth, and dropped Manitowoc (`542`), Fond du Lac city (`549`) and part of Calumet (`541`).
-  About 1 lead in 12 has no `County`, and those are dropped too. Sending them to Claude to
-  place does not work: the first run that tried it failed on Claude's reply (2026-11-02), and
-  Claude is not reliable at placing a lead from its city alone. Observed 2026-11-02: 100 leads, 84 in WI, 77 with a
-  County, 1 of them in the eight.
-- **Bounded model call:** `max_tokens` 8192 + `maxPerRun` cap so a giant import can't
-  truncate the JSON response.
+- **Territory pre-filter:** the pond is fed statewide bulk imports (a single 100-lead dump can
+  span Eau Claire to Green Bay). Only WI leads in the eight `counties` reach Claude, so you
+  don't pay to C-tier a lead 3 hours away. A lead is in the territory when its `County`
+  attribute names one of them, **or** its 5 digit zip is one of the 133 with at least half
+  their land in them (`ZIP_COUNTY` in `nodes/filter-and-shape.js`, from the Census 2020 ZCTA
+  to county file). The zip check exists because `County` is unreliable: from 2026-11-02 to
+  2026-11-06, 15 of the 100 newest leads had none, every Milwaukee and Glendale lead among
+  them, and a Mequon lead came labeled `JEFFERSON`, so none reached the digest (T-039). Zip
+  prefixes alone are no good either, since they cut across county lines (`534` is Racine,
+  `542` is Manitowoc). A lead with neither is dropped.
+- **Bounded model call:** `maxPerRun` (25) caps the pond leads in one call, keeping a run inside
+  n8n's HTTP timeout; leads over it wait for the next run. `max_tokens` is 32000, headroom so a
+  verbose reply is never cut off mid-JSON.
 - **Pipeline only once a day** (first successful run at/after 07:00, tracked by a
   `pipelineEmailedDate` flag in static data and committed post-send) so the 5-min cadence
   doesn't re-email your claimed book every run. Fresh pond leads still go out as soon
   as they appear.
+- **A pipeline lead is rated once, until it changes** (T-041). Claude rates a pipeline lead on
+  property facts alone, which almost never change, so the daily pipeline run used to pay for
+  the same ~40 answers every morning. `Filter & Shape` fingerprints each pipeline lead (the
+  shaped lead without `ref` and `years_owned`, plus the model and the prompt) and reuses the
+  rating stored in static data `pipelineRatings` when the fingerprint matches. Only changed
+  leads go to Claude; on a day with none, `IF Needs Claude` skips Anthropic and the digest
+  still goes out with the stored ratings. A new model or prompt re-rates everything once.
+  Leads that leave the pipeline are dropped from the store.
+- **Three failed runs hold Claude back** (T-041). A run that fails after calling Claude marks
+  nothing seen, so the next run would pay for the same leads again, every 5 minutes.
+  `claudeGuard` in static data counts runs that called Claude and did not finish: the count
+  goes up before the call (n8n saves static data on a failed production run too) and back to
+  0 in `Mark Emailed Seen`, or in `Parse & Sort` when there is nothing to send. At 3, Claude is
+  tried at most once every 6 hours until a run gets through, and `Send Alert (Resend)` emails
+  `digestTo` once per pause.
+- **`claudeLog`** in static data keeps the last 200 runs that needed Claude: whether it was
+  called, and how many pond, re-rated and reused pipeline leads it carried. Successful
+  executions are not saved on this instance (T-037), so this is where to see what the
+  triage spends.
 
 ---
 

@@ -7,24 +7,42 @@
 // ended the run with nothing committed at all (anthonystolp T-023). Everything else is passed
 // through and the DIGEST decides what to render, so a merely-weak lead is still counted and
 // never silently vanishes.
-const resp = $json;
-const text = (resp.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
-// The prompt asks for a bare array, but a reply can still open with a line of reasoning
-// (2026-11-02, execution 14346: "I need to check each lead's geography...") and fail the whole
-// run. Read from the first [ to the last ], so text around the array is ignored.
-const stripped = text.replace(/```json|```/g, '');
-const start = stripped.indexOf('['), end = stripped.lastIndexOf(']');
-const clean = (start >= 0 && end > start ? stripped.slice(start, end + 1) : stripped).trim();
-let parsed;
-try {
-  parsed = JSON.parse(clean);
-} catch (e) {
-  throw new Error('Claude did not return valid JSON: ' + e.message + ' :: ' + clean.slice(0, 500));
-}
-if (!Array.isArray(parsed)) throw new Error('Expected a JSON array from Claude, got: ' + clean.slice(0, 200));
-
-const raw = $('Filter & Shape').first().json.rawById || {};
+const shaped = $('Filter & Shape').first().json;
+const raw = shaped.rawById || {};
 const today = $now.toFormat('yyyy-LL-dd');
+
+// anthonystolp T-041: on a "cached" run every lead already had a stored rating, Claude was not
+// called, and this node is reached straight from "IF Needs Claude". There is no reply to read.
+let parsed = [];
+if (shaped.route !== 'cached') {
+  const resp = $json;
+  const text = (resp.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+  // The prompt asks for a bare array, but a reply can still open with a line of reasoning
+  // (2026-11-02, execution 14346: "I need to check each lead's geography...") and fail the whole
+  // run. Read from the first [ to the last ], so text around the array is ignored.
+  const stripped = text.replace(/```json|```/g, '');
+  const start = stripped.indexOf('['), end = stripped.lastIndexOf(']');
+  const clean = (start >= 0 && end > start ? stripped.slice(start, end + 1) : stripped).trim();
+  try {
+    parsed = JSON.parse(clean);
+  } catch (e) {
+    throw new Error('Claude did not return valid JSON: ' + e.message + ' :: ' + clean.slice(0, 500));
+  }
+  if (!Array.isArray(parsed)) throw new Error('Expected a JSON array from Claude, got: ' + clean.slice(0, 200));
+}
+
+// Store every pipeline rating Claude just gave, SKIP included, against the fingerprint Filter &
+// Shape computed, so tomorrow the same lead is not paid for again unless its facts change.
+const fresh = parsed.filter(p => { const r = raw[String(p.ref)]; return r && r.bucket === 'pipeline' && r.fp; });
+if (fresh.length) {
+  const sdR = $getWorkflowStaticData('global');
+  const ratings = sdR.pipelineRatings && typeof sdR.pipelineRatings === 'object' ? sdR.pipelineRatings : {};
+  fresh.forEach(p => { const { ref, ...rating } = p; const r = raw[String(ref)]; ratings[r.lead_id] = { fp: r.fp, rating, ratedOn: today }; });
+  sdR.pipelineRatings = ratings;
+}
+// Stored ratings join the fresh ones and go through everything below exactly as if Claude had
+// just returned them.
+parsed = [...parsed, ...(Array.isArray(shaped.cached) ? shaped.cached : [])];
 
 const isSkip = p => String(p.tier || '').toUpperCase() === 'SKIP';
 const skipped = parsed.filter(isSkip);
@@ -70,6 +88,11 @@ const pipelineSent = Object.values(raw).some(r => r.bucket === 'pipeline');
 if (pipelineSent && !kept.some(p => raw[String(p.ref)].bucket === 'pipeline')) {
   $getWorkflowStaticData('global').pipelineEmailedDate = today;
 }
+
+// Nothing to send means the run ends here, and it ended well: clear the failure count that
+// Filter & Shape raised before calling Claude (anthonystolp T-041). A run with something to send
+// is cleared by "Mark Emailed Seen", after the send.
+if (!kept.length) $getWorkflowStaticData('global').claudeGuard = { failures: 0 };
 
 return kept.map(p => {
   const r = raw[String(p.ref)];

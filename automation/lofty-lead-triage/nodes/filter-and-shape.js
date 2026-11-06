@@ -230,7 +230,7 @@ const all = [...cappedPond, ...mine];
 if (!all.length) return []; // nothing new -> no email, no Anthropic call
 
 const rawById = {};
-const batch = all.map(x => {
+all.forEach(x => {
   rawById[String(x.shaped.ref)] = {
     lead_id: x.lead_id,
     bucket: x.bucket,
@@ -250,7 +250,6 @@ const batch = all.map(x => {
     list_office: x.shaped.list_office,
     mls_number: x.shaped.mls_number
   };
-  return x.shaped;
 });
 
 const SYSTEM = [
@@ -321,6 +320,75 @@ const SYSTEM = [
   'Sort the array by score, highest first.'
 ].join('\n');
 
+// --- Token guardrails (anthonystolp T-041) ------------------------------------------------
+const nowMs = typeof $now.toMillis === 'function' ? $now.toMillis() : Date.now();
+const nowIso = new Date(nowMs).toISOString();
+
+// 1. A pipeline lead is re-rated only when what Claude would see has changed. Claude rates a
+// pipeline lead on property facts alone (shape above), which almost never change, so before this
+// the same ~40 leads went to Claude every morning for the same answers. The fingerprint is the
+// shaped lead without `ref` (a per-run join key) and `years_owned` (it drifts with the calendar),
+// plus the model and the prompt: change either and every lead is re-rated once, as it should be.
+// The rating Claude returns is stored by Parse & Sort in pipelineRatings, keyed by lead id.
+const fnv = (s) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(36); };
+const promptKey = fnv(`${cfg.model}\n${SYSTEM}`);
+const fingerprint = (s) => { const { ref, years_owned, ...facts } = s; return fnv(`${promptKey}\n${JSON.stringify(facts)}`); };
+const ratings = sd.pipelineRatings && typeof sd.pipelineRatings === 'object' ? sd.pipelineRatings : {};
+// Forget leads that have left the pipeline, so the store holds only the current book. Only on a
+// pipeline run and only when Lofty returned a pipeline: an empty or failed read prunes nothing.
+if (mine.length && pipe.length) {
+  const current = new Set(pipe.map(l => String(l.leadId)));
+  Object.keys(ratings).forEach(id => { if (!current.has(id)) delete ratings[id]; });
+  sd.pipelineRatings = ratings;
+}
+const batch = [];
+const cached = [];
+all.forEach(x => {
+  if (x.bucket !== 'pipeline') { batch.push(x.shaped); return; }
+  const fp = fingerprint(x.shaped);
+  rawById[String(x.shaped.ref)].fp = fp;
+  const hit = ratings[x.lead_id];
+  if (hit && hit.fp === fp && hit.rating) cached.push({ ...hit.rating, ref: x.shaped.ref });
+  else batch.push(x.shaped);
+});
+const needsClaude = batch.length > 0;
+const pondInBatch = batch.filter(s => rawById[String(s.ref)].bucket === 'pond').length;
+const logCall = (called) => {
+  const log = Array.isArray(sd.claudeLog) ? sd.claudeLog : [];
+  sd.claudeLog = [...log, { at: nowIso, called, pond: pondInBatch, pipelineRated: batch.length - pondInBatch, pipelineCached: cached.length }].slice(-200);
+};
+
+// 2. After three failed runs in a row, Claude is tried at most once every 6 hours until a run
+// gets through. A run that fails anywhere after the Claude call (Claude's reply, a claim, the
+// send) marks nothing seen, so before this the next run paid Claude for the same leads again,
+// every 5 minutes, and nobody was told. The count goes up HERE, before the call, because n8n
+// saves static data on a failed production run too (n8n 2.20.6,
+// execution-lifecycle-hooks.ts); it goes back to 0 only where a run ends well: Mark Emailed
+// Seen after the send, and Parse & Sort when there is nothing to send.
+const MAX_FAILURES = 3;
+const HOLD_MS = 6 * 60 * 60 * 1000;
+const guard = sd.claudeGuard && typeof sd.claudeGuard === 'object' ? sd.claudeGuard : { failures: 0 };
+if (needsClaude) {
+  const lastTry = guard.lastTryAt ? Date.parse(guard.lastTryAt) : 0;
+  if ((guard.failures || 0) >= MAX_FAILURES && nowMs - lastTry < HOLD_MS) {
+    if (guard.alertedAt) return []; // held, and AJ has already been told
+    guard.alertedAt = nowIso;
+    sd.claudeGuard = guard;
+    const resume = new Date(lastTry + HOLD_MS).toISOString();
+    const subject = `Lead triage paused: ${guard.failures} failed runs in a row`;
+    const html = [
+      `<p>The Lofty lead triage has failed ${guard.failures} runs in a row after calling Claude, so it has stopped calling Claude to avoid paying for the same leads again.</p>`,
+      `<p>Last attempt: ${guard.lastTryAt}. It tries once more at ${resume} (UTC), then every 6 hours until a run gets through. No new leads are lost: nothing is marked seen until a digest is sent.</p>`,
+      '<p>Failed runs are kept in n8n under Executions for lofty-lead-triage-daily. This email is sent once per pause.</p>'
+    ].join('\n');
+    return [{ json: { route: 'alert', subject, html } }];
+  }
+  guard.failures = (guard.failures || 0) + 1;
+  guard.lastTryAt = nowIso;
+  sd.claudeGuard = guard;
+}
+logCall(needsClaude);
+
 // Output runs ~300 tokens per lead (headline + why_approachable + assessment + angle),
 // so 50 leads is ~15k. Generous headroom here so a verbose batch can never truncate the
 // JSON and blow up Parse & Sort. The real constraint is n8n's HTTP timeout, not this cap:
@@ -333,4 +401,6 @@ const anthropicBody = {
   messages: [{ role: 'user', content: JSON.stringify(batch) }]
 };
 
-return [{ json: { batch, rawById, anthropicBody, count: batch.length, pondCount: cappedPond.length, pipelineCount: mine.length } }];
+// route: "claude" goes through Anthropic to Parse & Sort; "cached" (every lead has a stored
+// rating) goes straight to Parse & Sort, so the daily pipeline digest still goes out.
+return [{ json: { route: needsClaude ? 'claude' : 'cached', batch, cached, rawById, anthropicBody, count: batch.length, pondCount: cappedPond.length, pipelineCount: mine.length, cachedCount: cached.length } }];
