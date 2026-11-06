@@ -56,7 +56,25 @@ const outside = [
 is('Racine, Kenosha, Walworth and others are dropped', run(cfg, outside).batch.length, 0);
 
 const mixed = run(cfg, [lead('FOND DU LAC', 'Ripon'), lead('RACINE', 'Burlington'), lead(null, 'Hayward')]);
-is('no County is dropped', cities(mixed), 'Ripon');
+is('no County and no territory zip is dropped', cities(mixed), 'Ripon');
+
+// anthonystolp T-039: the pond from 2026-11-02 to 2026-11-06, as Lofty sent it. County was
+// missing on every Milwaukee and Glendale lead, and wrong on Mequon, so none reached Claude.
+const at = (county, city, zipCode) => ({ ...lead(county, city), zipCode });
+const missed = [
+  at(null, 'Milwaukee', '53211'), at(null, 'Milwaukee', '53207-5823'), at(null, 'Glendale', '53217-4101'),
+  at(null, 'Milwaukee', '53212-3302'), at(null, 'Milwaukee', '53222-5014'), at('JEFFERSON', 'Mequon', '53092'),
+];
+is('no County, territory zip, reaches Claude', run(cfg, missed).batch.length, 6);
+is('a wrong County is replaced by the zip county', run(cfg, [at('JEFFERSON', 'Mequon', '53092')]).batch[0]?.county, 'OZAUKEE');
+is('a right County is kept', run(cfg, [at('Washington', 'West Bend', '53095')]).batch[0]?.county, 'WASHINGTON');
+const neighbours = [
+  at(null, 'Waterford', '53185-2928'), at('ADAMS', 'Bristol', '53104'), at('DODGE', 'Brownsville', '53006'),
+  at('Dodge', 'Watertown', '53098'), at('Walworth', 'Delavan', '53115'), at(null, 'Stoughton', '53589-9158'),
+  at(null, '', ''), at(null, null, null),
+];
+is('zips mostly outside the territory are still dropped', run(cfg, neighbours).batch.length, 0);
+is('the zip follows Config, not the table', run({ ...cfg, counties: 'Ozaukee' }, missed).batch.map(b => b.county).join(), 'OZAUKEE');
 
 const threw = (f) => { try { f(); return 'ran'; } catch { return 'threw'; } };
 is('a blank list stops the run', threw(() => run({ ...cfg, counties: '' }, eight)), 'threw');
