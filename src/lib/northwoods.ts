@@ -46,7 +46,3 @@ const NORTHWOODS_SOURCE_SET = new Set<string>(Object.values(NORTHWOODS_SOURCES))
 export function northwoodsCc(source: string): string[] | undefined {
   return NORTHWOODS_SOURCE_SET.has(source) ? ["Jaystolp@exsellexperts.com"] : undefined;
 }
-
-export function telHref(phone: string): string {
-  return `tel:+1${phone.replace(/\D/g, "")}`;
-}

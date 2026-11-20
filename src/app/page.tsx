@@ -8,6 +8,7 @@ import { MarketReportSubscribe } from "@/components/MarketReportSubscribe";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { getRecentResults } from "@/lib/properties";
+import { getAgentProfile } from "@/lib/agent-profile";
 
 // The hero card reads properties from Supabase, so the home page is ISR rather
 // than fully static: a status flip in /admin shows up within the window.
@@ -37,7 +38,15 @@ const jsonLd = {
         addressRegion: "WI",
         addressCountry: "US",
       },
+      // The six towns lead, so the entity matches the Cedarburg and Ozaukee
+      // targeting; the counties stay as the wider service area.
       areaServed: [
+        { "@type": "City", name: "Cedarburg, Wisconsin" },
+        { "@type": "City", name: "Mequon, Wisconsin" },
+        { "@type": "City", name: "Thiensville, Wisconsin" },
+        { "@type": "City", name: "Grafton, Wisconsin" },
+        { "@type": "City", name: "Port Washington, Wisconsin" },
+        { "@type": "City", name: "Saukville, Wisconsin" },
         { "@type": "AdministrativeArea", name: "Ozaukee County, Wisconsin" },
         { "@type": "AdministrativeArea", name: "Washington County, Wisconsin" },
         { "@type": "AdministrativeArea", name: "Waukesha County, Wisconsin" },
@@ -96,7 +105,7 @@ export default async function Home() {
           }}
         />
         <Nav />
-        <Hero featured={featured ?? null} />
+        <Hero featured={featured ?? null} cell={getAgentProfile().mobilePhone} />
         <TrustStrip />
         <RecentResults results={rest} />
         <Approach />
