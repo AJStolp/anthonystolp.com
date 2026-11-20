@@ -13,10 +13,15 @@ export const revalidate = 300;
 
 type RouteParams = Promise<{ slug: string }>;
 
-// Trim `s` to at most `max` chars on a word boundary, adding an ellipsis if cut.
-function trimAtWord(s: string, max: number): string {
-  if (s.length <= max) return s;
-  const cut = s.slice(0, max);
+// The description as one line of at most `max` chars, for the meta tag. It
+// ends on the last whole sentence that fits, and only when no sentence fits
+// does it cut on a word with an ellipsis.
+function metaDescription(s: string, max: number): string {
+  const flat = s.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max);
+  const sentenceEnd = cut.lastIndexOf(". ");
+  if (sentenceEnd > 0) return cut.slice(0, sentenceEnd + 1);
   const lastSpace = cut.lastIndexOf(" ");
   return `${cut.slice(0, lastSpace > 0 ? lastSpace : max).trimEnd()}…`;
 }
@@ -44,7 +49,7 @@ export async function generateMetadata({
     .filter(Boolean)
     .join(", ");
   const description = p.description
-    ? trimAtWord(p.description, 160)
+    ? metaDescription(p.description, 160)
     : `${p.address}${loc ? `, ${loc}` : ""}.${bedsBaths ? ` ${bedsBaths}.` : ""} ${
         sold
           ? "See the details and what it took to get here."

@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/65">
-          Last updated: May 14, 2026
+          Last updated: November 20, 2026
         </p>
 
         <div className="mt-12 space-y-10 text-[15px] leading-[1.75] text-ink/80">
@@ -121,8 +121,8 @@ export default function PrivacyPage() {
             <p className="mt-3">
               If you opt in to receive text messages by checking the SMS
               consent box on one of our forms, you may receive messages from
-              Anthony Stolp and the ExSell Experts team regarding real estate services, property inquiries, scheduling,
-              and related communications.
+              Anthony Stolp regarding real estate services, property inquiries,
+              scheduling, and related communications.
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-6">
               <li>Message frequency varies.</li>
@@ -202,7 +202,7 @@ export default function PrivacyPage() {
               >
                 anthony@exsellexperts.com
               </a>{" "}
-              or call (262) 885-3310, or call or text (262) 483-7932.
+              or call or text me at (262) 483-7932. Office: (262) 885-3310.
             </p>
           </section>
         </div>

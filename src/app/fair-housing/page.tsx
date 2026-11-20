@@ -111,7 +111,7 @@ export default function FairHousingPage() {
               >
                 anthony@exsellexperts.com
               </a>{" "}
-              or call (262) 885-3310.
+              or call or text me at (262) 483-7932. Office: (262) 885-3310.
             </p>
           </section>
         </div>
