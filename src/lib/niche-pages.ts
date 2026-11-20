@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getSupabase } from "./supabase-server";
+import { getFixturePage } from "./niche-page-fixtures";
 
 export const NicheIntent = z.enum(["buy", "sell"]);
 export type NicheIntent = z.infer<typeof NicheIntent>;
@@ -41,6 +42,7 @@ export const NichePageInput = z.object({
   hero_copy: z.string().max(2000).nullable().optional(),
   body: z.string().max(20000).nullable().optional(),
   faqs: z.array(NicheFaq).max(12).nullable().optional(),
+  is_guide: z.boolean().optional(),
   og_image: z.string().url().nullable().optional(),
   meta_desc: z.string().max(300).nullable().optional(),
   active: z.boolean().optional(),
@@ -60,6 +62,9 @@ export type NichePageRow = {
   hero_copy: string | null;
   body: string | null;
   faqs: NicheFaq[] | null;
+  // A guide gets Article schema, "Common questions" and the legal and tax
+  // disclaimer. A city page with body copy is still a city page.
+  is_guide: boolean;
   og_image: string | null;
   meta_desc: string | null;
   active: boolean;
@@ -68,7 +73,7 @@ export type NichePageRow = {
   updated_at: string;
 };
 
-const SELECT = "slug,title,h1,intent,geo,filters,hero_copy,body,faqs,og_image,meta_desc,active,agent_id,created_at,updated_at";
+const SELECT = "slug,title,h1,intent,geo,filters,hero_copy,body,faqs,is_guide,og_image,meta_desc,active,agent_id,created_at,updated_at";
 
 // Defensive helper: at build time on Vercel, Supabase env vars may be missing
 // (e.g. preview deploys without DB access). Build-time SSG pages call these
@@ -110,6 +115,8 @@ export async function getActiveDirectory(): Promise<NicheDirEntry[]> {
 export async function getActiveBySlug(
   slug: string,
 ): Promise<NichePageRow | null> {
+  const fixture = getFixturePage(slug);
+  if (fixture) return fixture;
   const supabase = trySupabase();
   if (!supabase) return null;
   const { data, error } = await supabase
@@ -159,6 +166,7 @@ export async function createPage(input: NichePageInput): Promise<NichePageRow> {
       hero_copy: input.hero_copy ?? null,
       body: input.body ?? null,
       faqs: input.faqs ?? null,
+      is_guide: input.is_guide ?? false,
       og_image: input.og_image ?? null,
       meta_desc: input.meta_desc ?? null,
       active: input.active ?? true,
