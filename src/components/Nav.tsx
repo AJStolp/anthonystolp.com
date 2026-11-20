@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { SELL_HREF } from "@/lib/feature-flags";
 
 const SCROLL_THRESHOLD = 80;
 
 const LINKS: { href: string; label: string }[] = [
   { href: "/buy", label: "Buy" },
-  { href: SELL_HREF, label: "Sell" },
+  { href: "/home-value", label: "Sell" },
   { href: "/northwoods", label: "Northwoods" },
   { href: "/about", label: "About" },
   { href: "/#contact", label: "Contact" },

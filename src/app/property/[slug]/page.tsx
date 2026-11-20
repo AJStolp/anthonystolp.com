@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { getPublicBySlug, getPublicSlugs, SOLD_STATUSES } from "@/lib/properties";
 import { PropertySignInForm } from "@/components/PropertySignInForm";
 import { getAgentProfile } from "@/lib/agent-profile";
-import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
 import { Footer } from "@/components/Footer";
 
 // Public property page: showcase + open-house sign-in. ISR so edits (price,
@@ -376,19 +375,10 @@ export default async function PropertyPage({
                   sales behind it.
                 </p>
                 <Link
-                  href={
-                    HOME_VALUE_ENABLED
-                      ? `/home-value?utm_source=property&utm_campaign=${p.slug}`
-                      : sellFallbackHref({
-                          utm_source: "property",
-                          utm_campaign: p.slug,
-                        })
-                  }
+                  href={`/home-value?utm_source=property&utm_campaign=${p.slug}`}
                   className="group mt-8 inline-flex items-center justify-center gap-3 border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
                 >
-                  {HOME_VALUE_ENABLED
-                    ? "Get my home value"
-                    : "Ask for my home value"}
+                  Ask for my home value
                   <span
                     aria-hidden
                     className="transition-transform group-hover:translate-x-1"

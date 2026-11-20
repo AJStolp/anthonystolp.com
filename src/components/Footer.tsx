@@ -2,14 +2,13 @@ import Link from "next/link";
 
 import { BackToTop } from "./BackToTop";
 import { getAgentProfile } from "@/lib/agent-profile";
-import { SELL_HREF } from "@/lib/feature-flags";
 import { telHref } from "@/lib/phone";
 import { COMMUNITIES, GUIDES, homesHref, valueHref } from "@/lib/communities";
 
 const SITE_LINKS: { href: string; label: string }[] = [
   { href: "/", label: "Home" },
   { href: "/buy", label: "Buy" },
-  { href: SELL_HREF, label: "Sell" },
+  { href: "/home-value", label: "Sell" },
   { href: "/about", label: "About" },
   { href: "/#approach", label: "How I work" },
   { href: "/#contact", label: "Contact" },

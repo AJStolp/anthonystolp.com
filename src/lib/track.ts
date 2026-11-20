@@ -12,10 +12,6 @@ type BaseFields = {
 export type TrackEvent =
   | (BaseFields & { event: "page_view" })
   | (BaseFields & {
-      event: "iframe_ready";
-      properties: { tool: string };
-    })
-  | (BaseFields & {
       event: "estimate_seen";
       properties: {
         address: string;
@@ -24,7 +20,6 @@ export type TrackEvent =
         low?: number;
         high?: number;
         point?: number;
-        confidence?: string;
         compsUsed?: number;
       };
     })
@@ -128,7 +123,7 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
       window.fbq?.("trackCustom", name, props);
       window.fbq?.("track", "ViewContent", { content_category: "home_value" });
       break;
-    // page_view, iframe_ready, form_started: stay internal — no pixel mirror.
+    // page_view, form_started: stay internal — no pixel mirror.
     default:
       break;
   }

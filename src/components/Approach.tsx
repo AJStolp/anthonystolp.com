@@ -6,7 +6,6 @@ import { ArrowRight, Check } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SearchGate } from "@/components/SearchGate";
-import { SELL_HREF } from "@/lib/feature-flags";
 
 const SEARCH_REDIRECT_URL =
   "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=search-cta";
@@ -44,7 +43,7 @@ const services: {
     ],
     cta: "Get my home value",
     image: "/images/services/home.jpeg",
-    href: SELL_HREF,
+    href: "/home-value",
   },
   {
     n: "03",

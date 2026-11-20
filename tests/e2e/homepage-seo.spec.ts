@@ -10,8 +10,6 @@ const AGENT_ID = `${SITE_URL}/#agent`;
 // the row is missing, because then the schema check has nothing to check.
 const CITY_PAGE = "/search/cedarburg-homes-for-sale";
 
-const HOME_VALUE_LIVE = process.env.HOME_VALUE_LIVE === "true";
-
 async function html(request: APIRequestContext, path: string): Promise<string> {
   const res = await request.get(path);
   expect(res.status(), `GET ${path}`).toBe(200);
@@ -86,10 +84,6 @@ test.describe("Homepage targets Cedarburg and Ozaukee County", () => {
   });
 
   test("the h1 names Cedarburg and Ozaukee County", async ({ request }) => {
-    // With the home-value funnel on, the hero headline is "What is your home
-    // worth?" instead. T-044 changed only the flag-off copy, which is what is
-    // live; flipping the flag needs its own decision about this headline.
-    test.skip(HOME_VALUE_LIVE, "home-value funnel is on: hero shows its own headline");
     const doc = await html(request, "/");
     const inner = /<h1[^>]*>([\s\S]*?)<\/h1>/.exec(doc)?.[1] ?? "";
     const text = decode(inner.replace(/<[^>]+>/g, "")).replace(/\s+/g, " ").trim();
