@@ -240,24 +240,9 @@ export default async function NichePage({ params }: { params: RouteParams }) {
         },
       ],
     },
-    {
-      "@type": "RealEstateAgent",
-      name: "Anthony Stolp",
-      url: SITE_URL,
-      image: `${SITE_URL}/opengraph-image`,
-      telephone: "+1-262-885-3310",
-      areaServed: page.geo ?? "Southeast Wisconsin",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Cedarburg",
-        addressRegion: "WI",
-        addressCountry: "US",
-      },
-      parentOrganization: {
-        "@type": "RealEstateOrganization",
-        name: "ExSell Experts at Epique Realty",
-      },
-    },
+    // One agent entity for the whole site, declared on the homepage. A second
+    // declaration here, with no @id, reads to Google as a different agent.
+    { "@id": `${SITE_URL}/#agent` },
     {
       "@type": "FAQPage",
       mainEntity: faqs.map((f) => ({

@@ -36,7 +36,15 @@ const jsonLd = {
         addressRegion: "WI",
         addressCountry: "US",
       },
+      // The six towns lead, so the entity matches the Cedarburg and Ozaukee
+      // targeting; the counties stay as the wider service area.
       areaServed: [
+        { "@type": "City", name: "Cedarburg, Wisconsin" },
+        { "@type": "City", name: "Mequon, Wisconsin" },
+        { "@type": "City", name: "Thiensville, Wisconsin" },
+        { "@type": "City", name: "Grafton, Wisconsin" },
+        { "@type": "City", name: "Port Washington, Wisconsin" },
+        { "@type": "City", name: "Saukville, Wisconsin" },
         { "@type": "AdministrativeArea", name: "Ozaukee County, Wisconsin" },
         { "@type": "AdministrativeArea", name: "Washington County, Wisconsin" },
         { "@type": "AdministrativeArea", name: "Waukesha County, Wisconsin" },
