@@ -62,8 +62,8 @@ export default function AboutPage() {
               </p>
               <p>
                 You work directly with me from start to finish. I have the
-                ExSell Experts team behind me when I need backup, but you work
-                with me.
+                ExSell Experts | Epique Realty team behind me when I need
+                backup, but you work with me.
               </p>
               <p>
                 The real estate industry has a fluff problem. Most agents lead

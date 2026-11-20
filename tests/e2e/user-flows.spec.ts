@@ -145,6 +145,41 @@ test.describe("Text consent names Anthony Stolp only", () => {
   });
 });
 
+// Google cuts a title off at about 60 characters (T-066).
+test.describe("Titles fit in a search result", () => {
+  for (const path of [
+    "/northwoods",
+    "/search/selling-a-house-during-divorce-wisconsin",
+    "/search/selling-an-inherited-house-wisconsin",
+    "/search/selling-before-foreclosure-wisconsin",
+    "/search/downsizing-in-wisconsin",
+  ]) {
+    test(`${path} has a title of 60 characters or fewer, naming Anthony once`, async ({ page }) => {
+      await page.goto(path);
+      const title = await page.title();
+      expect(title.length).toBeLessThanOrEqual(60);
+      expect(title.match(/Anthony Stolp/g) ?? []).toHaveLength(1);
+    });
+  }
+});
+
+test.describe("Wording AJ chose", () => {
+  test("About's one team line uses the brokerage with the pipe", async ({ page }) => {
+    await page.goto("/about");
+    await expect(
+      page.getByText("I have the ExSell Experts | Epique Realty team behind me when I need backup, but you work with me."),
+    ).toBeVisible();
+  });
+
+  test("Thiensville's snapshot names the zip it describes", async ({ page }) => {
+    await page.goto("/search/thiensville-homes-for-sale");
+    const heading = page.getByRole("heading", { name: "Thiensville and Mequon (53092) market snapshot" });
+    test.skip((await heading.count()) === 0 && !(await page.getByText("market snapshot").count()), "no snapshot without market data");
+    await expect(heading).toBeVisible();
+    await expect(page.getByText(/covers Thiensville and much of Mequon, not the village alone/)).toBeVisible();
+  });
+});
+
 test.describe("Funnel submissions (real DB writes)", () => {
   test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
 
