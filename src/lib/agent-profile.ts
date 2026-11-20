@@ -10,7 +10,7 @@ export type AgentProfile = {
   agentId: string;
   name: string;                    // "Anthony Stolp"
   shortName: string;               // "Anthony"
-  brokerage: string;               // "ExSell Experts at Epique Realty"
+  brokerage: string;               // "ExSell Experts | Epique Realty"
   phone: string;                   // "(262) 885-3310"
   mobilePhone: string;             // "(262) 483-7932" — direct cell, shown on the digital business card / vCard
   websiteDomain: string;           // "anthonystolp.com"
@@ -40,7 +40,7 @@ const AJ_PROFILE: AgentProfile = {
   agentId: "5e259344-5cf2-4179-a56b-15e2f69fe1fb",
   name: "Anthony Stolp",
   shortName: "Anthony",
-  brokerage: "ExSell Experts at Epique Realty",
+  brokerage: "ExSell Experts | Epique Realty",
   phone: "(262) 885-3310",
   mobilePhone: "(262) 483-7932",
   websiteDomain: "anthonystolp.com",
@@ -49,9 +49,13 @@ const AJ_PROFILE: AgentProfile = {
   licenseNumber: "114204-94",
   licenseState: "WI",
   mailingAddress:
-    "ExSell Experts at Epique Realty, W193N10980 Kleinmann Dr, Germantown, WI 53022",
+    "ExSell Experts | Epique Realty, W193N10980 Kleinmann Dr, Germantown, WI 53022",
   serviceArea: "Ozaukee County, Wisconsin",
-  targetZips: ["53012", "53092", "53097", "53024", "53074", "53080"],
+  targetZips: [
+    "53012", "53092", "53097", "53024", "53074", "53080",
+    // Washington County
+    "53090", "53095", "53027", "53022",
+  ],
   // Per-agent voice rules for any Claude-drafted content
   voiceNotes: `Calm, honest, no marketing fluff. Direct but warm, conversational, first-person. Write like a person, not a brand. "I" not "we". NEVER use em dashes (use periods or commas instead). No exclamation points except where genuinely natural. Sign off "Talk soon, Anthony" on personal correspondence.`,
   preferredLender: {

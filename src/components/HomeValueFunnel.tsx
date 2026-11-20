@@ -107,7 +107,7 @@ export function HomeValueFunnel() {
     const params = new URLSearchParams({
       theme: "light",
       brand: "Anthony Stolp",
-      company: "ExSell Experts at Epique Realty",
+      company: "ExSell Experts | Epique Realty",
       phone: "(262) 885-3310",
       website: "anthonystolp.com",
       visitor_id: visitorId,
@@ -547,8 +547,8 @@ function ContactFormInline({
           />
           <span>
             By checking this box, I agree to receive text messages from
-            Anthony Stolp regarding real estate services, property
-            inquiries, scheduling, and related communications. Message
+            Anthony Stolp and the ExSell Experts team regarding real estate services, property inquiries, scheduling,
+            and related communications. Message
             frequency varies. Message and data rates may apply. Reply HELP
             for help or STOP to opt out.
           </span>

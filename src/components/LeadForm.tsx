@@ -12,6 +12,7 @@ import {
   type Attribution,
 } from "@/lib/attribution";
 import { Honeypot } from "@/components/Honeypot";
+import { telHref } from "@/lib/phone";
 
 const INTENTS = ["buy", "sell", "both", "exploring"] as const;
 type Intent = (typeof INTENTS)[number];
@@ -38,19 +39,27 @@ type Props = {
   source?: string;
   heading?: React.ReactNode;
   intro?: string;
+  // Anthony's cell, offered as the fallback when a message fails and as the
+  // fast route after one goes through. A string rather than the profile,
+  // because this is a client component and its props ship to the browser.
+  cell: string;
+  messagePlaceholder?: string;
 };
 
 export function LeadForm({
   source = "contact-form",
   heading = (
     <>
-      Tell me where
+      Tell me what{" "}
       <br />
-      you are.
+      you&apos;re planning.
     </>
   ),
   intro = "A quick note, a quick call. No pressure, no scripts. I read every message myself and reply within the day.",
-}: Props = {}) {
+  cell,
+  messagePlaceholder = "Neighborhoods, timing, anything on your mind.",
+}: Props) {
+  const failed = `That didn't go through on my end. Try again, or call or text me at ${cell}.`;
   const sectionRef = useRef<HTMLElement | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [honeypot, setHoneypot] = useState("");
@@ -127,7 +136,7 @@ export function LeadForm({
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Something went wrong. Try again?");
+        throw new Error(data.error ?? failed);
       }
       const data = (await res.json().catch(() => ({}))) as { accepted?: boolean };
       // Gate on `accepted`: the honeypot also answers 200, and a bot counting
@@ -142,7 +151,7 @@ export function LeadForm({
       reset();
     } catch (err) {
       setSubmitError(
-        err instanceof Error ? err.message : "Something went wrong. Try again?",
+        err instanceof Error ? err.message : failed,
       );
     }
   };
@@ -186,8 +195,19 @@ export function LeadForm({
                 Sent
               </p>
               <h3 className="mt-4 font-display text-4xl font-semibold tracking-[-0.02em]">
-                Got it. I&apos;ll be in touch soon.
+                Got it.
               </h3>
+              <p className="mt-3 max-w-sm text-[15px] leading-[1.6] text-cream/75">
+                I&apos;ll reply within the day, usually sooner. If it&apos;s
+                urgent, call or text me at{" "}
+                <a
+                  href={telHref(cell)}
+                  className="text-cream underline underline-offset-4"
+                >
+                  {cell}
+                </a>
+                .
+              </p>
               <button
                 onClick={() => setSubmitted(false)}
                 className="mt-8 text-[11px] uppercase tracking-[0.32em] text-cream/60 underline-offset-4 hover:underline"
@@ -267,11 +287,13 @@ export function LeadForm({
                   {...register("message")}
                   rows={3}
                   className="mt-3 w-full resize-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
-                  placeholder="Neighborhoods, timing, anything on your mind."
+                  placeholder={messagePlaceholder}
                 />
               </div>
 
-              {/* 10DLC consent — exact wording per Lofty's Sole Proprietor checkbox spec */}
+              {/* 10DLC consent: Lofty's Sole Proprietor checkbox wording, naming
+                  the ExSell Experts team as well (AJ, 2026-11-20). Every form,
+                  /privacy and /terms name the same senders. */}
               <div className="space-y-4 pt-2">
                 <label
                   htmlFor={smsId}
@@ -285,8 +307,8 @@ export function LeadForm({
                   />
                   <span>
                     By checking this box, I agree to receive text messages from
-                    Anthony Stolp regarding real estate services, property
-                    inquiries, scheduling, and related communications. Message
+                    Anthony Stolp and the ExSell Experts team regarding real estate services, property inquiries,
+                    scheduling, and related communications. Message
                     frequency varies. Message and data rates may apply. Reply
                     HELP for help or STOP to opt out.
                   </span>

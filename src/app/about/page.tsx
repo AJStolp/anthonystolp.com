@@ -4,22 +4,25 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { OG_IMAGES } from "@/lib/og";
 import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
+import { getAgentProfile } from "@/lib/agent-profile";
+import { telHref } from "@/lib/phone";
 
 export const metadata: Metadata = {
   title: "About · Ozaukee County Realtor",
   description:
-    "Solo real estate agent serving Ozaukee County, Wisconsin. Cedarburg, Thiensville, Mequon, Grafton, Port Washington, Saukville. Honest pricing, no scripts.",
+    "Realtor on the ExSell Experts team, serving Ozaukee County, Wisconsin. Cedarburg, Thiensville, Mequon, Grafton, Port Washington, Saukville. Honest pricing, no scripts.",
   alternates: { canonical: "/about" },
   openGraph: {
     title: "About Anthony Stolp · Ozaukee County Realtor",
     description:
-      "Solo real estate agent serving Ozaukee County, Wisconsin. Honest pricing, no scripts.",
+      "Realtor on the ExSell Experts team, serving Ozaukee County, Wisconsin. Honest pricing, no scripts.",
     type: "profile",
     images: OG_IMAGES,
   },
 };
 
 export default function AboutPage() {
+  const cell = getAgentProfile().mobilePhone;
   return (
     <>
       <Nav />
@@ -30,7 +33,8 @@ export default function AboutPage() {
           </p>
 
           <h1 className="mt-6 font-display text-[clamp(2.25rem,5.5vw,4.5rem)] font-semibold leading-[1.04] tracking-[-0.02em] text-ink">
-            A local agent who works the way you want a local agent to work.
+            Straight answers from a local agent who works the North Shore every
+            week.
           </h1>
 
           <div className="mt-12 grid grid-cols-1 items-start gap-12 md:grid-cols-2">
@@ -50,30 +54,48 @@ export default function AboutPage() {
 
             <div className="space-y-6 text-[15px] leading-[1.75] text-ink-soft md:order-1 md:text-[16px]">
               <p>
-                I am Anthony Stolp. I am a solo agent at ExSell Experts, a team
-                under Epique Realty out of Germantown, Wisconsin. My personal
-                practice is focused on the Ozaukee County north shore:
-                Cedarburg, Thiensville, Mequon, Grafton, Port Washington, and
-                Saukville. I grew up around here and I work here every week.
+                I&apos;m Anthony Stolp, a Realtor on the ExSell Experts team,
+                based out of Germantown. My focus is the
+                Ozaukee County North Shore: Cedarburg, Thiensville, Mequon,
+                Grafton, Port Washington, and Saukville, plus nearby Washington
+                County. I grew up around here and I work here every week.
+              </p>
+              <p>
+                You work directly with me from start to finish, and I have the
+                ExSell Experts team behind me, including some
+                of the top producing agents in the area, for showings,
+                paperwork, and backup when I&apos;m tied up. You get one person
+                who knows your situation, with a bigger team&apos;s reach.
               </p>
               <p>
                 The real estate industry has a fluff problem. Most agents lead
-                with vague platitudes and scripts. I do not. When you ask me
+                with vague platitudes and scripts. I don&apos;t. When you ask me
                 what your home is worth, you get a real range with the reasons
                 I picked it, sent within 24 hours. When I show you a listing, I
-                tell you what is wrong with it before I tell you what is right.
+                tell you what&apos;s wrong with it before I tell you what&apos;s
+                right.
                 When the timing or pricing is off, I say so.
               </p>
               <p>
-                The site you are on is something I am building so the people I
+                The site you&apos;re on is something I&apos;m building so the people I
                 work with have actual tools, not lead magnets dressed up to look
                 like tools. A free home value, personally prepared within 24
                 hours. New listing alerts that mean something. A direct line to
                 me when you want to talk to a human instead of a chatbot.
               </p>
               <p>
-                If that fits the way you want to work, get in touch. If it does
-                not, no hard feelings.
+                If that fits the way you want to work, get in touch. If it
+                doesn&apos;t, no hard feelings.
+              </p>
+              <p>
+                Call or text me at{" "}
+                <a
+                  href={telHref(cell)}
+                  className="text-ink underline underline-offset-4"
+                >
+                  {cell}
+                </a>
+                , or send a note below.
               </p>
             </div>
           </div>
@@ -83,7 +105,9 @@ export default function AboutPage() {
               href={HOME_VALUE_ENABLED ? "/home-value" : SELL_FALLBACK_HREF}
               className="group inline-flex items-center justify-between border border-ink bg-ink px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink"
             >
-              <span>Ask for my home value</span>
+              <span>
+                {HOME_VALUE_ENABLED ? "Get my home value" : "Ask for my home value"}
+              </span>
               <span aria-hidden className="transition-transform group-hover:translate-x-1">
                 →
               </span>

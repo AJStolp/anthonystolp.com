@@ -50,8 +50,10 @@ export default function PrivacyPage() {
               Information we collect
             </h2>
             <p className="mt-3">
-              When you submit our contact form, we collect information you
-              voluntarily provide, including:
+              When you submit a form on this site (the contact form, the
+              monthly market report signup, a listing alert request, or an
+              open house sign in), we collect information you voluntarily
+              provide, including:
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-6">
               <li>Name</li>
@@ -61,6 +63,9 @@ export default function PrivacyPage() {
                 Your stated intent (buy, sell, both, or exploring)
               </li>
               <li>Any message you choose to share</li>
+              <li>
+                Your zip code and home search timeframe, if you provide them
+              </li>
             </ul>
             <p className="mt-3">
               We may also automatically collect basic technical information
@@ -114,9 +119,9 @@ export default function PrivacyPage() {
               SMS / Text Messaging
             </h2>
             <p className="mt-3">
-              If you opt in to receive text messages from us by checking the
-              SMS consent box on our contact form, you may receive messages
-              regarding real estate services, property inquiries, scheduling,
+              If you opt in to receive text messages by checking the SMS
+              consent box on one of our forms, you may receive messages from
+              Anthony Stolp and the ExSell Experts team regarding real estate services, property inquiries, scheduling,
               and related communications.
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-6">
@@ -197,7 +202,7 @@ export default function PrivacyPage() {
               >
                 anthony@exsellexperts.com
               </a>{" "}
-              or call (262) 885-3310.
+              or call (262) 885-3310, or call or text (262) 483-7932.
             </p>
           </section>
         </div>

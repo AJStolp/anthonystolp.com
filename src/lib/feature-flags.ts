@@ -24,3 +24,10 @@ export function sellFallbackHref(
   return `/?${params.toString()}#contact`;
 }
 export const SELL_FALLBACK_HREF = sellFallbackHref();
+
+// Where the site's main "sell" links go: the hero button, the Sell nav link,
+// and the Sell card. A home value page rather than the contact form, so a
+// seller lands on a page that promises them something.
+export const SELL_HREF = HOME_VALUE_ENABLED
+  ? "/home-value"
+  : "/search/ozaukee-county-home-value";

@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { getAgentProfile } from "@/lib/agent-profile";
 import { COMMUNITIES, homesHref, valueHref } from "@/lib/communities";
+import { telHref } from "@/lib/phone";
 
 // A server component so the links are in the HTML a crawler fetches, not
 // added after JavaScript runs.
 export function Communities() {
+  const cell = getAgentProfile().mobilePhone;
   return (
     <section
       id="communities"
@@ -18,11 +21,11 @@ export function Communities() {
           id="communities-heading"
           className="mt-3 max-w-xl font-display text-[clamp(1.75rem,3vw,2.5rem)] font-semibold leading-[1.15] tracking-[-0.02em]"
         >
-          Cedarburg and the Ozaukee County north shore.
+          Cedarburg, the Ozaukee County North Shore, and nearby Washington County.
         </h2>
         <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-ink/70">
-          Pick your town to see what is for sale, or find out what your home is
-          worth.
+          Pick your town to see what&apos;s for sale, or find out what your home
+          is worth.
         </p>
 
         {/* Each card draws its own right and bottom edge, so the empty cells
@@ -55,6 +58,19 @@ export function Communities() {
             </li>
           ))}
         </ul>
+
+        {/* Plain text until Washington County has pages of its own. */}
+        <p className="mt-8 max-w-2xl text-[15px] leading-[1.7] text-ink/70">
+          Also serving Washington County: West Bend, Hartford, Germantown,
+          Jackson, and Slinger. Call or text me at{" "}
+          <a
+            href={telHref(cell)}
+            className="text-ink underline-offset-4 hover:underline"
+          >
+            {cell}
+          </a>{" "}
+          for listings or a home value in any of them.
+        </p>
       </div>
     </section>
   );

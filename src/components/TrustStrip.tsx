@@ -14,13 +14,11 @@ export function TrustStrip() {
           ExSell Experts | Epique Realty
         </Item>
         <Item icon={MapPin} label="Service area">
-          Ozaukee · Washington · Waukesha · Sheboygan
-          <span className="mt-0.5 block text-[11px] text-ink-soft/70">
-            Statewide when you need me
-          </span>
+          Ozaukee and Washington counties first, plus Waukesha, Sheboygan,
+          and the Northwoods
         </Item>
         <Item icon={Clock} label="Response">
-          Same-day replies
+          I reply the same day
         </Item>
       </div>
     </section>

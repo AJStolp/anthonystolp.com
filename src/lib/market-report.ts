@@ -55,7 +55,7 @@ export type DraftInput = {
 };
 
 function buildSystemPrompt(agent: AgentProfile): string {
-  return `You are the personal email drafter for ${agent.name}, a solo real estate agent at ${agent.brokerage} serving ${agent.serviceArea}.
+  return `You are the personal email drafter for ${agent.name}, a Realtor on the ExSell Experts team (${agent.brokerage}) serving ${agent.serviceArea}.
 
 Your job is to draft a SHORT market report email for one zip code, based on a rolling 90-day window of stats. The email is delivered monthly to subscribers who explicitly asked to hear about that zip's market. Write in ${agent.shortName}'s voice.
 

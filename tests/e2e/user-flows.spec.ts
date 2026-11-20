@@ -157,7 +157,7 @@ test.describe("Funnel submissions (real DB writes)", () => {
     await section.locator("#mr-zip").selectOption("53012");
     await section.locator("#mr-terms").check();
     await section.getByRole("button", { name: /send me the report/i }).click();
-    await expect(page.getByRole("heading", { name: /you are on the list/i })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: /you're on the list/i })).toBeVisible({ timeout: 15_000 });
   });
 
   test("contact form submits + success state", async ({ page }) => {
@@ -416,7 +416,7 @@ test.describe("Paid-click attribution", () => {
       await section.locator("#mr-terms").check();
       await section.getByRole("button", { name: /send me the report/i }).click();
       await expect(
-        page.getByRole("heading", { name: /you are on the list/i }),
+        page.getByRole("heading", { name: /you're on the list/i }),
       ).toBeVisible({ timeout: 15_000 });
     });
     expect(body.click).toMatchObject({ gclid: "pw-surface-mr" });
@@ -557,7 +557,7 @@ test.describe("Conversion events", () => {
         await section.locator("#mr-terms").check();
         await section.getByRole("button", { name: /send me the report/i }).click();
         await expect(
-          page.getByRole("heading", { name: /you are on the list/i }),
+          page.getByRole("heading", { name: /you're on the list/i }),
         ).toBeVisible({ timeout: 15_000 });
       },
     );

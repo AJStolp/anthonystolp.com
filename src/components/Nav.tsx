@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
+import { SELL_HREF } from "@/lib/feature-flags";
 
 const SCROLL_THRESHOLD = 80;
 
 const LINKS: { href: string; label: string }[] = [
   { href: "/buy", label: "Buy" },
-  { href: HOME_VALUE_ENABLED ? "/home-value" : sellFallbackHref(), label: "Sell" },
+  { href: SELL_HREF, label: "Sell" },
   { href: "/northwoods", label: "Northwoods" },
   { href: "/about", label: "About" },
   { href: "/#contact", label: "Contact" },
