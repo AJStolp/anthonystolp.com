@@ -9,6 +9,7 @@ import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { getRecentResults } from "@/lib/properties";
 import { getAgentProfile } from "@/lib/agent-profile";
+import { telHref } from "@/lib/phone";
 
 // The hero card reads properties from Supabase, so the home page is ISR rather
 // than fully static: a status flip in /admin shows up within the window.
@@ -25,12 +26,13 @@ const jsonLd = {
       name: "Anthony Stolp",
       url: SITE_URL,
       image: `${SITE_URL}/opengraph-image`,
-      telephone: "+1-262-885-3310",
+      // The cell, the number every page asks visitors to call or text.
+      telephone: telHref(getAgentProfile().mobilePhone).replace("tel:", ""),
       email: "anthony@exsellexperts.com",
       jobTitle: "Realtor",
       worksFor: {
         "@type": "RealEstateOrganization",
-        name: "ExSell Experts at Epique Realty",
+        name: "ExSell Experts | Epique Realty",
       },
       address: {
         "@type": "PostalAddress",
@@ -111,7 +113,7 @@ export default async function Home() {
         <Approach />
         <Communities />
         <MarketReportSubscribe />
-        <LeadForm />
+        <LeadForm cell={getAgentProfile().mobilePhone} />
         <Footer />
       </main>
     </>

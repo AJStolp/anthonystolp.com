@@ -7,12 +7,12 @@ import { OG_IMAGES } from "@/lib/og";
 export const metadata: Metadata = {
   title: "Save my contact",
   description:
-    "Anthony Stolp, Realtor with ExSell Experts at Epique Realty, serving Ozaukee County, Wisconsin. Save my contact or reach me directly.",
+    "Anthony Stolp, Realtor with ExSell Experts | Epique Realty, serving Ozaukee County, Wisconsin. Save my contact or reach me directly.",
   alternates: { canonical: "/card" },
   openGraph: {
     title: "Anthony Stolp · Realtor",
     description:
-      "ExSell Experts at Epique Realty. Serving Ozaukee County, Wisconsin. Save my contact or reach me directly.",
+      "ExSell Experts | Epique Realty. Serving Ozaukee County, Wisconsin. Save my contact or reach me directly.",
     type: "profile",
     images: OG_IMAGES,
   },

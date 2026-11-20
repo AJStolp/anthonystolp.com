@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeroAddressInput } from "./HeroAddressInput";
 import { SearchGate } from "./SearchGate";
-import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
+import { HOME_VALUE_ENABLED, SELL_HREF } from "@/lib/feature-flags";
 import { STATUS_LABEL, type PropertyRow } from "@/lib/properties";
 import { telHref } from "@/lib/phone";
 
@@ -51,7 +51,7 @@ export function Hero({ featured, cell }: Props) {
             <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-ink/70 md:text-[16px]">
               {HOME_VALUE_ENABLED
                 ? "A real range from a local agent, sent within 24 hours. No Zestimate guesses, no marketing fluff. Just an honest number based on what is actually selling in your neighborhood."
-                : "You work directly with me, backed by the ExSell Experts team. No scripts, no fluff, just straight answers from someone who works Cedarburg, Mequon, Grafton, and the rest of the north shore every week."}
+                : "Helping buyers and sellers in Cedarburg, Ozaukee County, and nearby Washington County towns like West Bend, Hartford, and Germantown. You work directly with me, backed by the ExSell Experts team. No scripts, just straight answers."}
             </p>
 
             {HOME_VALUE_ENABLED ? (
@@ -81,10 +81,10 @@ export function Hero({ featured, cell }: Props) {
                   </span>
                 </button>
                 <Link
-                  href={SELL_FALLBACK_HREF}
+                  href={SELL_HREF}
                   className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink/20 px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-ink transition-all hover:border-ink"
                 >
-                  Thinking about selling?
+                  What&apos;s my home worth?
                   <span aria-hidden className="transition-transform group-hover:translate-x-1">
                     →
                   </span>
@@ -117,7 +117,9 @@ export function Hero({ featured, cell }: Props) {
 }
 
 function FeaturedCard({ p }: { p: PropertyRow }) {
-  const status = STATUS_LABEL[p.status] ?? p.status;
+  // "Recently sold in Thiensville" reads as news; "Sold in Thiensville" as a label.
+  const status =
+    p.status === "sold" ? "Recently sold" : (STATUS_LABEL[p.status] ?? p.status);
   const where = [status, p.city].filter(Boolean).join(" in ");
 
   return (
