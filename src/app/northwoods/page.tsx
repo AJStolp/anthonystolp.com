@@ -20,7 +20,7 @@ import { telHref } from "@/lib/phone";
 const SITE_URL = "https://anthonystolp.com";
 const PAGE_URL = `${SITE_URL}/northwoods`;
 
-const TITLE = "Marinette County Land, Cabins and Lake Homes · Jay and Anthony Stolp";
+const TITLE = "Marinette County Land and Cabins · Jay and Anthony Stolp";
 const DESCRIPTION =
   "Rural land with no address, just coordinates? We will get back there, walk it, fly it, and market it right. Land, cabins, and lake homes across Marinette County, WI.";
 const OG_IMAGE = {

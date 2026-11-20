@@ -17,6 +17,15 @@ const GEO_ZIPS: Record<string, string[]> = {
   "Ozaukee County, WI": ["53012", "53024", "53092", "53097", "53074", "53080"],
 };
 
+// Geos whose zip covers more than the town itself. Redfin publishes zips, not
+// villages, so the snapshot names the area its numbers actually describe.
+const ZIP_AREA: Record<string, { label: string; note: string }> = {
+  "Thiensville, WI": {
+    label: "Thiensville and Mequon (53092)",
+    note: "Redfin reports the 53092 zip code, which covers Thiensville and much of Mequon, not the village alone.",
+  },
+};
+
 type StatRow = {
   zip: string;
   month: string;
@@ -39,6 +48,8 @@ export type GeoSnapshot = {
   homesSold: number | null; // sum across zips
   yoyPct: number | null; // single-zip only (aggregating a YoY is misleading)
   pulledAt: string; // newest created_at among the rows used: when we stored them
+  areaLabel: string | null; // what the numbers cover, where the zip is wider than the geo
+  areaNote: string | null;
 };
 
 export async function getGeoSnapshot(
@@ -84,6 +95,8 @@ export async function getGeoSnapshot(
     .reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a));
 
   return {
+    areaLabel: ZIP_AREA[geo]?.label ?? null,
+    areaNote: ZIP_AREA[geo]?.note ?? null,
     // `month` is the window's first month (PERIOD BEGIN), so the window runs
     // through the month two after it.
     periodLabel: windowEnd(latestMonth).toLocaleString("en-US", {
