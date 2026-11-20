@@ -25,6 +25,7 @@ type StatRow = {
   inventory_count: number | null;
   sales_count: number | null;
   yoy_pct: number | null;
+  created_at: string;
 };
 
 export type GeoSnapshot = {
@@ -37,6 +38,7 @@ export type GeoSnapshot = {
   inventory: number | null; // sum across zips
   homesSold: number | null; // sum across zips
   yoyPct: number | null; // single-zip only (aggregating a YoY is misleading)
+  pulledAt: string; // newest created_at among the rows used: when we stored them
 };
 
 export async function getGeoSnapshot(
@@ -55,7 +57,7 @@ export async function getGeoSnapshot(
 
   const { data, error } = await supabase
     .from("market_stats")
-    .select("zip,month,median_price,median_dom,inventory_count,sales_count,yoy_pct")
+    .select("zip,month,median_price,median_dom,inventory_count,sales_count,yoy_pct,created_at")
     .in("zip", zips)
     .order("month", { ascending: false });
   if (error || !data || data.length === 0) return null;
@@ -77,6 +79,9 @@ export async function getGeoSnapshot(
   const medians = nums((r) => r.median_price);
   const single = rows.length === 1;
   const latestMonth = rows.map((r) => r.month).sort().at(-1)!;
+  const pulledAt = rows
+    .map((r) => r.created_at)
+    .reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a));
 
   return {
     periodLabel: new Date(latestMonth).toLocaleString("en-US", {
@@ -92,5 +97,6 @@ export async function getGeoSnapshot(
     inventory: sum(nums((r) => r.inventory_count)),
     homesSold: sum(nums((r) => r.sales_count)),
     yoyPct: single ? (rows[0]!.yoy_pct ?? null) : null,
+    pulledAt,
   };
 }

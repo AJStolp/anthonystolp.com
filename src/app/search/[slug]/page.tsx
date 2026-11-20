@@ -177,6 +177,18 @@ function MarketSnapshot({
         Based on Redfin&rsquo;s rolling 90-day data, latest {snap.periodLabel}
         {snap.zipCount > 1 ? `, across ${snap.zipCount} zip codes` : ""}.
       </p>
+      <p className="mt-1 text-[13px] leading-[1.6] text-ink-soft/70">
+        Updated{" "}
+        <time dateTime={snap.pulledAt}>
+          {new Date(snap.pulledAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            timeZone: "America/Chicago",
+          })}
+        </time>
+        .
+      </p>
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {tiles.map((t) => (
           <StatTile key={t.label} label={t.label} value={t.value} />
@@ -222,6 +234,12 @@ export default async function NichePage({ params }: { params: RouteParams }) {
     getActiveDirectory(),
   ]);
 
+  // The page changes when its copy is edited or its market numbers are pulled.
+  const dateModified =
+    snap && Date.parse(snap.pulledAt) > Date.parse(page.updated_at)
+      ? snap.pulledAt
+      : page.updated_at;
+
   // Same geo, opposite intent — the strongest internal link.
   const crossLink = directory.find(
     (d) => d.geo === page.geo && d.intent !== page.intent,
@@ -251,6 +269,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
     { "@type": "RealEstateAgent", "@id": `${SITE_URL}/#agent` },
     {
       "@type": "FAQPage",
+      dateModified,
       mainEntity: faqs.map((f) => ({
         "@type": "Question",
         name: f.q,
@@ -271,7 +290,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
         name: "ExSell Experts at Epique Realty",
       },
       datePublished: page.created_at,
-      dateModified: page.updated_at,
+      dateModified,
       mainEntityOfPage: `${SITE_URL}/search/${page.slug}`,
     });
   }
