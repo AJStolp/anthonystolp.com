@@ -146,6 +146,27 @@ test.describe("Anonymous visitor — call or text Anthony", () => {
   });
 });
 
+// The texting number is registered to Anthony alone, so every consent names
+// him and no one else (AJ, 2026-11-20). A team or second name in any of these
+// is a compliance risk on every submission.
+test.describe("Text consent names Anthony Stolp only", () => {
+  for (const path of ["/", "/northwoods", "/privacy", "/terms"]) {
+    test(`${path} names Anthony Stolp and no team`, async ({ page }) => {
+      await page.goto(path);
+      const text = await page.locator("main, body").first().innerText();
+      expect(text).toMatch(/messages from Anthony Stolp (regarding|by checking)/);
+      expect(text).not.toMatch(/ExSell Experts team|Anthony Stolp and/);
+    });
+  }
+
+  test("the homepage contact intro links the cell", async ({ page }) => {
+    await page.goto("/");
+    const intro = page.locator("#contact p", { hasText: "not a call center" });
+    await expect(intro).toHaveCount(1);
+    await expect(intro.locator('a[href="tel:+12624837932"]')).toHaveText("(262) 483-7932");
+  });
+});
+
 test.describe("Funnel submissions (real DB writes)", () => {
   test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
 

@@ -55,7 +55,7 @@ const PILLARS = [
 const FAQS = [
   {
     q: "How do I start a home search with you?",
-    a: "Tell me your budget, your must haves, and your timeframe. I set up a search tailored to you and send live listings as they hit the market. Then we tour the ones worth your time. No pressure and no spam.",
+    a: "Tell me your budget, your must-haves, and your timeframe. I set up a search tailored to you and send live listings as they hit the market. Then we tour the ones worth your time. No pressure and no spam.",
   },
   {
     q: "Do I need to be preapproved before we look?",
@@ -108,7 +108,13 @@ export default async function BuyPage() {
         name: "Anthony Stolp",
         url: SITE_URL,
         telephone: telHref(getAgentProfile().mobilePhone).replace("tel:", ""),
-        areaServed: "Southeast Wisconsin",
+        areaServed: [
+          ...["Cedarburg", "Mequon", "Thiensville", "Grafton", "Port Washington", "Saukville"].map(
+            (name) => ({ "@type": "City", name: `${name}, Wisconsin` }),
+          ),
+          { "@type": "AdministrativeArea", name: "Ozaukee County, Wisconsin" },
+          { "@type": "AdministrativeArea", name: "Washington County, Wisconsin" },
+        ],
         parentOrganization: {
           "@type": "RealEstateOrganization",
           name: "ExSell Experts | Epique Realty",

@@ -86,7 +86,7 @@ function buildFaqs(
   return [
     {
       q: `What do homes cost in ${geoShort}?`,
-      a: `Prices vary a lot by neighborhood, lot, and condition, so treat the snapshot above as a baseline rather than a quote. Tell me your budget and must haves and I will send live listings that actually fit, not whatever is trending.`,
+      a: `Prices vary a lot by neighborhood, lot, and condition, so treat the snapshot above as a baseline rather than a quote. Tell me your budget and must-haves and I will send live listings that actually fit, not whatever is trending.`,
     },
     {
       q: `How competitive is the ${geoShort} market?`,
@@ -363,9 +363,8 @@ export default async function NichePage({ params }: { params: RouteParams }) {
             <p className="border-l-2 border-ink/15 pl-4 text-[13px] leading-[1.7] text-ink-soft/70">
               This page is general information, not legal or tax advice. Every
               situation is different, so please talk to a qualified attorney or
-              CPA about yours. Anthony and the ExSell Experts team handle the
-              real estate side and help keep the process
-              organized.
+              CPA about yours. I handle the real estate side and help keep the
+              process organized.
             </p>
           </section>
         ) : null}

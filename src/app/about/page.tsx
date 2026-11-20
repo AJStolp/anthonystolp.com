@@ -10,12 +10,12 @@ import { telHref } from "@/lib/phone";
 export const metadata: Metadata = {
   title: "About · Ozaukee County Realtor",
   description:
-    "Realtor on the ExSell Experts team, serving Ozaukee County, Wisconsin. Cedarburg, Thiensville, Mequon, Grafton, Port Washington, Saukville. Honest pricing, no scripts.",
+    "Anthony Stolp, Realtor serving Cedarburg, Ozaukee County, and nearby Washington County. Honest pricing, no scripts. Call or text (262) 483-7932.",
   alternates: { canonical: "/about" },
   openGraph: {
     title: "About Anthony Stolp · Ozaukee County Realtor",
     description:
-      "Realtor on the ExSell Experts team, serving Ozaukee County, Wisconsin. Honest pricing, no scripts.",
+      "Anthony Stolp, Realtor serving Cedarburg, Ozaukee County, and nearby Washington County. Honest pricing, no scripts. Call or text (262) 483-7932.",
     type: "profile",
     images: OG_IMAGES,
   },
@@ -54,18 +54,17 @@ export default function AboutPage() {
 
             <div className="space-y-6 text-[15px] leading-[1.75] text-ink-soft md:order-1 md:text-[16px]">
               <p>
-                I&apos;m Anthony Stolp, a Realtor on the ExSell Experts team,
-                based out of Germantown. My focus is the
-                Ozaukee County North Shore: Cedarburg, Thiensville, Mequon,
-                Grafton, Port Washington, and Saukville, plus nearby Washington
-                County. I grew up around here and I work here every week.
+                I&apos;m Anthony Stolp, a Realtor based out of Germantown. My
+                focus is the Ozaukee County North Shore: Cedarburg, Thiensville,
+                Mequon, Grafton, Port Washington, and Saukville, plus nearby
+                Washington County towns like West Bend, Hartford, Germantown,
+                Jackson, and Slinger. I grew up around here and I work here
+                every week.
               </p>
               <p>
-                You work directly with me from start to finish, and I have the
-                ExSell Experts team behind me, including some
-                of the top producing agents in the area, for showings,
-                paperwork, and backup when I&apos;m tied up. You get one person
-                who knows your situation, with a bigger team&apos;s reach.
+                You work directly with me from start to finish. I have the
+                ExSell Experts team behind me when I need backup, but you work
+                with me.
               </p>
               <p>
                 The real estate industry has a fluff problem. Most agents lead
@@ -95,7 +94,7 @@ export default function AboutPage() {
                 >
                   {cell}
                 </a>
-                , or send a note below.
+                . You&apos;ll get me, not a call center. Or send a note below.
               </p>
             </div>
           </div>

@@ -38,7 +38,8 @@ type Props = {
   // Lead source sent to /api/lead. Pages with their own funnel label pass one.
   source?: string;
   heading?: React.ReactNode;
-  intro?: string;
+  // Defaults to the homepage's: call or text the cell, or send a note.
+  intro?: React.ReactNode;
   // Anthony's cell, offered as the fallback when a message fails and as the
   // fast route after one goes through. A string rather than the profile,
   // because this is a client component and its props ship to the browser.
@@ -55,7 +56,7 @@ export function LeadForm({
       you&apos;re planning.
     </>
   ),
-  intro = "A quick note, a quick call. No pressure, no scripts. I read every message myself and reply within the day.",
+  intro,
   cell,
   messagePlaceholder = "Neighborhoods, timing, anything on your mind.",
 }: Props) {
@@ -171,7 +172,19 @@ export function LeadForm({
             {heading}
           </h2>
           <p className="lead-fade mt-8 max-w-md text-[15px] leading-[1.7] text-cream/70">
-            {intro}
+            {intro ?? (
+              <>
+                Call or text me at{" "}
+                <a
+                  href={telHref(cell)}
+                  className="text-cream underline underline-offset-4"
+                >
+                  {cell}
+                </a>
+                . You&apos;ll get me, not a call center. Or send a quick note
+                below. No pressure, no scripts, and I reply within the day.
+              </>
+            )}
           </p>
 
           <div className="lead-fade mt-12">
@@ -291,9 +304,10 @@ export function LeadForm({
                 />
               </div>
 
-              {/* 10DLC consent: Lofty's Sole Proprietor checkbox wording, naming
-                  the ExSell Experts team as well (AJ, 2026-11-20). Every form,
-                  /privacy and /terms name the same senders. */}
+              {/* 10DLC consent: Lofty's Sole Proprietor checkbox wording. It names
+                  Anthony Stolp only, the one sender the texting number is
+                  registered for (AJ, 2026-11-20). Every form, /privacy and
+                  /terms name the same sender. */}
               <div className="space-y-4 pt-2">
                 <label
                   htmlFor={smsId}
@@ -307,8 +321,8 @@ export function LeadForm({
                   />
                   <span>
                     By checking this box, I agree to receive text messages from
-                    Anthony Stolp and the ExSell Experts team regarding real estate services, property inquiries,
-                    scheduling, and related communications. Message
+                    Anthony Stolp regarding real estate services, property
+                    inquiries, scheduling, and related communications. Message
                     frequency varies. Message and data rates may apply. Reply
                     HELP for help or STOP to opt out.
                   </span>

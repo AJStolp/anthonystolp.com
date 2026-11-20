@@ -54,7 +54,7 @@ const AJ_PROFILE: AgentProfile = {
   targetZips: [
     "53012", "53092", "53097", "53024", "53074", "53080",
     // Washington County
-    "53090", "53095", "53027", "53022",
+    "53090", "53095", "53027", "53022", "53037", "53086",
   ],
   // Per-agent voice rules for any Claude-drafted content
   voiceNotes: `Calm, honest, no marketing fluff. Direct but warm, conversational, first-person. Write like a person, not a brand. "I" not "we". NEVER use em dashes (use periods or commas instead). No exclamation points except where genuinely natural. Sign off "Talk soon, Anthony" on personal correspondence.`,
