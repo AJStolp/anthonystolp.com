@@ -122,7 +122,10 @@ test.describe("Homepage targets Cedarburg and Ozaukee County", () => {
     const blocks = jsonLdBlocks(await html(request, CITY_PAGE));
     expect(blocks.length).toBeGreaterThan(0);
     const graph = graphOf(blocks);
-    expect(graph).toContainEqual({ "@id": AGENT_ID });
-    expect(graph.filter((n) => n["@type"] === "RealEstateAgent")).toEqual([]);
+    // Exactly one agent node, and it is a bare typed reference to the homepage
+    // entity: no second agent with details of its own.
+    expect(graph.filter((n) => n["@type"] === "RealEstateAgent")).toEqual([
+      { "@type": "RealEstateAgent", "@id": AGENT_ID },
+    ]);
   });
 });

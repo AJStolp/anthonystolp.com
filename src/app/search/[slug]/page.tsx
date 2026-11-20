@@ -242,9 +242,11 @@ export default async function NichePage({ params }: { params: RouteParams }) {
         },
       ],
     },
-    // One agent entity for the whole site, declared on the homepage. A second
-    // declaration here, with no @id, reads to Google as a different agent.
-    { "@id": `${SITE_URL}/#agent` },
+    // One agent entity for the whole site, declared on the homepage. This is a
+    // typed reference to it: the shared @id makes it the same agent, not a
+    // second one, and the @type keeps the page saying a RealEstateAgent is
+    // behind it. Its details live on the homepage node only.
+    { "@type": "RealEstateAgent", "@id": `${SITE_URL}/#agent` },
     {
       "@type": "FAQPage",
       mainEntity: faqs.map((f) => ({
