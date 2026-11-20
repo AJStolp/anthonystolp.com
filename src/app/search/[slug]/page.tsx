@@ -312,7 +312,11 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           </p>
         ) : null}
         <div className="mt-10">
-          <NicheCTA intent={page.intent} slug={page.slug} />
+          <NicheCTA
+            intent={page.intent}
+            slug={page.slug}
+            town={page.geo ? geoShort : undefined}
+          />
         </div>
 
         {/* Long-form body content, on guides and city pages alike */}

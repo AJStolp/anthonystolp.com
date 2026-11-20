@@ -11,9 +11,11 @@ const EXSELL_REDIRECT =
 type Props = {
   intent: "buy" | "sell";
   slug: string;
+  // Shown in the listings gate's heading. Omitted where there is no one town.
+  town?: string;
 };
 
-export function NicheCTA({ intent, slug }: Props) {
+export function NicheCTA({ intent, slug, town }: Props) {
   const [open, setOpen] = useState(false);
 
   if (intent === "sell") {
@@ -52,6 +54,7 @@ export function NicheCTA({ intent, slug }: Props) {
         onClose={() => setOpen(false)}
         redirectUrl={EXSELL_REDIRECT}
         campaignContext={campaignContext}
+        town={town}
       />
     </>
   );
