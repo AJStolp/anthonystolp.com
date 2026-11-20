@@ -9,9 +9,9 @@ import {
   NORTHWOODS_BROKERAGE,
   NORTHWOODS_SOURCES,
   NORTHWOODS_TEAM,
-  telHref,
   type TeamMember,
 } from "@/lib/northwoods";
+import { telHref } from "@/lib/phone";
 
 // Landing page for the printed Marinette County flyer. The QR code points at
 // /northwoods?utm_source=flyer&utm_medium=print&utm_campaign=northwoods, which

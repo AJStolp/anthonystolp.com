@@ -1,8 +1,8 @@
-"use client";
-
 import Link from "next/link";
 
-import { ArrowUp } from "lucide-react";
+import { BackToTop } from "./BackToTop";
+import { getAgentProfile } from "@/lib/agent-profile";
+import { telHref } from "@/lib/phone";
 
 type Props = {
   // The large name across the bottom. Team pages pass their own.
@@ -15,12 +15,7 @@ type Props = {
 
 export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props = {}) {
   const year = new Date().getFullYear();
-
-  const scrollTop = () => {
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
+  const cell = getAgentProfile().mobilePhone;
 
   return (
     <footer className="relative w-full">
@@ -91,12 +86,21 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
                     ))}
                   </ul>
                 ) : (
-                  <a
-                    href="tel:+12628853310"
-                    className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
-                  >
-                    (262) 885-3310
-                  </a>
+                  <>
+                    <a
+                      href={telHref(cell)}
+                      className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
+                    >
+                      Call or text Anthony:{" "}
+                      <span className="whitespace-nowrap">{cell}</span>
+                    </a>
+                    <a
+                      href="tel:+12628853310"
+                      className="mt-2 block text-sm text-ink/75 transition-colors hover:text-ink"
+                    >
+                      (262) 885-3310
+                    </a>
+                  </>
                 )}
               </div>
             </div>
@@ -186,13 +190,7 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
             <span>Equal Housing Opportunity</span>
           </div>
 
-          <button
-            onClick={scrollTop}
-            aria-label="Back to top"
-            className="group flex h-10 w-10 items-center justify-center self-end rounded-full border border-ink/20 text-ink/65 transition-all hover:border-ink hover:text-ink md:self-auto"
-          >
-            <ArrowUp className="h-4 w-4 transition-transform group-hover:-translate-y-0.5" strokeWidth={1.5} />
-          </button>
+          <BackToTop />
         </div>
       </div>
       </div>

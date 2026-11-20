@@ -7,6 +7,7 @@ import { MarketReportSubscribe } from "@/components/MarketReportSubscribe";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { getRecentResults } from "@/lib/properties";
+import { getAgentProfile } from "@/lib/agent-profile";
 
 // The hero card reads properties from Supabase, so the home page is ISR rather
 // than fully static: a status flip in /admin shows up within the window.
@@ -95,7 +96,7 @@ export default async function Home() {
           }}
         />
         <Nav />
-        <Hero featured={featured ?? null} />
+        <Hero featured={featured ?? null} cell={getAgentProfile().mobilePhone} />
         <TrustStrip />
         <RecentResults results={rest} />
         <Approach />

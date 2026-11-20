@@ -113,6 +113,39 @@ test.describe("Anonymous visitor — home page", () => {
   });
 });
 
+// Anthony's cell has to be in the HTML the server sends, not added later by
+// hydration, so these run with JavaScript off. The office line stays beside it.
+test.describe("Anonymous visitor — call or text Anthony", () => {
+  test.use({ javaScriptEnabled: false });
+
+  const CELL_HREF = "tel:+12624837932";
+  const CELL_TEXT = "Call or text Anthony: (262) 483-7932";
+  const OFFICE_HREF = "tel:+12628853310";
+
+  test("the hero links Anthony's cell in the server HTML", async ({ page }) => {
+    await page.goto("/");
+    const hero = page.locator("section").filter({ has: page.locator("h1") });
+    await expect(hero).toHaveCount(1);
+    const cell = hero.locator(`a[href="${CELL_HREF}"]`);
+    await expect(cell).toHaveCount(1);
+    await expect(cell).toHaveText(CELL_TEXT);
+  });
+
+  test("the footer links Anthony's cell in the server HTML", async ({ page }) => {
+    await page.goto("/");
+    const cell = page.locator(`footer a[href="${CELL_HREF}"]`);
+    await expect(cell).toHaveCount(1);
+    await expect(cell).toHaveText(CELL_TEXT);
+  });
+
+  test("the footer still links the office line", async ({ page }) => {
+    await page.goto("/");
+    const office = page.locator(`footer a[href="${OFFICE_HREF}"]`);
+    await expect(office).toHaveCount(1);
+    await expect(office).toHaveText("(262) 885-3310");
+  });
+});
+
 test.describe("Funnel submissions (real DB writes)", () => {
   test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
 
