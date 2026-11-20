@@ -203,7 +203,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
           />
           <span>
             By checking this box, I agree to receive text messages from Anthony
-            Stolp and the ExSell Experts team regarding this
+            Stolp regarding this
             and similar properties, scheduling, and related communications.
             Message frequency varies. Message and data rates may apply. Reply HELP for help or STOP to opt out.
           </span>

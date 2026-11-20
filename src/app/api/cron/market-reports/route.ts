@@ -31,6 +31,12 @@ const ZIP_LABELS: Record<string, string> = {
   "53024": "Grafton (53024)",
   "53074": "Port Washington (53074)",
   "53080": "Saukville (53080)",
+  "53090": "West Bend (53090)",
+  "53095": "West Bend (53095)",
+  "53027": "Hartford (53027)",
+  "53022": "Germantown (53022)",
+  "53037": "Jackson (53037)",
+  "53086": "Slinger (53086)",
 };
 
 export async function GET(req: Request) {
