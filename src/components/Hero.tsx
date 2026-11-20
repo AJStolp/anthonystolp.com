@@ -7,6 +7,7 @@ import { HeroAddressInput } from "./HeroAddressInput";
 import { SearchGate } from "./SearchGate";
 import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 import { STATUS_LABEL, type PropertyRow } from "@/lib/properties";
+import { telHref } from "@/lib/phone";
 
 const EXSELL_REDIRECT =
   "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=hero-search";
@@ -15,9 +16,12 @@ type Props = {
   // Newest pending/sold listing, or null when there are none — also the
   // build-time case, since trySupabase() yields no rows without env vars.
   featured: PropertyRow | null;
+  // Anthony's cell, from the agent profile. A string rather than the profile,
+  // because this is a client component and its props ship to the browser.
+  cell: string;
 };
 
-export function Hero({ featured }: Props) {
+export function Hero({ featured, cell }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -87,6 +91,13 @@ export function Hero({ featured }: Props) {
                 </Link>
               </div>
             )}
+
+            <a
+              href={telHref(cell)}
+              className="mt-6 inline-block text-[14px] text-ink/75 underline-offset-4 transition-colors hover:text-ink hover:underline"
+            >
+              Call or text Anthony: {cell}
+            </a>
           </div>
 
           {/* Framed media */}
