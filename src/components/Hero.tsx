@@ -101,8 +101,26 @@ export function Hero({ featured, cell }: Props) {
           </div>
 
           {/* Framed media */}
-          <div className="md:col-span-6">
+          {/* The headshot floats over the property card's lower left corner on
+              desktop, and sits under it on mobile (AJ, 2026-11-20, T-062). */}
+          <div className="relative md:col-span-6">
             {featured ? <FeaturedCard p={featured} /> : <FallbackFrame />}
+            <figure className="mt-6 flex items-center gap-4 md:absolute md:-bottom-10 md:-left-10 md:mt-0 md:rounded-2xl md:bg-cream md:p-3 md:pr-6 md:shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)]">
+              <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-ink">
+                <Image
+                  src="/images/anthony-headshot.png"
+                  alt="Anthony Stolp, Realtor"
+                  fill
+                  sizes="96px"
+                  className="object-cover object-top"
+                />
+              </span>
+              <figcaption className="text-[11px] uppercase leading-[1.6] tracking-[0.2em] text-ink/75">
+                Anthony Stolp, Realtor
+                <br />
+                ExSell Experts | Epique Realty
+              </figcaption>
+            </figure>
           </div>
         </div>
       </div>
