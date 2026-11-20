@@ -17,6 +17,7 @@ type FormState = {
   filters_min_price: string;
   filters_max_price: string;
   filters_beds: string;
+  is_guide: boolean;
   active: boolean;
 };
 
@@ -61,6 +62,7 @@ const EMPTY: FormState = {
   filters_min_price: "",
   filters_max_price: "",
   filters_beds: "",
+  is_guide: false,
   active: true,
 };
 
@@ -97,6 +99,7 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
       meta_desc: state.meta_desc.trim() || null,
       og_image: state.og_image.trim() || null,
       filters: Object.keys(filters).length > 0 ? filters : null,
+      is_guide: state.is_guide,
       active: state.active,
     };
   }
@@ -227,7 +230,7 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
         />
       </Row>
 
-      <Row label="Body — guide content (optional). '## Heading' starts a section; blank line between paragraphs.">
+      <Row label="Body (optional). '## Heading' starts a section; blank line between paragraphs.">
         <textarea
           value={state.body}
           onChange={(e) => update("body", e.target.value)}
@@ -300,6 +303,17 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
           />
         </Row>
       </fieldset>
+
+      <label className="flex items-center gap-3 text-[13px] text-ink">
+        <input
+          type="checkbox"
+          checked={state.is_guide}
+          onChange={(e) => update("is_guide", e.target.checked)}
+          className="h-4 w-4 accent-ink"
+        />
+        Guide (adds Article schema, &ldquo;Common questions&rdquo; and the
+        legal and tax disclaimer)
+      </label>
 
       <label className="flex items-center gap-3 text-[13px] text-ink">
         <input
