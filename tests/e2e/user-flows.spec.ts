@@ -11,6 +11,17 @@ const HOME_VALUE_LIVE = process.env.HOME_VALUE_LIVE === "true";
 const NEEDS_HOME_VALUE =
   "home-value funnel is flagged off on this server (NEXT_PUBLIC_HOME_VALUE_ENABLED)";
 
+// Two groups reach production when .env.local holds the live keys: "Funnel
+// submissions" posts real leads (Supabase rows, Resend mail, the n8n webhook),
+// and "Conversion events" fires the live GA4 tag. A plain `bun run test:e2e`
+// must never do that, whoever runs it: on 2026-11-20 the factory's builder ran
+// the suite in its worktree and wrote 24 leads (T-054; T-010 before it). They
+// run only when a person sets E2E_ALLOW_PRODUCTION_WRITES=1 on purpose. The QA
+// lanes' --grep-invert in headspace's gates.yml stays as a second guard.
+const PRODUCTION_WRITES = process.env.E2E_ALLOW_PRODUCTION_WRITES === "1";
+const NEEDS_PRODUCTION_WRITES =
+  "reaches production; set E2E_ALLOW_PRODUCTION_WRITES=1 to run it on purpose";
+
 test.describe("Anonymous visitor — home page", () => {
   test("hero renders + nav + key copy", async ({ page, viewport }) => {
     await page.goto("/");
@@ -103,6 +114,8 @@ test.describe("Anonymous visitor — home page", () => {
 });
 
 test.describe("Funnel submissions (real DB writes)", () => {
+  test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
+
   test("market-report-subscribe submits + success state", async ({ page }) => {
     await page.goto("/");
     const section = page.locator("section#market-report");
@@ -433,6 +446,8 @@ test.describe("Paid-click attribution", () => {
 });
 
 test.describe("Conversion events", () => {
+  test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
+
   // track.ts hands funnel events to window.gtag, which pushes them onto
   // dataLayer. That push is the only path by which a lead becomes a conversion
   // in GA4 / Google Ads, so assert on dataLayer rather than on the POST.
