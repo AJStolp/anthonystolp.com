@@ -206,12 +206,14 @@ export default async function NichePage({ params }: { params: RouteParams }) {
 
   const geoShort = shortGeo(page.geo);
   const eyebrow = page.geo ?? (page.intent === "sell" ? "Sellers" : "Buyers");
-  // Page-specific FAQs (guide pages) override the generated buy/sell templates.
+  // Page-specific FAQs override the generated buy/sell templates.
   const faqs =
     page.faqs && page.faqs.length > 0
       ? page.faqs
       : buildFaqs(page.intent, geoShort);
-  const isGuide = Boolean(page.body);
+  // A guide is marked as one. Body copy alone does not make a page a guide:
+  // city pages carry body copy and keep their city treatment.
+  const isGuide = page.is_guide;
 
   const [snap, directory] = await Promise.all([
     getGeoSnapshot(page.geo),
@@ -268,7 +270,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
     },
   ];
 
-  // Guide pages (with educational body content) are Articles too.
+  // Guide pages are Articles too.
   if (isGuide) {
     graph.push({
       "@type": "Article",
@@ -326,7 +328,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           <NicheCTA intent={page.intent} slug={page.slug} />
         </div>
 
-        {/* Long-form guide content */}
+        {/* Long-form body content, on guides and city pages alike */}
         {page.body ? (
           <section className="mt-16 w-full max-w-2xl">
             {parseBody(page.body).map((b, i) => (
