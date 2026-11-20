@@ -6,12 +6,12 @@ import { OG_IMAGES } from "@/lib/og";
 export const metadata: Metadata = {
   title: "Fair Housing Notice",
   description:
-    "Anthony Stolp and ExSell Experts at Epique Realty support equal housing opportunity and comply with federal and Wisconsin fair housing laws.",
+    "Anthony Stolp and ExSell Experts | Epique Realty support equal housing opportunity and comply with federal and Wisconsin fair housing laws.",
   alternates: { canonical: "/fair-housing" },
   openGraph: {
     title: "Fair Housing Notice · Anthony Stolp",
     description:
-      "Anthony Stolp and ExSell Experts at Epique Realty support equal housing opportunity and comply with federal and Wisconsin fair housing laws.",
+      "Anthony Stolp and ExSell Experts | Epique Realty support equal housing opportunity and comply with federal and Wisconsin fair housing laws.",
     url: "/fair-housing",
     type: "article",
     images: OG_IMAGES,
@@ -33,7 +33,7 @@ export default function FairHousingPage() {
         <div className="mt-12 space-y-10 text-[15px] leading-[1.75] text-ink/80">
           <section>
             <p>
-              Anthony Stolp and ExSell Experts at Epique Realty are committed
+              Anthony Stolp and ExSell Experts | Epique Realty are committed
               to complying with the federal Fair Housing Act and the Wisconsin
               Open Housing Law. We do not discriminate in the sale, rental, or
               financing of housing on the basis of:
@@ -44,8 +44,10 @@ export default function FairHousingPage() {
                 or disability (federal protected classes)
               </li>
               <li>
-                Ancestry, age, marital status, lawful source of income, or
-                sexual orientation (Wisconsin protected classes)
+                Ancestry, age (18 and older), marital status, lawful source of
+                income, sexual orientation, or status as a victim of domestic
+                abuse, sexual assault, or stalking (additional Wisconsin
+                protected classes)
               </li>
             </ul>
           </section>

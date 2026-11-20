@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
-  publisher: "ExSell Experts at Epique Realty",
+  publisher: "ExSell Experts | Epique Realty",
   keywords: [
     "Milwaukee realtor",
     "Greater Milwaukee real estate",

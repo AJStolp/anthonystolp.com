@@ -15,6 +15,10 @@ const ZIP_CHOICES = [
   { value: "53024", label: "Grafton (53024)" },
   { value: "53074", label: "Port Washington (53074)" },
   { value: "53080", label: "Saukville (53080)" },
+  { value: "53090", label: "West Bend (53090)" },
+  { value: "53095", label: "West Bend (53095)" },
+  { value: "53027", label: "Hartford (53027)" },
+  { value: "53022", label: "Germantown (53022)" },
 ] as const;
 
 const schema = z.object({
@@ -96,9 +100,7 @@ export function MarketReportSubscribe() {
             id="market-report-heading"
             className="mt-6 font-display text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.025em]"
           >
-            Stay in the know
-            <br />
-            on your zip.
+            A short monthly report on your zip code.
           </h2>
           <p className="mt-6 max-w-md text-[15px] leading-[1.7] text-ink-soft/80">
             Once a month, a short read on what is actually happening in your
@@ -118,11 +120,11 @@ export function MarketReportSubscribe() {
                 Subscribed
               </p>
               <h3 className="mt-4 font-display text-3xl font-semibold tracking-[-0.02em]">
-                You are on the list.
+                You&apos;re on the list.
               </h3>
               <p className="mt-3 max-w-sm text-[14px] leading-[1.6] text-ink-soft/75">
-                First report ships on the 1st of next month. Reply to it any
-                time if you want to talk about your specific situation.
+                Your first report arrives on the 1st of next month. Hit reply
+                any time if you want to talk about your own home.
               </p>
             </div>
           ) : (

@@ -6,7 +6,7 @@ import { ArrowRight, Check } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SearchGate } from "@/components/SearchGate";
-import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
+import { SELL_HREF } from "@/lib/feature-flags";
 
 const SEARCH_REDIRECT_URL =
   "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=search-cta";
@@ -29,7 +29,7 @@ const services: {
       "Appraisal and financing timeline",
       "Offer strategy and negotiation",
     ],
-    cta: "Learn more",
+    cta: "How I help buyers",
     image: "/images/services/buy.webp",
     href: "/buy",
   },
@@ -42,18 +42,18 @@ const services: {
       "Staging and prep guidance",
       "Photography that sells",
     ],
-    cta: HOME_VALUE_ENABLED ? "Get your value" : "Learn more",
+    cta: "Get my home value",
     image: "/images/services/home.jpeg",
-    href: HOME_VALUE_ENABLED ? "/home-value" : SELL_FALLBACK_HREF,
+    href: SELL_HREF,
   },
   {
     n: "03",
     word: "Search",
     short: "Find the one that fits.",
     points: [
-      "Every active MLS listing",
-      "Filter by town, price, and beds",
-      "Save the ones you like",
+      "New listings sent to you as they hit the MLS",
+      "Set up by town, price, and beds",
+      "My honest notes on the ones worth seeing",
     ],
     cta: "Browse listings",
     image: "/images/services/aerial.jpeg",

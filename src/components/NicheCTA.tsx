@@ -27,7 +27,7 @@ export function NicheCTA({ intent, slug, town }: Props) {
         href={sellHref}
         className="group inline-flex items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
       >
-        {HOME_VALUE_ENABLED ? "Get my home value" : "Talk to me about selling"}
+        {HOME_VALUE_ENABLED ? "Get my home value" : "Ask for my home value"}
         <span aria-hidden className="transition-transform group-hover:translate-x-1">
           →
         </span>

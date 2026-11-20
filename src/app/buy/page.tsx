@@ -3,44 +3,47 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { NicheCTA } from "@/components/NicheCTA";
+import { getAgentProfile } from "@/lib/agent-profile";
+import { COMMUNITIES } from "@/lib/communities";
 import { getActiveDirectory } from "@/lib/niche-pages";
 import { OG_IMAGES } from "@/lib/og";
+import { telHref } from "@/lib/phone";
 
 export const revalidate = 3600;
 
 const SITE_URL = "https://anthonystolp.com";
 
 export const metadata: Metadata = {
-  title: "Buy a Home in Southeast Wisconsin",
+  title: "Buy a Home in Cedarburg and Ozaukee County",
   description:
-    "Find your place in Ozaukee County and the Greater Milwaukee area. Real-time MLS listings, a local read on every block, and honest negotiation from Anthony Stolp.",
+    "Buying in Cedarburg, Ozaukee County, or nearby Washington County? New listings sent to you as they hit the MLS, a local read on each town, and honest negotiation from Anthony Stolp.",
   alternates: { canonical: "/buy" },
   openGraph: {
-    title: "Buy a Home in Southeast Wisconsin · Anthony Stolp",
+    title: "Buy a Home in Cedarburg and Ozaukee County · Anthony Stolp",
     description:
-      "Real-time listings, local knowledge, and honest negotiation. Start your home search with Anthony Stolp.",
+      "New listings sent to you, local knowledge, and honest negotiation. Start your home search with Anthony Stolp.",
     url: "/buy",
     type: "website",
     images: OG_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Buy a Home in Southeast Wisconsin · Anthony Stolp",
+    title: "Buy a Home in Cedarburg and Ozaukee County · Anthony Stolp",
     description:
-      "Real-time listings, local knowledge, and honest negotiation. Start your home search.",
+      "New listings sent to you, local knowledge, and honest negotiation. Start your home search.",
   },
 };
 
 const PILLARS = [
   {
     n: "01",
-    title: "Listings the moment they hit",
-    body: "You get new homes straight from the MLS as they list, not the stale, days-behind feed the big portals show. When the right one appears, you hear about it first.",
+    title: "New listings sent to you",
+    body: "New listings sent to you from the MLS as they come on, matched to what you told me you want. When the right one shows up, you hear about it fast and we can see it fast.",
   },
   {
     n: "02",
     title: "A real read on each block",
-    body: "I know these neighborhoods, not just the listing photos. I will tell you what a street is actually like, what a home is worth, and when to walk away.",
+    body: "I know these towns beyond the listing photos. I'll tell you about traffic, noise, flood maps, and what a home is really worth, and when to walk away.",
   },
   {
     n: "03",
@@ -55,12 +58,12 @@ const FAQS = [
     a: "Tell me your budget, your must haves, and your timeframe. I set up a search tailored to you and send live listings as they hit the market. Then we tour the ones worth your time. No pressure and no spam.",
   },
   {
-    q: "Do I need to be pre-approved before we look?",
-    a: "It helps, because it tells us your real budget and makes your offer stronger, but you do not need it to start. We can look first, and I will point you to honest lenders when you are ready.",
+    q: "Do I need to be preapproved before we look?",
+    a: "It helps, because it tells us your real budget and makes your offer stronger, but you don't need it to start. We can look first, and I'll point you to honest lenders when you're ready.",
   },
   {
     q: "What areas do you cover?",
-    a: "Ozaukee County and the Greater Milwaukee area, including Cedarburg, Mequon, Thiensville, Grafton, Port Washington, and Saukville. If you are looking nearby, just ask.",
+    a: "Ozaukee County first: Cedarburg, Mequon, Thiensville, Grafton, Port Washington, and Saukville. I also help buyers in Washington County towns like West Bend, Hartford, and Germantown. If you're looking nearby, just ask.",
   },
 ];
 
@@ -68,11 +71,22 @@ function shortGeo(geo: string | null): string {
   return (geo ?? "").replace(/,\s*WI$/i, "").trim() || "the area";
 }
 
+// The homepage's town order, so both pages list the towns the same way. A
+// town the homepage does not list goes last, alphabetically.
+function townRank(geo: string | null): number {
+  const i = COMMUNITIES.findIndex((c) => c.name === shortGeo(geo));
+  return i === -1 ? COMMUNITIES.length : i;
+}
+
 export default async function BuyPage() {
   const directory = await getActiveDirectory();
   const areas = directory
     .filter((d) => d.intent === "buy")
-    .sort((a, b) => shortGeo(a.geo).localeCompare(shortGeo(b.geo)));
+    .sort(
+      (a, b) =>
+        townRank(a.geo) - townRank(b.geo) ||
+        shortGeo(a.geo).localeCompare(shortGeo(b.geo)),
+    );
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -93,11 +107,11 @@ export default async function BuyPage() {
         "@type": "RealEstateAgent",
         name: "Anthony Stolp",
         url: SITE_URL,
-        telephone: "+1-262-885-3310",
+        telephone: telHref(getAgentProfile().mobilePhone).replace("tel:", ""),
         areaServed: "Southeast Wisconsin",
         parentOrganization: {
           "@type": "RealEstateOrganization",
-          name: "ExSell Experts at Epique Realty",
+          name: "ExSell Experts | Epique Realty",
         },
       },
       {
@@ -130,12 +144,12 @@ export default async function BuyPage() {
             Buyers
           </p>
           <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink">
-            Find your place in southeast Wisconsin.
+            Buying a home in Cedarburg, Ozaukee County, or nearby?
           </h1>
           <p className="mt-8 max-w-xl text-[15px] leading-[1.7] text-ink-soft/80">
-            Real listings the moment they hit, a local read on every block, and
-            honest negotiation start to finish. Tell me what you are after and I
-            will do the legwork.
+            Tell me your budget and the two or three things you won&apos;t give
+            up. I&apos;ll send new listings that fit, tell you what&apos;s wrong
+            with each before you tour, and negotiate hard when it counts.
           </p>
           <div className="mt-10">
             <NicheCTA intent="buy" slug="buy-hub" />
