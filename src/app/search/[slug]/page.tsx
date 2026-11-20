@@ -244,24 +244,11 @@ export default async function NichePage({ params }: { params: RouteParams }) {
         },
       ],
     },
-    {
-      "@type": "RealEstateAgent",
-      name: "Anthony Stolp",
-      url: SITE_URL,
-      image: `${SITE_URL}/opengraph-image`,
-      telephone: "+1-262-885-3310",
-      areaServed: page.geo ?? "Southeast Wisconsin",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Cedarburg",
-        addressRegion: "WI",
-        addressCountry: "US",
-      },
-      parentOrganization: {
-        "@type": "RealEstateOrganization",
-        name: "ExSell Experts at Epique Realty",
-      },
-    },
+    // One agent entity for the whole site, declared on the homepage. This is a
+    // typed reference to it: the shared @id makes it the same agent, not a
+    // second one, and the @type keeps the page saying a RealEstateAgent is
+    // behind it. Its details live on the homepage node only.
+    { "@type": "RealEstateAgent", "@id": `${SITE_URL}/#agent` },
     {
       "@type": "FAQPage",
       mainEntity: faqs.map((f) => ({

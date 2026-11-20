@@ -31,7 +31,7 @@ export function Hero({ featured, cell }: Props) {
           {/* Copy */}
           <div className="md:col-span-6">
             <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-accent">
-              Ozaukee County · Greater Milwaukee
+              Cedarburg · Ozaukee County · North Shore
             </p>
 
             <h1 className="mt-6 font-display text-[clamp(2.25rem,4.4vw,4rem)] leading-[1.05] tracking-[-0.025em] text-ink">
@@ -43,7 +43,7 @@ export function Hero({ featured, cell }: Props) {
               ) : (
                 <>
                   <span className="font-normal">Your partner for</span>{" "}
-                  <span className="font-semibold">Wisconsin real estate.</span>
+                  <span className="font-semibold">Cedarburg and Ozaukee County real estate.</span>
                 </>
               )}
             </h1>
@@ -51,7 +51,7 @@ export function Hero({ featured, cell }: Props) {
             <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-ink/70 md:text-[16px]">
               {HOME_VALUE_ENABLED
                 ? "A real range from a local agent, sent within 24 hours. No Zestimate guesses, no marketing fluff. Just an honest number based on what is actually selling in your neighborhood."
-                : "You work directly with me, backed by the ExSell Experts team. No scripts, no fluff, just straight answers from someone who works the Ozaukee County north shore every week."}
+                : "You work directly with me, backed by the ExSell Experts team. No scripts, no fluff, just straight answers from someone who works Cedarburg, Mequon, Grafton, and the rest of the north shore every week."}
             </p>
 
             {HOME_VALUE_ENABLED ? (

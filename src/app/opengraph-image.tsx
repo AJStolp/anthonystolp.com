@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const alt =
-  "Anthony Stolp · Greater Milwaukee Realtor · Find where you belong.";
+  "Anthony Stolp · Cedarburg and Ozaukee County Realtor · Find where you belong.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -30,7 +30,7 @@ export default function Image() {
             color: "rgba(26, 28, 28, 0.55)",
           }}
         >
-          Anthony Stolp · Realtor · Greater Milwaukee
+          Anthony Stolp · Cedarburg and Ozaukee County Realtor
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
