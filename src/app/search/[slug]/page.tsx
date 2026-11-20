@@ -172,11 +172,12 @@ function MarketSnapshot({
   return (
     <section className="mt-16 w-full">
       <h2 className="font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
-        {geoShort} market snapshot
+        {snap.areaLabel ?? geoShort} market snapshot
       </h2>
       <p className="mt-2 text-[13px] leading-[1.6] text-ink-soft/70">
         Based on Redfin&rsquo;s rolling 90 day data through {snap.periodLabel}
         {snap.zipCount > 1 ? `, across ${snap.zipCount} zip codes` : ""}.
+        {snap.areaNote ? ` ${snap.areaNote}` : ""}
       </p>
       <p className="mt-1 text-[13px] leading-[1.6] text-ink-soft/70">
         Updated{" "}

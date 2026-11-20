@@ -24,7 +24,7 @@ values
   -- ── 1. PROBATE / INHERITED ────────────────────────────────────────────
   (
     'selling-an-inherited-house-wisconsin',
-    'Selling an Inherited House in Wisconsin: A Step-by-Step Guide',
+    'Selling an Inherited House in Wisconsin',
     'Selling an inherited house in Wisconsin',
     'sell',
     'Wisconsin',
@@ -66,7 +66,7 @@ You shouldn''t have to manage this alone. I handle the real estate side (pricing
   -- ── 2. DIVORCE ────────────────────────────────────────────────────────
   (
     'selling-a-house-during-divorce-wisconsin',
-    'Selling a House During Divorce in Wisconsin: Your Options',
+    'Selling a House During Divorce in Wisconsin',
     'Selling a house during a divorce in Wisconsin',
     'sell',
     'Wisconsin',
@@ -108,7 +108,7 @@ Divorce is stressful enough. I bring a calm, neutral hand to the real estate sid
   -- ── 3. PRE-FORECLOSURE / DISTRESS ─────────────────────────────────────
   (
     'selling-before-foreclosure-wisconsin',
-    'Selling Your House Before Foreclosure in Wisconsin',
+    'Selling Before Foreclosure in Wisconsin',
     'Selling your house before foreclosure in Wisconsin',
     'sell',
     'Wisconsin',
@@ -150,7 +150,7 @@ You don''t have to face this alone. I move quickly and confidentially on the sal
   -- ── 4. DOWNSIZING / SENIORS ───────────────────────────────────────────
   (
     'downsizing-in-wisconsin',
-    'Downsizing Your Home in Wisconsin: A Practical Guide',
+    'Downsizing in Wisconsin: A Practical Guide',
     'Downsizing your home in Wisconsin',
     'sell',
     'Wisconsin',
