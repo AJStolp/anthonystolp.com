@@ -52,6 +52,14 @@ test.describe("Anonymous visitor — home page", () => {
     }
   });
 
+  test("the hero shows Anthony's headshot with his name and brokerage", async ({ page }) => {
+    await page.goto("/");
+    const hero = page.locator("section").filter({ has: page.locator("h1") });
+    const photo = hero.getByRole("img", { name: "Anthony Stolp, Realtor" });
+    await expect(photo).toBeVisible();
+    await expect(hero.locator("figcaption")).toHaveText(/Anthony Stolp, Realtor\s*ExSell Experts \| Epique Realty/);
+  });
+
   test("hero featured card links to the newest result", async ({ page }) => {
     await page.goto("/");
     const card = page.locator('a[href^="/property/"]').first();
