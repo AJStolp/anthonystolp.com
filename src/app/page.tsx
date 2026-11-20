@@ -3,6 +3,7 @@ import { Hero } from "@/components/Hero";
 import { TrustStrip } from "@/components/TrustStrip";
 import { RecentResults } from "@/components/RecentResults";
 import { Approach } from "@/components/Approach";
+import { Communities } from "@/components/Communities";
 import { MarketReportSubscribe } from "@/components/MarketReportSubscribe";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
@@ -100,6 +101,7 @@ export default async function Home() {
         <TrustStrip />
         <RecentResults results={rest} />
         <Approach />
+        <Communities />
         <MarketReportSubscribe />
         <LeadForm />
         <Footer />
