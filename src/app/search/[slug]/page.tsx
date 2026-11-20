@@ -12,6 +12,7 @@ import {
   type NicheIntent,
 } from "@/lib/niche-pages";
 import { getGeoSnapshot, type GeoSnapshot } from "@/lib/market-data/geo-stats";
+import { GUIDES } from "@/lib/communities";
 import { OG_IMAGES } from "@/lib/og";
 
 export const revalidate = 3600; // ISR: refresh published pages hourly
@@ -219,7 +220,6 @@ export default async function NichePage({ params }: { params: RouteParams }) {
   if (!page) notFound();
 
   const geoShort = shortGeo(page.geo);
-  const eyebrow = page.geo ?? (page.intent === "sell" ? "Sellers" : "Buyers");
   // Page-specific FAQs override the generated buy/sell templates.
   const faqs =
     page.faqs && page.faqs.length > 0
@@ -228,6 +228,13 @@ export default async function NichePage({ params }: { params: RouteParams }) {
   // A guide is marked as one. Body copy alone does not make a page a guide:
   // city pages carry body copy and keep their city treatment.
   const isGuide = page.is_guide;
+  const area = page.geo ?? (page.intent === "sell" ? "Sellers" : "Buyers");
+  const eyebrow = isGuide ? `Seller guide · ${area}` : area;
+  // The guides share one geo, so "nearby" never reaches them. A reader in one
+  // hard situation is offered the others.
+  const otherGuides = isGuide
+    ? GUIDES.filter((g) => g.href !== `/search/${page.slug}`)
+    : [];
 
   const [snap, directory] = await Promise.all([
     getGeoSnapshot(page.geo),
@@ -287,7 +294,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
       author: { "@type": "Person", name: "Anthony Stolp", url: SITE_URL },
       publisher: {
         "@type": "RealEstateOrganization",
-        name: "ExSell Experts at Epique Realty",
+        name: "ExSell Experts | Epique Realty",
       },
       datePublished: page.created_at,
       dateModified,
@@ -375,19 +382,33 @@ export default async function NichePage({ params }: { params: RouteParams }) {
             <p className="border-l-2 border-ink/15 pl-4 text-[13px] leading-[1.7] text-ink-soft/70">
               This page is general information, not legal or tax advice. Every
               situation is different, so please talk to a qualified attorney or
-              CPA about yours. Anthony and his team at ExSell Experts, Epique
-              Realty handle the real estate side and help keep the process
+              CPA about yours. Anthony and the ExSell Experts team handle the
+              real estate side and help keep the process
               organized.
             </p>
           </section>
         ) : null}
 
         {/* Internal links */}
-        {crossLink || nearby.length > 0 ? (
+        {crossLink || nearby.length > 0 || otherGuides.length > 0 ? (
           <section className="mt-16 w-full">
             <h2 className="font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
               Keep exploring
             </h2>
+            {otherGuides.length > 0 ? (
+              <ul className="mt-6 space-y-2">
+                {otherGuides.map((g) => (
+                  <li key={g.href}>
+                    <Link
+                      href={g.href}
+                      className="text-[15px] text-ink-soft/80 underline underline-offset-4 hover:text-ink"
+                    >
+                      {g.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             {crossLink ? (
               <p className="mt-6 text-[15px] leading-[1.7] text-ink-soft/80">
                 {page.intent === "sell" ? (

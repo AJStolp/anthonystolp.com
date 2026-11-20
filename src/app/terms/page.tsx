@@ -6,7 +6,7 @@ import { OG_IMAGES } from "@/lib/og";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Terms of Service governing your use of anthonystolp.com, the real estate website of Anthony Stolp with ExSell Experts at Epique Realty in southeast Wisconsin.",
+    "Terms of Service governing your use of anthonystolp.com, the real estate website of Anthony Stolp with ExSell Experts | Epique Realty in southeast Wisconsin.",
   alternates: { canonical: "/terms" },
   openGraph: {
     title: "Terms of Service · Anthony Stolp",
@@ -48,7 +48,7 @@ export default function TermsPage() {
             <p className="mt-3">
               The Site is operated by Anthony Stolp, a licensed real estate
               agent in the State of Wisconsin (License #114204-94), affiliated
-              with ExSell Experts at Epique Realty in Germantown, WI.
+              with ExSell Experts | Epique Realty in Germantown, WI.
             </p>
           </section>
 
@@ -71,8 +71,9 @@ export default function TermsPage() {
               SMS / Text Messaging program
             </h2>
             <p className="mt-3">
-              If you opt in to receive text messages from Anthony Stolp by
-              checking the SMS consent box on our contact form:
+              If you opt in to receive text messages from Anthony Stolp and the
+              ExSell Experts team by checking the SMS consent box on one of our
+              forms:
             </p>
             <ul className="mt-3 list-disc space-y-1 pl-6">
               <li>

@@ -2,8 +2,18 @@ import Link from "next/link";
 
 import { BackToTop } from "./BackToTop";
 import { getAgentProfile } from "@/lib/agent-profile";
+import { SELL_HREF } from "@/lib/feature-flags";
 import { telHref } from "@/lib/phone";
 import { COMMUNITIES, GUIDES, homesHref, valueHref } from "@/lib/communities";
+
+const SITE_LINKS: { href: string; label: string }[] = [
+  { href: "/", label: "Home" },
+  { href: "/buy", label: "Buy" },
+  { href: SELL_HREF, label: "Sell" },
+  { href: "/about", label: "About" },
+  { href: "/#approach", label: "How I work" },
+  { href: "/#contact", label: "Contact" },
+];
 
 type Props = {
   // The large name across the bottom. Team pages pass their own.
@@ -16,7 +26,7 @@ type Props = {
 
 export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props = {}) {
   const year = new Date().getFullYear();
-  const cell = getAgentProfile().mobilePhone;
+  const { mobilePhone: cell, phone: office } = getAgentProfile();
 
   return (
     <footer className="relative w-full">
@@ -33,13 +43,11 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
                   Head Office
                 </p>
                 <p className="mt-4 text-sm leading-[1.7] text-ink/75">
-                  ExSell Experts
-                  <br />
-                  Epique Realty
+                  ExSell Experts | Epique Realty
                   <br />
                   Germantown, WI
                   <br />
-                  <span className="text-ink/65">WI Lic. #114204-94</span>
+                  <span className="text-ink/65">WI License #114204-94</span>
                 </p>
               </div>
               <div>
@@ -96,10 +104,11 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
                       <span className="whitespace-nowrap">{cell}</span>
                     </a>
                     <a
-                      href="tel:+12628853310"
+                      href={telHref(office)}
                       className="mt-2 block text-sm text-ink/75 transition-colors hover:text-ink"
                     >
-                      (262) 885-3310
+                      Office:{" "}
+                      <span className="whitespace-nowrap">{office}</span>
                     </a>
                   </>
                 )}
@@ -111,21 +120,13 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
           <div className="md:col-span-5 lg:col-span-4 md:text-right">
             <h3 className="sr-only">Site</h3>
             <ul className="space-y-3 text-sm text-ink/75">
-              <li>
-                <Link href="/" className="transition-colors hover:text-ink">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="/#approach" className="transition-colors hover:text-ink">
-                  Approach
-                </Link>
-              </li>
-              <li>
-                <Link href="/#contact" className="transition-colors hover:text-ink">
-                  Contact
-                </Link>
-              </li>
+              {SITE_LINKS.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href} className="transition-colors hover:text-ink">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

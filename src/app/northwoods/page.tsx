@@ -6,11 +6,11 @@ import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { NorthwoodsSearch } from "@/components/NorthwoodsSearch";
 import {
-  NORTHWOODS_BROKERAGE,
   NORTHWOODS_SOURCES,
   NORTHWOODS_TEAM,
   type TeamMember,
 } from "@/lib/northwoods";
+import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
 
 // Landing page for the printed Marinette County flyer. The QR code points at
@@ -57,17 +57,17 @@ const STORY = [
   {
     n: "01",
     title: "Where we grew up",
-    body: "We have a deep, personal connection to the Northwoods and the Upper Peninsula. Our history up here spans our entire lives, starting as kids exploring the endless fire lanes and learning to hunt on this very land. We grew up camping back at Morgan Park campground and making epic runs up to Iron Mountain for a KFC feast back when that was a special treat. Today, as adults, we still spend every possible weekend up here, continuing our journey, hiking the trails, finding hidden new spots, and always revisiting the ones we love like Four Seasons and Kremlin Road.",
+    body: "We have a deep, personal connection to the Northwoods and the Upper Peninsula. Our history up here spans our entire lives, starting as kids exploring the endless fire lanes and learning to hunt on this very land. We grew up camping back at Morgan Park campground and making epic runs up to Iron Mountain for a KFC feast back when that was a special treat. Today, as adults, we still spend every possible weekend up here, hiking the trails, finding new spots, and going back to the ones we love like Four Seasons and Kremlin Road.",
   },
   {
     n: "02",
     title: "From the ground and air",
-    body: "We truly know these forests and backroads from decades of walking and driving them, and in recent years, we have refined our perspective by studying it from the air. Building a specialized drone aerial photography service for local properties allows us to combine lifelong ground level knowledge with a fresh aerial view. We know which shorelines hold the best evening sun and where the most secluded parcels are.",
+    body: "We know these forests and backroads from decades of walking and driving them, and lately from flying them too. Our drone work lets us show buyers what we already know from the ground. We know which shorelines hold the best evening sun and where the most secluded parcels are.",
   },
   {
     n: "03",
     title: "Your place up north",
-    body: "We are not just selling a market; we are guiding you in finding a piece of a place we love. We know Marinette County, not from a map, but from a lifetime of being part of it. Let our combined local history and unique aerial perspective work for you as your REALTORS® and as a team, Jay and Anthony, dedicated to helping you find your place in the Northwoods.",
+    body: "We're not selling a market from a map. We're helping you find a piece of a place we love. We know Marinette County from a lifetime of being part of it. Put that history, and the view from the drone, to work on your search or your sale.",
   },
 ];
 
@@ -128,7 +128,7 @@ const FAQS = [
   },
   {
     q: "Can you help us buy a cabin or hunting land up north?",
-    a: "Yes. We spend most weekends up here and know the backroads, the lakes, and the parcels that do not come up often. Tell us what you are after and we will send listings the moment they hit the MLS.",
+    a: "Yes. We spend most weekends up here and know the backroads, the lakes, and the parcels that don't come up often. Tell us what you're after and we'll send listings as they hit the MLS.",
   },
 ];
 
@@ -146,7 +146,7 @@ function agentId(m: TeamMember): string {
 
 const brokerage = {
   "@type": "RealEstateOrganization",
-  name: NORTHWOODS_BROKERAGE,
+  name: getAgentProfile().brokerage,
 };
 
 const jsonLd = {
@@ -234,7 +234,7 @@ export default function NorthwoodsPage() {
               From the ground and air, we know this land.
             </h1>
             <p className="mt-5 max-w-xl text-[17px] leading-[1.6] text-cream md:text-[19px]">
-              This Place Runs Deep in Our Family.
+              This place runs deep in our family.
             </p>
 
             {/* 2. Calls to action */}
@@ -299,7 +299,7 @@ export default function NorthwoodsPage() {
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
             <p className={`${eyebrow} text-cream/65`}>Sellers and land owners</p>
             <h2 id="drone-heading" className={`mt-4 ${sectionHeading}`}>
-              See Your Property From Above
+              See your property from above.
             </h2>
             <p className="mt-5 max-w-2xl text-[16px] leading-[1.7] text-cream/80">
               Selling a home, lake lot, or land? We photograph Northwoods
@@ -385,7 +385,7 @@ export default function NorthwoodsPage() {
               ))}
             </div>
             <p className="mt-6 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
-              {NORTHWOODS_BROKERAGE}
+              {getAgentProfile().brokerage}
             </p>
           </div>
         </section>
@@ -417,12 +417,14 @@ export default function NorthwoodsPage() {
               up north.
             </>
           }
-          intro="Tell us what you are after, a cabin, a lake lot, acreage, or selling what you have. Jay and Anthony both read every message and reply within the day."
+          intro="Tell us what you're after: a cabin, a lake lot, acreage, or selling what you have. Jay and Anthony both read every message and reply within the day."
+          cell={getAgentProfile().mobilePhone}
+          messagePlaceholder="Township, lake, acreage, timing, anything on your mind."
         />
         <Footer
           wordmark="NORTHWOODS"
           contacts={NORTHWOODS_TEAM}
-          tagline={`Cousins Jay and Anthony Stolp, REALTORS® · ${NORTHWOODS_BROKERAGE}`}
+          tagline={`Cousins Jay and Anthony Stolp, REALTORS® · ${getAgentProfile().brokerage}`}
         />
       </main>
     </>

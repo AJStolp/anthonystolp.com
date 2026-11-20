@@ -470,7 +470,7 @@ async function sendHomeValueAutoReply(lead: LeadInput): Promise<void> {
     "",
     "Talk soon,",
     "Anthony Stolp",
-    "ExSell Experts at Epique Realty",
+    "ExSell Experts | Epique Realty",
     "anthony@exsellexperts.com",
     "(262) 885-3310",
   ].join("\n");
@@ -487,7 +487,7 @@ async function sendHomeValueAutoReply(lead: LeadInput): Promise<void> {
       </ol>
       <p style="margin-top:32px;">Talk soon,<br>
         <strong>Anthony Stolp</strong><br>
-        ExSell Experts at Epique Realty<br>
+        ExSell Experts | Epique Realty<br>
         <a href="mailto:anthony@exsellexperts.com" style="color:#1a1c1c;">anthony@exsellexperts.com</a><br>
         (262) 885-3310
       </p>

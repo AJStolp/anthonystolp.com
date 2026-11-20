@@ -140,7 +140,8 @@ export function HeroAddressInput() {
     return (
       <div className="mt-8 max-w-xl">
         <p className="text-[12px] text-accent">
-          Address lookup is offline. Use the home-value form directly.
+          Address lookup isn&apos;t working right now. Send me your address in
+          the form below and I&apos;ll take it from there.
         </p>
       </div>
     );

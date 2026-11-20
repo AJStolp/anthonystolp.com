@@ -16,21 +16,17 @@ export const NORTHWOODS_TEAM: TeamMember[] = [
     name: "Anthony Stolp",
     title: "REALTOR®",
     phone: "(262) 483-7932",
-    email: "Anthony@exsellexperts.com",
+    email: "anthony@exsellexperts.com",
     photo: "/images/anthony-headshot.png",
   },
   {
     name: "Jay Stolp",
     title: "REALTOR®",
     phone: "(414) 807-2478",
-    email: "Jaystolp@exsellexperts.com",
+    email: "jaystolp@exsellexperts.com",
     photo: "/images/northwoods/jay-headshot.png",
   },
 ];
-
-// How the Northwoods page writes the brokerage: the pipe form, as the trust
-// strip and niche pages already do, not the profile's "at" form.
-export const NORTHWOODS_BROKERAGE = "ExSell Experts | Epique Realty";
 
 // Lead sources the page sends. Kept apart from the site's own sources so the
 // inbox and the notification subject say where the lead came from.
@@ -44,5 +40,5 @@ const NORTHWOODS_SOURCE_SET = new Set<string>(Object.values(NORTHWOODS_SOURCES))
 // Who else gets the notification email for a lead from this source. undefined,
 // not [], so Resend sees no cc field at all for every other funnel.
 export function northwoodsCc(source: string): string[] | undefined {
-  return NORTHWOODS_SOURCE_SET.has(source) ? ["Jaystolp@exsellexperts.com"] : undefined;
+  return NORTHWOODS_SOURCE_SET.has(source) ? ["jaystolp@exsellexperts.com"] : undefined;
 }

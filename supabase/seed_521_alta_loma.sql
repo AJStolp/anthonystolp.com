@@ -6,6 +6,9 @@
 -- swapped for a sell CTA. Price is the current public MLS list price after
 -- the Sunday adjustment; the contract price is deliberately not published.
 -- Open-house timestamps are cleared now that the event has passed.
+--
+-- 2026-11-20: closed. Status is 'sold', and the description says so too
+-- (it still opened "Under contract." under a Sold badge).
 -- photo_url points at a file in public/properties/ (URL-only for now;
 -- S3/Storage later). Edit price/description/status here or via the admin UI.
 
@@ -15,7 +18,7 @@ insert into public.properties (
   open_house_at, open_house_end
 ) values (
   '521-alta-loma',
-  'pending',
+  'sold',
   '521 Alta Loma Dr',
   'Thiensville',
   'WI',
@@ -24,11 +27,11 @@ insert into public.properties (
   3,
   2,
   1556,
-  'Under contract. 521 Alta Loma Dr went live on a Thursday and had an accepted offer by Sunday.
+  'Sold. 521 Alta Loma Dr went live on a Thursday and had an accepted offer by Sunday.
 
-A well-kept 3 bedroom, 2 bath ranch in the heart of Thiensville, with 1,556 square feet of easy single-level living, mature shade trees, and an attached garage. It sits in one of Ozaukee County''s most walkable villages, minutes from downtown Thiensville''s shops and restaurants, the Milwaukee River, and the Mequon-Thiensville School District.
+A well kept 3 bedroom, 2 bath ranch in Thiensville, with 1,556 square feet all on one floor, mature shade trees, and an attached garage. It''s a short drive or walk to downtown Thiensville''s shops and restaurants and the Milwaukee River, and it''s in the Mequon-Thiensville School District.
 
-Thinking about selling in Ozaukee County? Start with an honest read on what your home is worth today. Pricing is what moves a listing, and I will show you the comparable sales behind the number rather than just handing you a figure.',
+Thinking about selling in Ozaukee County? Start with an honest read on what your home is worth today. Pricing is what moves a listing, and I''ll show you the comparable sales behind the number rather than just handing you a figure.',
   '/properties/521-alta-loma.jpg',
   null,
   null
