@@ -67,9 +67,9 @@ export default function AboutPage() {
               <p>
                 The site you are on is something I am building so the people I
                 work with have actual tools, not lead magnets dressed up to look
-                like tools. Free instant home value. Address-aware search. New
-                listing alerts that mean something. A direct line to me when you
-                want to talk to a human instead of a chatbot.
+                like tools. A free home value, personally prepared within 24
+                hours. New listing alerts that mean something. A direct line to
+                me when you want to talk to a human instead of a chatbot.
               </p>
               <p>
                 If that fits the way you want to work, get in touch. If it does
@@ -83,7 +83,7 @@ export default function AboutPage() {
               href={HOME_VALUE_ENABLED ? "/home-value" : SELL_FALLBACK_HREF}
               className="group inline-flex items-center justify-between border border-ink bg-ink px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink"
             >
-              <span>Get my home value</span>
+              <span>Ask for my home value</span>
               <span aria-hidden className="transition-transform group-hover:translate-x-1">
                 →
               </span>
