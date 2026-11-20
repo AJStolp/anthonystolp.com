@@ -55,6 +55,15 @@ export type TrackEvent =
       };
     })
   | (BaseFields & {
+      event: "search_gate_skip";
+      properties?: {
+        campaign_id?: string;
+        target_id?: string;
+        qr_token?: string;
+        niche_slug?: string;
+      };
+    })
+  | (BaseFields & {
       event: "search_gate_lead";
       properties: {
         timeframe?: string;
@@ -108,6 +117,7 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
       break;
     case "home_value_view":
     case "search_gate_view":
+    case "search_gate_skip":
     case "market_report_view":
     case "farm_visit":
       window.gtag?.("event", name, props);

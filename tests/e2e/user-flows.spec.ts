@@ -100,7 +100,7 @@ test.describe("Anonymous visitor — home page", () => {
     await searchCard.click();
     const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible();
-    await expect(modal.getByRole("heading", { name: /where should i send/i })).toBeVisible();
+    await expect(modal.getByRole("heading", { name: /want new listings sent to you first/i })).toBeVisible();
     await modal.getByRole("button", { name: /close/i }).click();
     await expect(modal).not.toBeVisible();
   });
@@ -143,6 +143,27 @@ test.describe("Anonymous visitor — call or text Anthony", () => {
     const office = page.locator(`footer a[href="${OFFICE_HREF}"]`);
     await expect(office).toHaveCount(1);
     await expect(office).toHaveText("Office: (262) 885-3310");
+  });
+});
+
+// The texting number is registered to Anthony alone, so every consent names
+// him and no one else (AJ, 2026-11-20). A team or second name in any of these
+// is a compliance risk on every submission.
+test.describe("Text consent names Anthony Stolp only", () => {
+  for (const path of ["/", "/northwoods", "/privacy", "/terms"]) {
+    test(`${path} names Anthony Stolp and no team`, async ({ page }) => {
+      await page.goto(path);
+      const text = await page.locator("main, body").first().innerText();
+      expect(text).toMatch(/messages from Anthony Stolp (regarding|by checking)/);
+      expect(text).not.toMatch(/ExSell Experts team|Anthony Stolp and/);
+    });
+  }
+
+  test("the homepage contact intro links the cell", async ({ page }) => {
+    await page.goto("/");
+    const intro = page.locator("#contact p", { hasText: "not a call center" });
+    await expect(intro).toHaveCount(1);
+    await expect(intro.locator('a[href="tel:+12624837932"]')).toHaveText("(262) 483-7932");
   });
 });
 
@@ -218,9 +239,108 @@ test.describe("Niche landing pages", () => {
     await expect(modal).toBeVisible();
   });
 
+  test("buy-intent niche gate names the town", async ({ page }) => {
+    await page.goto("/search/cedarburg-homes-for-sale");
+    await page.getByRole("button", { name: /see active listings/i }).click();
+    await expect(
+      page.getByRole("dialog").getByRole("heading", { name: /want new cedarburg listings sent to you first/i }),
+    ).toBeVisible();
+  });
+
   test("unknown niche slug → 404", async ({ page }) => {
     const r = await page.goto("/search/this-slug-does-not-exist-9876");
     expect(r?.status()).toBe(404);
+  });
+});
+
+// The listings gate offers a way past it with no email. Each test clicks skip
+// and checks where the visitor went, that no lead was posted, and that the skip
+// reached dataLayer, which is how it gets compared against search_gate_lead.
+test.describe("Listings gate skip", () => {
+  type Pushed = { name: unknown; props: Record<string, unknown> | undefined };
+
+  // Runs without the live tags: gtag.js and the Meta pixel are blocked, and a
+  // stand-in gtag pushes onto dataLayer exactly as the snippet in Pixels.tsx
+  // does. Each push is also reported to the test, because the skip navigates
+  // away and the page's own dataLayer goes with it.
+  async function openGate(page: import("@playwright/test").Page, path: string, opener: RegExp) {
+    const pushed: Pushed[] = [];
+    await page.exposeFunction("__pwDataLayerPush", (entry: Pushed) => {
+      pushed.push(entry);
+    });
+    await page.addInitScript(() => {
+      const w = window as unknown as {
+        dataLayer: unknown[];
+        gtag: (...args: unknown[]) => void;
+        __pwDataLayerPush: (entry: unknown) => void;
+      };
+      const layer: unknown[] = [];
+      layer.push = (...entries: unknown[]) => {
+        for (const entry of entries) {
+          const args = entry as ArrayLike<unknown>;
+          w.__pwDataLayerPush({ name: args[1], props: args[2] });
+        }
+        return Array.prototype.push.apply(layer, entries);
+      };
+      w.dataLayer = layer;
+      w.gtag = function gtag() {
+        // eslint-disable-next-line prefer-rest-params
+        w.dataLayer.push(arguments);
+      };
+    });
+    await page.route("https://www.googletagmanager.com/**", (r) => r.abort());
+    await page.route("https://connect.facebook.net/**", (r) => r.abort());
+    await page.route("**/api/track", (r) => r.fulfill({ status: 204 }));
+
+    let leadPosted = false;
+    await page.route("**/api/lead", (r) => {
+      leadPosted = true;
+      return r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
+    });
+    await page.route("https://exsellexperts.com/**", (r) => r.abort());
+
+    await page.goto(path);
+    await page.getByRole("button", { name: opener }).click();
+    const modal = page.getByRole("dialog");
+    await expect(modal).toBeVisible();
+    return { modal, pushed, leadPosted: () => leadPosted };
+  }
+
+  async function skip(page: import("@playwright/test").Page, modal: import("@playwright/test").Locator) {
+    const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"), {
+      timeout: 10_000,
+    });
+    await modal.getByRole("button", { name: /skip, just show me listings/i }).click();
+    return new URL((await outbound).url());
+  }
+
+  test("from a city page, skip goes to listings with no email", async ({ page }) => {
+    const gate = await openGate(page, "/search/cedarburg-homes-for-sale", /see active listings/i);
+    await expect(
+      gate.modal.getByRole("heading", { name: /want new cedarburg listings sent to you first/i }),
+    ).toBeVisible();
+
+    const landed = await skip(page, gate.modal);
+    expect(landed.pathname).toBe("/anthony-stolp/");
+    expect(landed.searchParams.get("utm_campaign")).toBe("niche-search");
+    expect(gate.leadPosted()).toBe(false);
+    await expect
+      .poll(() => gate.pushed.find((e) => e.name === "search_gate_skip")?.props)
+      .toMatchObject({ niche_slug: "cedarburg-homes-for-sale" });
+  });
+
+  test("from the homepage hero, skip goes to listings with no email", async ({ page }) => {
+    const gate = await openGate(page, "/", /browse active listings/i);
+    await expect(gate.modal.getByRole("heading", { name: /want new listings sent to you first/i })).toBeVisible();
+
+    const landed = await skip(page, gate.modal);
+    expect(landed.pathname).toBe("/anthony-stolp/");
+    expect(landed.searchParams.get("utm_campaign")).toBe("hero-search");
+    expect(gate.leadPosted()).toBe(false);
+    // The hero carries no campaign context, so neither does its skip.
+    await expect
+      .poll(() => gate.pushed.some((e) => e.name === "search_gate_skip"))
+      .toBe(true);
   });
 });
 

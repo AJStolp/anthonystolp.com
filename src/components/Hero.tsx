@@ -51,7 +51,7 @@ export function Hero({ featured, cell }: Props) {
             <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-ink/70 md:text-[16px]">
               {HOME_VALUE_ENABLED
                 ? "A real range from a local agent, sent within 24 hours. No Zestimate guesses, no marketing fluff. Just an honest number based on what is actually selling in your neighborhood."
-                : "Helping buyers and sellers in Cedarburg, Ozaukee County, and nearby Washington County towns like West Bend, Hartford, and Germantown. You work directly with me, backed by the ExSell Experts team. No scripts, just straight answers."}
+                : "Helping buyers and sellers in Cedarburg, Ozaukee County, and nearby Washington County towns like West Bend, Hartford, and Germantown. You work directly with me from the first call to closing. No scripts, just straight answers."}
             </p>
 
             {HOME_VALUE_ENABLED ? (

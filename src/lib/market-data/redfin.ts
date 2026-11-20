@@ -1,31 +1,53 @@
 // Redfin Data Center fetcher — streaming version.
 //
-// Redfin publishes free zip-level market trackers as gzipped TSV at:
-//   https://redfin-public-data.s3-us-west-2.amazonaws.com/redfin_market_tracker/zip_code_market_tracker.tsv000.gz
+// Redfin publishes the zip-level housing market tracker as a plain CSV at:
+//   https://redfin-public-data.s3.us-west-2.amazonaws.com/redfin_data_center/housing_market/monthly/all_zips.csv
+// (linked from https://www.redfin.com/news/data-center/downloads/). The old
+// redfin_market_tracker/zip_code_market_tracker.tsv000.gz answers 403.
 //
 // IMPORTANT: at zip granularity, Redfin only publishes ROLLING 90-DAY
-// windows (period_duration=90), not true monthly aggregates. Every row is a
-// 3-month rolling snapshot anchored at period_begin. We take the row with
-// the most recent period_begin per target zip and treat that as "current
+// windows (FREQUENCY "Rolling 3 Months"), not true monthly aggregates. Every
+// row is a 3-month rolling snapshot anchored at PERIOD BEGIN. We take the row
+// with the most recent PERIOD BEGIN per target zip and treat that as "current
 // 3-month rolling stats." Email framing reflects this.
 //
-// The gunzipped TSV is multi-GB nationally, so we stream the response
-// through gunzip + line reader, filter per-line, and keep at most one row
-// per target zip in memory. Memory bounded to (target_zips × 1 row).
+// The CSV is about 2 GB nationally, so we stream the response through a line
+// reader, filter per-line, and keep at most one row per target zip in memory.
+// Memory bounded to (target_zips × 1 row).
+//
+// Units: the "(%)" columns are percentages (7.64 = 7.64%). market_stats
+// stores mom_pct / yoy_pct as decimals (0.0764), so they are divided by 100.
 //
 // TOS note: Redfin Data Center is free public data. Every email we send
 // includes "Data from Redfin Data Center" as attribution per their terms.
 
-import { createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
 import readline from "node:readline";
 import type { MarketStatInput } from "./index";
 
 const REDFIN_ZIP_TRACKER_URL =
   process.env.REDFIN_ZIP_TRACKER_URL ??
-  "https://redfin-public-data.s3-us-west-2.amazonaws.com/redfin_market_tracker/zip_code_market_tracker.tsv000.gz";
+  "https://redfin-public-data.s3.us-west-2.amazonaws.com/redfin_data_center/housing_market/monthly/all_zips.csv";
 
 const MAX_LINES_SCANNED = 25_000_000;
+
+// The only FREQUENCY the zip file carries today. Anything else is a different
+// window length and must not be mixed into the rolling 90-day series.
+const ROLLING_90_DAY = "Rolling 3 Months";
+
+// Header names exactly as Redfin spells them. Every one is required: a renamed
+// column must fail the import loudly rather than store nulls.
+const COLUMNS = {
+  frequency: "FREQUENCY",
+  periodBegin: "PERIOD BEGIN",
+  region: "REGION NAME",
+  medianSale: "MEDIAN SALE PRICE NSA ($)",
+  momPct: "MEDIAN SALE PRICE NSA MOM (%)",
+  yoyPct: "MEDIAN SALE PRICE NSA YOY (%)",
+  dom: "MEDIAN DAYS ON MARKET (DAYS)",
+  inventory: "INVENTORY",
+  homesSold: "HOMES SOLD",
+} as const;
 
 export type FetchOptions = {
   targetZips: string[];      // only return rows for these zips
@@ -45,7 +67,7 @@ export type FetchResult = {
 
 /**
  * Stream Redfin zip tracker, return the most-recent rolling-90 row per
- * target zip. Throws on network/decompression/parse failure.
+ * target zip. Throws on network or parse failure.
  */
 export async function fetchRedfinZipStats(
   opts: FetchOptions,
@@ -79,18 +101,31 @@ export async function fetchRedfinZipStatsWithDiagnostics(
   const nodeStream = Readable.fromWeb(
     res.body as unknown as Parameters<typeof Readable.fromWeb>[0],
   );
-  const gunzip = createGunzip();
-  nodeStream.on("error", (e) => gunzip.destroy(e));
-  nodeStream.pipe(gunzip);
-
   const rl = readline.createInterface({
-    input: gunzip,
+    input: nodeStream,
     crlfDelay: Infinity,
   });
 
-  const targetSet = new Set(opts.targetZips);
+  try {
+    return await parseZipTrackerLines(rl, opts);
+  } finally {
+    rl.close();
+    nodeStream.destroy();
+  }
+}
 
-  // For each target zip, keep the row with the most recent period_begin.
+/**
+ * Parse Redfin's zip tracker CSV, header line first. Returns the most-recent
+ * rolling 90-day row per target zip. Throws when a required column is missing.
+ */
+export async function parseZipTrackerLines(
+  lines: AsyncIterable<string> | Iterable<string>,
+  opts: FetchOptions,
+): Promise<FetchResult> {
+  const targetSet = new Set(opts.targetZips);
+  const sinceMonth = opts.sinceMonth;
+
+  // For each target zip, keep the row with the most recent period begin.
   type Candidate = {
     periodBegin: string;
     row: MarketStatInput;
@@ -99,89 +134,74 @@ export async function fetchRedfinZipStatsWithDiagnostics(
   const monthsSeenPerZip = new Map<string, Set<string>>();
 
   let headers: string[] | null = null;
-  let i_region = -1;
-  let i_periodBegin = -1;
-  let i_medianSale = -1;
-  let i_homesSold = -1;
-  let i_inventory = -1;
-  let i_dom = -1;
-  let i_momPct = -1;
-  let i_yoyPct = -1;
+  let idx: Record<keyof typeof COLUMNS, number> | null = null;
+  // Columns up to and including these are enough to decide whether a line is
+  // wanted, so most of the 5M national lines are never fully split.
+  let filterWidth = 0;
   let scanned = 0;
 
-  const sinceMonth = opts.sinceMonth;
-
-  try {
-    for await (const line of rl) {
-      if (scanned++ > MAX_LINES_SCANNED) {
-        throw new Error(
-          `Redfin stream exceeded ${MAX_LINES_SCANNED} lines`,
-        );
-      }
-
-      if (headers === null) {
-        headers = line.split("\t").map((h) =>
-          h.trim().replace(/^"|"$/g, "").toLowerCase(),
-        );
-        i_region = headers.indexOf("region");
-        i_periodBegin = headers.indexOf("period_begin");
-        i_medianSale = headers.indexOf("median_sale_price");
-        i_homesSold = headers.indexOf("homes_sold");
-        i_inventory = headers.indexOf("inventory");
-        i_dom = headers.indexOf("median_dom");
-        i_momPct = headers.indexOf("median_sale_price_mom");
-        i_yoyPct = headers.indexOf("median_sale_price_yoy");
-        if (i_region < 0 || i_periodBegin < 0) {
-          throw new Error(
-            `Redfin TSV schema unexpected — missing 'region' or 'period_begin' (headers: ${headers.slice(0, 8).join(", ")}…)`,
-          );
-        }
-        continue;
-      }
-
-      const cols = line
-        .split("\t")
-        .map((c) => c.replace(/^"|"$/g, ""));
-      const region = cols[i_region];
-      if (!region) continue;
-      const zipMatch = region.match(/(\d{5})/);
-      if (!zipMatch) continue;
-      const zip = zipMatch[1]!;
-      if (!targetSet.has(zip)) continue;
-
-      const periodBegin = cols[i_periodBegin];
-      if (!periodBegin) continue;
-      const monthStr = `${periodBegin.slice(0, 7)}-01`;
-
-      // Track every month we see for diagnostics.
-      let seen = monthsSeenPerZip.get(zip);
-      if (!seen) {
-        seen = new Set<string>();
-        monthsSeenPerZip.set(zip, seen);
-      }
-      seen.add(monthStr);
-
-      if (sinceMonth && monthStr < sinceMonth) continue;
-
-      const existing = bestPerZip.get(zip);
-      if (existing && existing.periodBegin >= periodBegin) continue;
-
-      const row: MarketStatInput = {
-        zip,
-        month: monthStr,
-        medianPrice: numOrNull(cols[i_medianSale]),
-        medianDom: intOrNull(cols[i_dom]),
-        inventoryCount: intOrNull(cols[i_inventory]),
-        salesCount: intOrNull(cols[i_homesSold]),
-        momPct: numOrNull(cols[i_momPct]),
-        yoyPct: numOrNull(cols[i_yoyPct]),
-        raw: rowAsObject(headers!, cols),
-      };
-      bestPerZip.set(zip, { periodBegin, row });
+  for await (const line of lines) {
+    if (scanned++ > MAX_LINES_SCANNED) {
+      throw new Error(`Redfin stream exceeded ${MAX_LINES_SCANNED} lines`);
     }
-  } finally {
-    rl.close();
-    nodeStream.destroy();
+
+    if (headers === null || idx === null) {
+      headers = splitCsvLine(line).map((h) => h.trim());
+      const found = {} as Record<keyof typeof COLUMNS, number>;
+      const missing: string[] = [];
+      for (const [key, name] of Object.entries(COLUMNS) as [
+        keyof typeof COLUMNS,
+        string,
+      ][]) {
+        found[key] = headers.indexOf(name);
+        if (found[key] < 0) missing.push(name);
+      }
+      if (missing.length > 0) {
+        throw new Error(
+          `Redfin CSV schema unexpected, missing column(s): ${missing.join(", ")}`,
+        );
+      }
+      idx = found;
+      filterWidth =
+        Math.max(found.region, found.frequency, found.periodBegin) + 1;
+      continue;
+    }
+
+    const head = splitCsvLine(line, filterWidth);
+    const zip = head[idx.region]?.trim();
+    if (!zip || !targetSet.has(zip)) continue;
+    if (head[idx.frequency] !== ROLLING_90_DAY) continue;
+
+    const periodBegin = head[idx.periodBegin];
+    if (!periodBegin) continue;
+    const monthStr = `${periodBegin.slice(0, 7)}-01`;
+
+    // Track every month we see for diagnostics.
+    let seen = monthsSeenPerZip.get(zip);
+    if (!seen) {
+      seen = new Set<string>();
+      monthsSeenPerZip.set(zip, seen);
+    }
+    seen.add(monthStr);
+
+    if (sinceMonth && monthStr < sinceMonth) continue;
+
+    const existing = bestPerZip.get(zip);
+    if (existing && existing.periodBegin >= periodBegin) continue;
+
+    const cols = splitCsvLine(line);
+    const row: MarketStatInput = {
+      zip,
+      month: monthStr,
+      medianPrice: numOrNull(cols[idx.medianSale]),
+      medianDom: intOrNull(cols[idx.dom]),
+      inventoryCount: intOrNull(cols[idx.inventory]),
+      salesCount: intOrNull(cols[idx.homesSold]),
+      momPct: pctOrNull(cols[idx.momPct]),
+      yoyPct: pctOrNull(cols[idx.yoyPct]),
+      raw: rowAsObject(headers, cols),
+    };
+    bestPerZip.set(zip, { periodBegin, row });
   }
 
   const rows = Array.from(bestPerZip.values()).map((c) => c.row);
@@ -196,10 +216,59 @@ export async function fetchRedfinZipStatsWithDiagnostics(
   };
 }
 
+// Quote-aware CSV split. Redfin quotes text fields, and some contain commas
+// ("Milwaukee, WI metro area"), so a plain split(",") misaligns every column
+// after them. Stops after maxFields fields.
+function splitCsvLine(line: string, maxFields = Infinity): string[] {
+  const out: string[] = [];
+  const n = line.length;
+  let i = 0;
+  while (out.length < maxFields) {
+    if (line[i] === '"') {
+      let val = "";
+      i++;
+      while (i < n) {
+        const q = line.indexOf('"', i);
+        if (q < 0) {
+          val += line.slice(i);
+          i = n;
+          break;
+        }
+        val += line.slice(i, q);
+        if (line[q + 1] === '"') {
+          val += '"';
+          i = q + 2;
+        } else {
+          i = q + 1;
+          break;
+        }
+      }
+      out.push(val);
+      if (i >= n) break;
+      i++; // the comma after the closing quote
+    } else {
+      const c = line.indexOf(",", i);
+      if (c < 0) {
+        out.push(line.slice(i));
+        break;
+      }
+      out.push(line.slice(i, c));
+      i = c + 1;
+    }
+  }
+  return out;
+}
+
 function numOrNull(v: string | undefined): number | null {
   if (!v || v === "" || v === "null") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
+}
+
+// Redfin "(%)" columns are percentages; market_stats stores decimals.
+function pctOrNull(v: string | undefined): number | null {
+  const n = numOrNull(v);
+  return n == null ? null : n / 100;
 }
 
 function intOrNull(v: string | undefined): number | null {
