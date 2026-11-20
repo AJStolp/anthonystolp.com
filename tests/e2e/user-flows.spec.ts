@@ -30,7 +30,7 @@ test.describe("Anonymous visitor — home page", () => {
       page.getByRole("heading", {
         name: HOME_VALUE_LIVE
           ? /what is your home worth/i
-          : /your partner for wisconsin real estate/i,
+          : /your partner for cedarburg and ozaukee county real estate/i,
       }),
     ).toBeVisible();
     // "Ozaukee County" appears in hero eyebrow AND TrustStrip — first() is intentional.

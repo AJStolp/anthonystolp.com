@@ -20,14 +20,21 @@ const inter = Inter({
 
 const SITE_URL = "https://anthonystolp.com";
 const SITE_NAME = "Anthony Stolp";
-const TAGLINE = "Greater Milwaukee Realtor";
+// A DR 0 domain cannot win "Greater Milwaukee realtor"; "Cedarburg realtor"
+// and "Ozaukee County realtor" are winnable and are where Anthony works.
+// The search title leads with the place, the social title with the name.
+const TAGLINE = "Cedarburg and Ozaukee County Realtor";
+// Kept under 160 characters so Google shows it whole.
 const DESCRIPTION =
-  "Honest guidance for buyers and sellers across southeast Wisconsin: Ozaukee, Washington, Waukesha, Sheboygan and Greater Milwaukee. Find where you belong.";
+  "Buying or selling in Cedarburg, Mequon, Grafton, or anywhere in Ozaukee County? Straight answers, real local comps, and a free home value from Anthony Stolp.";
+const SOCIAL_TITLE = `${SITE_NAME} · ${TAGLINE}`;
+const SOCIAL_DESCRIPTION =
+  "Straight answers, real local comps, and a free home value for Cedarburg, Mequon, Grafton, Port Washington, and the rest of Ozaukee County.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} · ${TAGLINE}`,
+    default: `${TAGLINE} · ${SITE_NAME}`,
     template: `%s · ${SITE_NAME}`,
   },
   description: DESCRIPTION,
@@ -59,14 +66,14 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} · ${TAGLINE}`,
-    description: DESCRIPTION,
+    title: SOCIAL_TITLE,
+    description: SOCIAL_DESCRIPTION,
     images: OG_IMAGES,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} · ${TAGLINE}`,
-    description: DESCRIPTION,
+    title: SOCIAL_TITLE,
+    description: SOCIAL_DESCRIPTION,
     images: OG_IMAGES,
   },
   robots: {
