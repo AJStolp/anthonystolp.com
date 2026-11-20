@@ -142,7 +142,7 @@ test.describe("Anonymous visitor — call or text Anthony", () => {
     await page.goto("/");
     const office = page.locator(`footer a[href="${OFFICE_HREF}"]`);
     await expect(office).toHaveCount(1);
-    await expect(office).toHaveText("(262) 885-3310");
+    await expect(office).toHaveText("Office: (262) 885-3310");
   });
 });
 

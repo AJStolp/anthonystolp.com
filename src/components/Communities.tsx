@@ -65,7 +65,7 @@ export function Communities() {
           Jackson, and Slinger. Call or text me at{" "}
           <a
             href={telHref(cell)}
-            className="text-ink underline-offset-4 hover:underline"
+            className="text-ink underline underline-offset-4"
           >
             {cell}
           </a>{" "}
