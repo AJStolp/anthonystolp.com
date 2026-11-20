@@ -172,11 +172,14 @@ export function SearchGate({
           id={`${emailId}-title`}
           className="mt-4 font-display text-[clamp(1.75rem,3.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.02em]"
         >
-          {town ? `Get new ${town} listings first` : "Get new listings first"}
+          {town
+            ? `Want new ${town} listings sent to you first?`
+            : "Want new listings sent to you first?"}
         </h2>
         <p className="mt-3 text-[13px] leading-[1.7] text-cream/70">
-          I&apos;ll send new listings that match as they hit the MLS. No spam,
-          unsubscribe any time. Or skip and browse now.
+          Drop your email and I&apos;ll send new listings that match as they
+          hit the MLS. No spam, unsubscribe any time. Or skip this and browse
+          now.
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6" noValidate>
@@ -291,7 +294,7 @@ export function SearchGate({
               onClick={onSkip}
               className="self-center py-2 text-[11px] uppercase tracking-[0.32em] text-cream/60 underline underline-offset-4 transition-colors hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
             >
-              Skip, just show me listings
+              Skip, just show me listings &rarr;
             </button>
           </div>
         </form>

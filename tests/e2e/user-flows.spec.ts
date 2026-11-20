@@ -100,7 +100,7 @@ test.describe("Anonymous visitor — home page", () => {
     await searchCard.click();
     const modal = page.getByRole("dialog");
     await expect(modal).toBeVisible();
-    await expect(modal.getByRole("heading", { name: /get new listings first/i })).toBeVisible();
+    await expect(modal.getByRole("heading", { name: /want new listings sent to you first/i })).toBeVisible();
     await modal.getByRole("button", { name: /close/i }).click();
     await expect(modal).not.toBeVisible();
   });
@@ -222,7 +222,7 @@ test.describe("Niche landing pages", () => {
     await page.goto("/search/cedarburg-homes-for-sale");
     await page.getByRole("button", { name: /see active listings/i }).click();
     await expect(
-      page.getByRole("dialog").getByRole("heading", { name: /get new cedarburg listings first/i }),
+      page.getByRole("dialog").getByRole("heading", { name: /want new cedarburg listings sent to you first/i }),
     ).toBeVisible();
   });
 
@@ -296,7 +296,7 @@ test.describe("Listings gate skip", () => {
   test("from a city page, skip goes to listings with no email", async ({ page }) => {
     const gate = await openGate(page, "/search/cedarburg-homes-for-sale", /see active listings/i);
     await expect(
-      gate.modal.getByRole("heading", { name: /get new cedarburg listings first/i }),
+      gate.modal.getByRole("heading", { name: /want new cedarburg listings sent to you first/i }),
     ).toBeVisible();
 
     const landed = await skip(page, gate.modal);
@@ -310,7 +310,7 @@ test.describe("Listings gate skip", () => {
 
   test("from the homepage hero, skip goes to listings with no email", async ({ page }) => {
     const gate = await openGate(page, "/", /browse active listings/i);
-    await expect(gate.modal.getByRole("heading", { name: /get new listings first/i })).toBeVisible();
+    await expect(gate.modal.getByRole("heading", { name: /want new listings sent to you first/i })).toBeVisible();
 
     const landed = await skip(page, gate.modal);
     expect(landed.pathname).toBe("/anthony-stolp/");
