@@ -11,6 +11,17 @@ const HOME_VALUE_LIVE = process.env.HOME_VALUE_LIVE === "true";
 const NEEDS_HOME_VALUE =
   "home-value funnel is flagged off on this server (NEXT_PUBLIC_HOME_VALUE_ENABLED)";
 
+// Two groups reach production when .env.local holds the live keys: "Funnel
+// submissions" posts real leads (Supabase rows, Resend mail, the n8n webhook),
+// and "Conversion events" fires the live GA4 tag. A plain `bun run test:e2e`
+// must never do that, whoever runs it: on 2026-11-20 the factory's builder ran
+// the suite in its worktree and wrote 24 leads (T-054; T-010 before it). They
+// run only when a person sets E2E_ALLOW_PRODUCTION_WRITES=1 on purpose. The QA
+// lanes' --grep-invert in headspace's gates.yml stays as a second guard.
+const PRODUCTION_WRITES = process.env.E2E_ALLOW_PRODUCTION_WRITES === "1";
+const NEEDS_PRODUCTION_WRITES =
+  "reaches production; set E2E_ALLOW_PRODUCTION_WRITES=1 to run it on purpose";
+
 test.describe("Anonymous visitor — home page", () => {
   test("hero renders + nav + key copy", async ({ page, viewport }) => {
     await page.goto("/");
@@ -103,6 +114,8 @@ test.describe("Anonymous visitor — home page", () => {
 });
 
 test.describe("Funnel submissions (real DB writes)", () => {
+  test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
+
   test("market-report-subscribe submits + success state", async ({ page }) => {
     await page.goto("/");
     const section = page.locator("section#market-report");
@@ -182,7 +195,15 @@ test.describe("Static pages", () => {
   test("/about renders", async ({ page }) => {
     await page.goto("/about");
     await expect(page.getByRole("heading", { name: /local agent who works/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /get my home value/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /ask for my home value/i })).toBeVisible();
+    // The page promises only what is live: a value prepared by hand, not an
+    // instant one, and no address-aware search.
+    const main = page.locator("main");
+    await expect(main).toContainText(
+      "A free home value, personally prepared within 24 hours",
+    );
+    await expect(main).not.toContainText(/instant/i);
+    await expect(main).not.toContainText(/address-aware/i);
   });
 
   test("/home-value bndryiq iframe is present", async ({ page }) => {
@@ -190,6 +211,50 @@ test.describe("Static pages", () => {
     await page.goto("/home-value");
     const frame = page.locator('iframe[title*="home value" i], iframe[src*="bndryiq"]');
     await expect(frame).toHaveAttribute("src", /bndryiq/, { timeout: 12_000 });
+  });
+});
+
+// While the funnel is off, /home-value forwards to the contact form. A seller
+// who typed an address, or clicked a campaign link, must not lose either on
+// the way. None of these submit the form.
+test.describe("/home-value with the funnel off", () => {
+  test.skip(HOME_VALUE_LIVE, "home-value funnel is live; /home-value does not redirect");
+
+  test("keeps the address and utm_* and starts the message with the address", async ({ page }) => {
+    // lat and lng are what HeroAddressInput sends alongside the address; the
+    // contact form has no use for them, so only address and utm_* go through.
+    await page.goto(
+      "/home-value?address=123%20Main%20St%20Cedarburg&utm_campaign=test&utm_source=postcard&lat=43.29&lng=-87.98",
+    );
+    await page.waitForURL(/\/\?.*#contact$/);
+    const url = new URL(page.url());
+    expect(url.pathname).toBe("/");
+    expect([...url.searchParams.keys()].sort()).toEqual(
+      ["address", "intent", "utm_campaign", "utm_source"],
+    );
+    expect(url.searchParams.get("intent")).toBe("sell");
+    expect(url.searchParams.get("address")).toBe("123 Main St Cedarburg");
+    expect(url.searchParams.get("utm_campaign")).toBe("test");
+    expect(url.searchParams.get("utm_source")).toBe("postcard");
+
+    const contact = page.locator("section#contact");
+    await expect(contact.getByLabel(/anything else/i)).toHaveValue(
+      "Home value request for: 123 Main St Cedarburg",
+    );
+    await expect(contact.getByLabel(/i'm looking to/i)).toHaveValue("sell");
+  });
+
+  test("without an address, leaves the message empty", async ({ page }) => {
+    await page.goto("/home-value?utm_campaign=test");
+    await page.waitForURL(/\/\?.*#contact$/);
+    const url = new URL(page.url());
+    expect(url.searchParams.has("address")).toBe(false);
+    expect(url.searchParams.get("utm_campaign")).toBe("test");
+
+    const contact = page.locator("section#contact");
+    // Wait for the mount effect to have run before asserting on the message.
+    await expect(contact.getByLabel(/i'm looking to/i)).toHaveValue("sell");
+    await expect(contact.getByLabel(/anything else/i)).toHaveValue("");
   });
 });
 
@@ -381,6 +446,8 @@ test.describe("Paid-click attribution", () => {
 });
 
 test.describe("Conversion events", () => {
+  test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
+
   // track.ts hands funnel events to window.gtag, which pushes them onto
   // dataLayer. That push is the only path by which a lead becomes a conversion
   // in GA4 / Google Ads, so assert on dataLayer rather than on the POST.

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import { NicheCTA } from "@/components/NicheCTA";
 import {
   getActiveBySlug,
@@ -206,12 +208,14 @@ export default async function NichePage({ params }: { params: RouteParams }) {
 
   const geoShort = shortGeo(page.geo);
   const eyebrow = page.geo ?? (page.intent === "sell" ? "Sellers" : "Buyers");
-  // Page-specific FAQs (guide pages) override the generated buy/sell templates.
+  // Page-specific FAQs override the generated buy/sell templates.
   const faqs =
     page.faqs && page.faqs.length > 0
       ? page.faqs
       : buildFaqs(page.intent, geoShort);
-  const isGuide = Boolean(page.body);
+  // A guide is marked as one. Body copy alone does not make a page a guide:
+  // city pages carry body copy and keep their city treatment.
+  const isGuide = page.is_guide;
 
   const [snap, directory] = await Promise.all([
     getGeoSnapshot(page.geo),
@@ -268,7 +272,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
     },
   ];
 
-  // Guide pages (with educational body content) are Articles too.
+  // Guide pages are Articles too.
   if (isGuide) {
     graph.push({
       "@type": "Article",
@@ -288,29 +292,20 @@ export default async function NichePage({ params }: { params: RouteParams }) {
   const jsonLd = { "@context": "https://schema.org", "@graph": graph };
 
   return (
-    <main className="min-h-dvh bg-cream text-ink">
+    <>
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
+      <main id="main" className="min-h-dvh bg-cream text-ink">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
         }}
       />
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-6 py-6 md:py-8">
-        <Link
-          href="/"
-          className="font-display text-base font-semibold tracking-[-0.01em] text-ink"
-        >
-          Anthony Stolp
-        </Link>
-        <Link
-          href="/#contact"
-          className="text-[11px] uppercase tracking-[0.28em] text-ink-soft/70 underline-offset-4 hover:underline"
-        >
-          Contact
-        </Link>
-      </header>
+      <Nav />
 
-      <section className="mx-auto flex max-w-3xl flex-col items-start px-6 py-16 md:py-28">
+      <section className="mx-auto flex max-w-3xl flex-col items-start px-6 pt-32 pb-16 md:pt-44 md:pb-28">
         <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
           {eyebrow}
         </p>
@@ -326,7 +321,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           <NicheCTA intent={page.intent} slug={page.slug} />
         </div>
 
-        {/* Long-form guide content */}
+        {/* Long-form body content, on guides and city pages alike */}
         {page.body ? (
           <section className="mt-16 w-full max-w-2xl">
             {parseBody(page.body).map((b, i) => (
@@ -422,17 +417,9 @@ export default async function NichePage({ params }: { params: RouteParams }) {
             ) : null}
           </section>
         ) : null}
-
-        <div className="mt-16 border-t border-ink/10 pt-8 text-[12px] leading-[1.6] text-ink-soft/70">
-          <p>
-            Anthony Stolp, ExSell Experts | Epique Realty. Honest pricing,
-            real staging, no scripts. Greater Milwaukee, southeast Wisconsin.
-          </p>
-          <p className="mt-2">
-            WI License #114204-94. Brokerage: (262) 885-3310.
-          </p>
-        </div>
       </section>
-    </main>
+      <Footer />
+      </main>
+    </>
   );
 }
