@@ -67,13 +67,19 @@ export function LeadForm({
     defaultValues: { intent: "buy", smsConsent: false, termsConsent: false },
   });
 
-  // Capture attribution + prefill intent from URL on mount.
+  // Capture attribution + prefill intent and address from URL on mount.
+  // /home-value forwards ?address= here while its funnel is off, and the
+  // message is how that address reaches the lead.
   useEffect(() => {
     attributionRef.current = captureAttribution();
     const params = new URLSearchParams(window.location.search);
     const intent = params.get("intent");
     if (intent && (INTENTS as readonly string[]).includes(intent)) {
       setValue("intent", intent as Intent);
+    }
+    const address = params.get("address")?.trim();
+    if (address) {
+      setValue("message", `Home value request for: ${address}`);
     }
   }, [setValue]);
 

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { HomeValueFunnel } from "@/components/HomeValueFunnel";
-import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
+import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
 import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
@@ -21,11 +21,32 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomeValuePage() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+// The address a seller typed, and the campaign they came from, have to survive
+// the redirect: LeadForm puts the address in its message and captureAttribution
+// reads utm_* from the landing URL.
+function fallbackParams(query: SearchParams): Record<string, string> {
+  const kept: Record<string, string> = {};
+  for (const [key, value] of Object.entries(query)) {
+    if (typeof value !== "string" || !value.trim()) continue;
+    if (key === "address" || key.startsWith("utm_")) kept[key] = value;
+  }
+  return kept;
+}
+
+export default async function HomeValuePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   // Funnel is gated until bndryiq is production-ready. Visitors who arrive
   // via stale links land on the contact form with intent=sell prefilled,
-  // so we still capture the lead.
-  if (!HOME_VALUE_ENABLED) redirect(SELL_FALLBACK_HREF);
+  // so we still capture the lead. searchParams is read only on this branch:
+  // reading it makes the page dynamic, and the live funnel stays static.
+  if (!HOME_VALUE_ENABLED) {
+    redirect(sellFallbackHref(fallbackParams(await searchParams)));
+  }
 
   return (
     <>
