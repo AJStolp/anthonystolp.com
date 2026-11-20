@@ -42,6 +42,9 @@ type Props = {
   campaignContext?: CampaignContext;
   // Lead source sent to /api/lead. Pages with their own funnel label pass one.
   source?: string;
+  // Town the listings are for, shown in the heading. Omitted where the page
+  // has no single town.
+  town?: string;
 };
 
 export function SearchGate({
@@ -50,6 +53,7 @@ export function SearchGate({
   redirectUrl,
   campaignContext,
   source = "search-redirect",
+  town,
 }: Props) {
   const emailId = useId();
   const timeframeId = useId();
@@ -129,6 +133,13 @@ export function SearchGate({
     [campaignContext, redirectUrl, source, honeypot],
   );
 
+  // Straight to the listings with no email asked. Recorded so the gate's
+  // conversion rate can be compared against the skips.
+  const onSkip = useCallback(() => {
+    track({ event: "search_gate_skip", properties: campaignContext });
+    window.location.href = redirectUrl;
+  }, [campaignContext, redirectUrl]);
+
   if (!open) return null;
 
   return (
@@ -161,11 +172,11 @@ export function SearchGate({
           id={`${emailId}-title`}
           className="mt-4 font-display text-[clamp(1.75rem,3.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.02em]"
         >
-          Where should I send matches?
+          {town ? `Get new ${town} listings first` : "Get new listings first"}
         </h2>
         <p className="mt-3 text-[13px] leading-[1.7] text-cream/70">
-          Browse the full feed in a second. First, drop your email and I&apos;ll
-          send new listings the moment they hit MLS.
+          I&apos;ll send new listings that match as they hit the MLS. No spam,
+          unsubscribe any time. Or skip and browse now.
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6" noValidate>
@@ -275,6 +286,13 @@ export function SearchGate({
                 {submitError}
               </p>
             )}
+            <button
+              type="button"
+              onClick={onSkip}
+              className="self-center py-2 text-[11px] uppercase tracking-[0.32em] text-cream/60 underline underline-offset-4 transition-colors hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+            >
+              Skip, just show me listings
+            </button>
           </div>
         </form>
       </div>
