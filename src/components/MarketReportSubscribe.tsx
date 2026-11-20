@@ -19,6 +19,8 @@ const ZIP_CHOICES = [
   { value: "53095", label: "West Bend (53095)" },
   { value: "53027", label: "Hartford (53027)" },
   { value: "53022", label: "Germantown (53022)" },
+  { value: "53037", label: "Jackson (53037)" },
+  { value: "53086", label: "Slinger (53086)" },
 ] as const;
 
 const schema = z.object({
