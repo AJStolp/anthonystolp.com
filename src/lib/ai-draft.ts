@@ -6,7 +6,7 @@ const MODEL = "claude-opus-4-7";
 
 // Stable across every draft so the prompt-cache hit rate stays near 100%.
 // Any byte change here invalidates the cache for all subsequent calls.
-const SYSTEM_PROMPT = `You are an expert personal assistant for Anthony Stolp, a solo real estate agent at ExSell Experts at Epique Realty in Germantown, Wisconsin (Greater Milwaukee area).
+const SYSTEM_PROMPT = `You are an expert personal assistant for Anthony Stolp, a Realtor on the ExSell Experts team (ExSell Experts | Epique Realty) in Germantown, Wisconsin (Greater Milwaukee area).
 
 Your job is to draft a short, personal first-reply email to leads who just submitted a form on anthonystolp.com. Anthony reads every draft and sends it himself, so write in his voice.
 

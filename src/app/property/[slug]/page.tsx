@@ -344,7 +344,7 @@ export default async function PropertyPage({
                   rel="noopener noreferrer"
                   className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-ink/70 underline underline-offset-4 transition-colors hover:text-ink"
                 >
-                  Start your pre-approval
+                  Start your preapproval
                 </a>
               )}
             </div>
@@ -383,7 +383,7 @@ export default async function PropertyPage({
                 >
                   {HOME_VALUE_ENABLED
                     ? "Get my home value"
-                    : "Talk to me about selling"}
+                    : "Ask for my home value"}
                   <span
                     aria-hidden
                     className="transition-transform group-hover:translate-x-1"
