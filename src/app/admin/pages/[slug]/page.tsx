@@ -76,6 +76,7 @@ export default async function EditNichePage({
             filters_min_price: filters.minPrice?.toString() ?? "",
             filters_max_price: filters.maxPrice?.toString() ?? "",
             filters_beds: filters.beds?.toString() ?? "",
+            is_guide: page.is_guide,
             active: page.active,
           }}
         />
