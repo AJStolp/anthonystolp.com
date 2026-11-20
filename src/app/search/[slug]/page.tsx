@@ -175,7 +175,7 @@ function MarketSnapshot({
         {geoShort} market snapshot
       </h2>
       <p className="mt-2 text-[13px] leading-[1.6] text-ink-soft/70">
-        Based on Redfin&rsquo;s rolling 90-day data, latest {snap.periodLabel}
+        Based on Redfin&rsquo;s rolling 90 day data through {snap.periodLabel}
         {snap.zipCount > 1 ? `, across ${snap.zipCount} zip codes` : ""}.
       </p>
       <p className="mt-1 text-[13px] leading-[1.6] text-ink-soft/70">

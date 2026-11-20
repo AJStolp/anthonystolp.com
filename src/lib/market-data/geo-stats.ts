@@ -29,7 +29,7 @@ type StatRow = {
 };
 
 export type GeoSnapshot = {
-  periodLabel: string; // "March 2026" — anchor of Redfin's 90-day rolling window
+  periodLabel: string; // "October 2026": the last month of Redfin's rolling 3 month window
   zipCount: number;
   medianPrice: number | null; // single-zip geos: the exact median
   medianPriceLow: number | null; // multi-zip geos: range across zips
@@ -84,7 +84,9 @@ export async function getGeoSnapshot(
     .reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a));
 
   return {
-    periodLabel: new Date(latestMonth).toLocaleString("en-US", {
+    // `month` is the window's first month (PERIOD BEGIN), so the window runs
+    // through the month two after it.
+    periodLabel: windowEnd(latestMonth).toLocaleString("en-US", {
       month: "long",
       year: "numeric",
       timeZone: "UTC",
@@ -99,4 +101,9 @@ export async function getGeoSnapshot(
     yoyPct: single ? (rows[0]!.yoy_pct ?? null) : null,
     pulledAt,
   };
+}
+
+function windowEnd(month: string): Date {
+  const d = new Date(month);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 2, 1));
 }
