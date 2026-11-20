@@ -26,6 +26,8 @@ const PAGES = [
   ["fair housing", "/fair-housing"],
   ["unsubscribe", "/unsubscribe"],
   ["northwoods", "/northwoods"],
+  ["the home value form", "/home-value"],
+  ["a home value city page", "/search/cedarburg-home-value"],
 ] as const;
 
 // WCAG 2.2 AA: 4.5:1 for body text, 3:1 for large text. axe already knows

@@ -334,7 +334,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           <NicheCTA
             intent={page.intent}
             slug={page.slug}
-            town={page.geo ? geoShort : undefined}
+            town={page.geo && !isGuide ? geoShort : undefined}
           />
         </div>
 

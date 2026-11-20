@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { SearchGate, type CampaignContext } from "@/components/SearchGate";
-import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
 
 const EXSELL_REDIRECT =
   "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=niche-search";
@@ -18,20 +16,38 @@ type Props = {
 export function NicheCTA({ intent, slug, town }: Props) {
   const [open, setOpen] = useState(false);
 
+  // A seller types the address here, and /home-value starts its form with
+  // it, so they never type it twice.
   if (intent === "sell") {
-    const sellHref = HOME_VALUE_ENABLED
-      ? `/home-value?utm_source=niche&utm_campaign=${slug}`
-      : sellFallbackHref({ utm_source: "niche", utm_campaign: slug });
     return (
-      <Link
-        href={sellHref}
-        className="group inline-flex items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+      <form
+        action="/home-value"
+        method="get"
+        className="flex w-full max-w-xl flex-col gap-3 sm:flex-row"
       >
-        {HOME_VALUE_ENABLED ? "Get my home value" : "Ask for my home value"}
-        <span aria-hidden className="transition-transform group-hover:translate-x-1">
-          →
-        </span>
-      </Link>
+        <label htmlFor={`hv-address-${slug}`} className="sr-only">
+          Your home address
+        </label>
+        <input
+          id={`hv-address-${slug}`}
+          name="address"
+          required
+          autoComplete="street-address"
+          placeholder={town ? `Your ${town} address` : "Your home address"}
+          className="min-w-0 flex-1 border border-ink/30 bg-cream px-4 py-4 text-[15px] text-ink outline-none placeholder:text-ink/55 focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/60"
+        />
+        <input type="hidden" name="utm_source" value="niche" />
+        <input type="hidden" name="utm_campaign" value={slug} />
+        <button
+          type="submit"
+          className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        >
+          Ask for my home value
+          <span aria-hidden className="transition-transform group-hover:translate-x-1">
+            →
+          </span>
+        </button>
+      </form>
     );
   }
 

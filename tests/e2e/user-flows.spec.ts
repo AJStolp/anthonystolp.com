@@ -4,13 +4,6 @@ import { test, expect } from "@playwright/test";
 const STAMP = `pw-${Date.now()}`;
 const email = (suffix: string) => `${STAMP}+${suffix}@anthonystolp.com`;
 
-// Set by tests/e2e/global-setup.ts, which probes the running server rather
-// than trusting .env.local — the flag is inlined at build time, so only the
-// server can say whether the home-value funnel is actually live.
-const HOME_VALUE_LIVE = process.env.HOME_VALUE_LIVE === "true";
-const NEEDS_HOME_VALUE =
-  "home-value funnel is flagged off on this server (NEXT_PUBLIC_HOME_VALUE_ENABLED)";
-
 // Two groups reach production when .env.local holds the live keys: "Funnel
 // submissions" posts real leads (Supabase rows, Resend mail, the n8n webhook),
 // and "Conversion events" fires the live GA4 tag. A plain `bun run test:e2e`
@@ -25,20 +18,15 @@ const NEEDS_PRODUCTION_WRITES =
 test.describe("Anonymous visitor — home page", () => {
   test("hero renders + nav + key copy", async ({ page, viewport }) => {
     await page.goto("/");
-    // The hero headline swaps with the flag; both branches must render.
     await expect(
       page.getByRole("heading", {
-        name: HOME_VALUE_LIVE
-          ? /what is your home worth/i
-          : /your partner for cedarburg and ozaukee county real estate/i,
+        name: /your partner for cedarburg and ozaukee county real estate/i,
       }),
     ).toBeVisible();
     // "Ozaukee County" appears in hero eyebrow AND TrustStrip — first() is intentional.
     await expect(page.getByText(/Ozaukee County/i).first()).toBeVisible();
     await expect(page.getByText(/WI Real Estate License/i)).toBeVisible();
     // Nav: desktop shows links inline; mobile collapses them behind a hamburger.
-    // The Sell link is always labelled "Sell" — only its href moves with the
-    // flag — so match the label, not the destination.
     const isDesktop = (viewport?.width ?? 0) >= 768;
     if (isDesktop) {
       await expect(page.getByRole("link", { name: /^sell$/i }).first()).toBeVisible();
@@ -71,28 +59,10 @@ test.describe("Anonymous visitor — home page", () => {
     await page.waitForURL(/\/property\//);
   });
 
-  test("hero address autocomplete → /home-value", async ({ page }) => {
-    test.skip(!HOME_VALUE_LIVE, NEEDS_HOME_VALUE);
-    test.setTimeout(30_000);
+  test("the hero's home value button goes to /home-value", async ({ page }) => {
     await page.goto("/");
-
-    const input = page.getByPlaceholder(/enter your home address/i);
-    await expect(input).toBeVisible();
-    await input.fill("100 N Washington Ave Cedarburg");
-
-    const listbox = page.locator('[role="listbox"]');
-    await expect(listbox).toBeVisible({ timeout: 8_000 });
-    const firstOption = listbox.locator('[role="option"]').first();
-    await expect(firstOption).toBeVisible();
-    await firstOption.click();
-
-    const submit = page.getByRole("button", { name: /get estimate/i });
-    await expect(submit).toBeEnabled();
-    await submit.click();
-
-    await page.waitForURL(/\/home-value/);
-    expect(page.url()).toMatch(/leadId=/);
-    expect(page.url()).toMatch(/address=/);
+    await page.getByRole("link", { name: /what's my home worth/i }).click();
+    await page.waitForURL(/\/home-value$/);
   });
 
   test("Approach Search card opens SearchGate modal", async ({ page }) => {
@@ -230,13 +200,18 @@ test.describe("Funnel submissions (real DB writes)", () => {
 });
 
 test.describe("Niche landing pages", () => {
-  test("sell-intent niche CTA → /home-value with UTM", async ({ page }) => {
-    test.skip(!HOME_VALUE_LIVE, NEEDS_HOME_VALUE);
+  test("a home value city page's address box carries the address and UTM to /home-value", async ({ page }) => {
     await page.goto("/search/cedarburg-home-value");
-    await expect(page.getByRole("heading", { name: /what is your cedarburg home worth/i })).toBeVisible();
-    await page.getByRole("link", { name: /get my home value/i }).click();
-    await page.waitForURL(/\/home-value/);
-    expect(page.url()).toMatch(/utm_campaign=cedarburg-home-value/);
+    await expect(page.getByRole("heading", { name: /what is my cedarburg home worth/i })).toBeVisible();
+    const address = page.getByLabel("Your home address");
+    await expect(address).toHaveAttribute("placeholder", "Your Cedarburg address");
+    await address.fill("123 Main St Cedarburg");
+    await page.getByRole("button", { name: /ask for my home value/i }).click();
+    await page.waitForURL(/\/home-value\?/);
+    const url = new URL(page.url());
+    expect(url.searchParams.get("address")).toBe("123 Main St Cedarburg");
+    expect(url.searchParams.get("utm_source")).toBe("niche");
+    expect(url.searchParams.get("utm_campaign")).toBe("cedarburg-home-value");
   });
 
   test("buy-intent niche CTA opens SearchGate", async ({ page }) => {
@@ -367,55 +342,32 @@ test.describe("Static pages", () => {
     await expect(main).not.toContainText(/address-aware/i);
   });
 
-  test("/home-value bndryiq iframe is present", async ({ page }) => {
-    test.skip(!HOME_VALUE_LIVE, NEEDS_HOME_VALUE);
+  // bndryiq's estimate is hidden until it is ready (AJ, 2026-11-20), so the
+  // page asks for the address itself and promises a range within 24 hours.
+  test("/home-value asks for the address, with no bndryiq frame", async ({ page }) => {
+    const res = await page.goto("/home-value");
+    expect(res?.status()).toBe(200);
+    await expect(page.getByLabel(/home address/i)).toHaveValue("");
+    await expect(page.locator('iframe[src*="bndryiq"]')).toHaveCount(0);
+    await expect(page.locator("main")).not.toContainText(/instant/i);
+    await expect(page.getByRole("button", { name: /ask for my home value/i })).toBeVisible();
+  });
+
+  test("/home-value starts the form with an address typed elsewhere", async ({ page }) => {
+    await page.goto("/home-value?address=123%20Main%20St%20Cedarburg&utm_campaign=test");
+    await expect(page.getByLabel(/home address/i)).toHaveValue("123 Main St Cedarburg");
+  });
+
+  test("/home-value refuses a send without an address", async ({ page }) => {
+    let posted = false;
+    await page.route("**/api/lead", (r) => { posted = true; return r.abort(); });
     await page.goto("/home-value");
-    const frame = page.locator('iframe[title*="home value" i], iframe[src*="bndryiq"]');
-    await expect(frame).toHaveAttribute("src", /bndryiq/, { timeout: 12_000 });
-  });
-});
-
-// While the funnel is off, /home-value forwards to the contact form. A seller
-// who typed an address, or clicked a campaign link, must not lose either on
-// the way. None of these submit the form.
-test.describe("/home-value with the funnel off", () => {
-  test.skip(HOME_VALUE_LIVE, "home-value funnel is live; /home-value does not redirect");
-
-  test("keeps the address and utm_* and starts the message with the address", async ({ page }) => {
-    // lat and lng are what HeroAddressInput sends alongside the address; the
-    // contact form has no use for them, so only address and utm_* go through.
-    await page.goto(
-      "/home-value?address=123%20Main%20St%20Cedarburg&utm_campaign=test&utm_source=postcard&lat=43.29&lng=-87.98",
-    );
-    await page.waitForURL(/\/\?.*#contact$/);
-    const url = new URL(page.url());
-    expect(url.pathname).toBe("/");
-    expect([...url.searchParams.keys()].sort()).toEqual(
-      ["address", "intent", "utm_campaign", "utm_source"],
-    );
-    expect(url.searchParams.get("intent")).toBe("sell");
-    expect(url.searchParams.get("address")).toBe("123 Main St Cedarburg");
-    expect(url.searchParams.get("utm_campaign")).toBe("test");
-    expect(url.searchParams.get("utm_source")).toBe("postcard");
-
-    const contact = page.locator("section#contact");
-    await expect(contact.getByLabel(/anything else/i)).toHaveValue(
-      "Home value request for: 123 Main St Cedarburg",
-    );
-    await expect(contact.getByLabel(/i'm looking to/i)).toHaveValue("sell");
-  });
-
-  test("without an address, leaves the message empty", async ({ page }) => {
-    await page.goto("/home-value?utm_campaign=test");
-    await page.waitForURL(/\/\?.*#contact$/);
-    const url = new URL(page.url());
-    expect(url.searchParams.has("address")).toBe(false);
-    expect(url.searchParams.get("utm_campaign")).toBe("test");
-
-    const contact = page.locator("section#contact");
-    // Wait for the mount effect to have run before asserting on the message.
-    await expect(contact.getByLabel(/i'm looking to/i)).toHaveValue("sell");
-    await expect(contact.getByLabel(/anything else/i)).toHaveValue("");
+    await page.getByLabel(/^name$/i).fill("No Address");
+    await page.getByLabel(/^email$/i).fill("no-address@example.com");
+    await page.getByLabel(/i agree to the terms/i).check();
+    await page.getByRole("button", { name: /ask for my home value/i }).click();
+    await expect(page.getByText("Enter your home's address")).toBeVisible();
+    expect(posted).toBe(false);
   });
 });
 

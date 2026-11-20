@@ -82,7 +82,6 @@ export type LeadDraftInput = {
     low?: number | null;
     high?: number | null;
     point?: number | null;
-    confidence?: string | null;
   } | null;
   recentEvents?: Array<{
     event: string;
@@ -158,7 +157,6 @@ function buildUserPrompt(input: LeadDraftInput): string {
     lines.push(
       `bndryiq estimate range: $${est.low.toLocaleString()} to $${est.high.toLocaleString()}`,
     );
-    if (est.confidence) lines.push(`Confidence: ${est.confidence}`);
   }
 
   if (input.recentEvents && input.recentEvents.length > 0) {

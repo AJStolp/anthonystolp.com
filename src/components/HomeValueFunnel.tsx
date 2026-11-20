@@ -18,26 +18,36 @@ import { getOrCreateVisitorId } from "@/lib/visitor";
 import { track } from "@/lib/track";
 import { Honeypot } from "@/components/Honeypot";
 
-import { BNDRYIQ_ENABLED } from "@/lib/feature-flags";
-
 // ── Bndryiq embed contract ─────────────────────────────────────────────────
 
-const BNDRYIQ_ORIGIN = "https://bndryiq.vercel.app";
+// bndryiq.vercel.app now 308s to www.bndryiq.com, so the frame loads from
+// there. Messages are still accepted from the old host in case an old page
+// posts from it.
+// AJ, 2026-11-20: bndryiq's estimate stays hidden until it is ready. While
+// this is false, /home-value asks for the address and Anthony emails a range
+// within 24 hours. To turn it on, set this true and add Anthony's embed key
+// (bndryiq.com/widgets) as `key` in the frame URL: bndryiq refuses every
+// estimate from a frame without one.
+const BNDRYIQ_LIVE = false;
+
+const BNDRYIQ_ORIGIN = "https://www.bndryiq.com";
+const BNDRYIQ_ORIGINS = new Set([BNDRYIQ_ORIGIN, "https://bndryiq.vercel.app"]);
 const BNDRYIQ_EMBED_PATH = "/embed/valuation";
 
 type BndryiqEstimate = {
   low: number;
   high: number;
   point: number;
-  confidence: "high" | "medium" | "low";
   compsUsed: number;
   propertyClass: string | null;
 };
 
+// lat and lng are absent when the address was typed into a plain field (a
+// city page's address box) rather than picked from bndryiq's autocomplete.
 type BndryiqAddress = {
   address: string;
-  lat: number;
-  lng: number;
+  lat?: number;
+  lng?: number;
 };
 
 // ── Form ───────────────────────────────────────────────────────────────────
@@ -59,6 +69,8 @@ const contactSchema = z.object({
     TIMEFRAMES.map((t) => t.value) as [TimeframeValue, ...TimeframeValue[]],
   ),
   message: z.string().optional(),
+  // Asked for only while bndryiq is hidden; otherwise bndryiq supplies it.
+  homeAddress: z.string().optional(),
   smsConsent: z.boolean().optional(),
   termsConsent: z
     .boolean()
@@ -66,28 +78,30 @@ const contactSchema = z.object({
 });
 type ContactValues = z.infer<typeof contactSchema>;
 
+const addressSchema = contactSchema.extend({
+  homeAddress: z.string().trim().min(5, "Enter your home's address"),
+});
+
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function HomeValueFunnel() {
+// `cell` is Anthony's cell, shown in the bndryiq frame as the number to call.
+export function HomeValueFunnel({ cell }: { cell: string }) {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const attributionRef = useRef<Attribution | null>(null);
   const searchParams = useSearchParams();
 
-  // Hero-pre-fill: if the visitor came from the address autocomplete on /,
-  // we have address + leadId in the URL. leadId is passed back to /api/lead
-  // so completion updates the existing partial-lead row instead of creating a
-  // duplicate. Address is also forwarded to bndryiq via postMessage in case
-  // the iframe supports pre-fill.
+  // An address typed elsewhere (a city page's address box) arrives as
+  // ?address=, with lat and lng only when something geocoded it. Either way
+  // it is kept and forwarded to bndryiq, so the seller never types it twice.
   const presetAddress = useMemo<BndryiqAddress | null>(() => {
-    if (!searchParams) return null;
-    const addr = searchParams.get("address");
-    const lat = parseFloat(searchParams.get("lat") ?? "");
-    const lng = parseFloat(searchParams.get("lng") ?? "");
-    if (!addr || Number.isNaN(lat) || Number.isNaN(lng)) return null;
-    return { address: addr, lat, lng };
+    const addr = searchParams?.get("address")?.trim();
+    if (!addr) return null;
+    const lat = parseFloat(searchParams?.get("lat") ?? "");
+    const lng = parseFloat(searchParams?.get("lng") ?? "");
+    return Number.isNaN(lat) || Number.isNaN(lng)
+      ? { address: addr }
+      : { address: addr, lat, lng };
   }, [searchParams]);
-  const presetLeadId = searchParams?.get("leadId") ?? null;
 
   const [iframeSrc, setIframeSrc] = useState<string>("");
   // Initial height fits just the address input + powered-by row. Bndryiq is
@@ -108,75 +122,61 @@ export function HomeValueFunnel() {
       theme: "light",
       brand: "Anthony Stolp",
       company: "ExSell Experts | Epique Realty",
-      phone: "(262) 885-3310",
+      phone: cell,
       website: "anthonystolp.com",
       visitor_id: visitorId,
       return_url: typeof window !== "undefined" ? window.location.href : "",
     });
-    // Belt-and-suspenders pre-fill: postMessage (bndryiq:set_address) below
-    // is the in-memory primary channel; URL params are the fallback in case
-    // the embed reads them on load instead. Address PII in the URL is the
-    // tradeoff — acceptable here since the alternative is making the user
-    // retype the address they just gave us.
+    // bndryiq reads ?address= (and lat, lng when known) on load and opens its
+    // property questions for it. Address PII in the URL is the tradeoff:
+    // the alternative is making the seller retype the address they just gave.
     if (presetAddress) {
       params.set("address", presetAddress.address);
-      params.set("lat", presetAddress.lat.toString());
-      params.set("lng", presetAddress.lng.toString());
+      if (presetAddress.lat !== undefined && presetAddress.lng !== undefined) {
+        params.set("lat", presetAddress.lat.toString());
+        params.set("lng", presetAddress.lng.toString());
+      }
     }
-    setIframeSrc(`${BNDRYIQ_ORIGIN}${BNDRYIQ_EMBED_PATH}?${params.toString()}`);
+    if (BNDRYIQ_LIVE) {
+      setIframeSrc(`${BNDRYIQ_ORIGIN}${BNDRYIQ_EMBED_PATH}?${params.toString()}`);
+    }
   }, []);
 
-  // Listen for postMessage events from the iframe.
+  // Messages from the bndryiq frame. Its contract (bndryiq's
+  // valuation-embed-client.tsx) is flat, with no wrapper object:
+  //   { type: "bndryiq:height", height }
+  //   { type: "bndryiq:estimate", address, lat, lng, estimate, visitorId }
+  // An estimate arrives only after the seller answers bndryiq's property
+  // questions or skips them.
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.origin !== BNDRYIQ_ORIGIN) return;
-      const data = e.data as { type?: string; payload?: unknown };
+      if (!BNDRYIQ_ORIGINS.has(e.origin)) return;
+      const data = e.data as
+        | ({ type?: string; height?: number; estimate?: BndryiqEstimate } & Partial<BndryiqAddress>)
+        | null;
       if (!data || typeof data.type !== "string") return;
 
       switch (data.type) {
-        case "bndryiq:ready":
-          track({ event: "iframe_ready", properties: { tool: "valuation" } });
-          // Forward any hero-captured address to the iframe. If bndryiq
-          // supports `bndryiq:set_address`, the iframe pre-fills; if not, the
-          // message is silently ignored.
-          if (presetAddress && iframeRef.current?.contentWindow) {
-            iframeRef.current.contentWindow.postMessage(
-              {
-                type: "bndryiq:set_address",
-                payload: {
-                  address: presetAddress.address,
-                  lat: presetAddress.lat,
-                  lng: presetAddress.lng,
-                },
-              },
-              BNDRYIQ_ORIGIN,
-            );
-          }
-          break;
         case "bndryiq:estimate": {
-          const p = data.payload as
-            | (BndryiqAddress & { estimate: BndryiqEstimate })
-            | undefined;
-          if (!p || typeof p.address !== "string") return;
-          setAddress({ address: p.address, lat: p.lat, lng: p.lng });
-          setEstimate(p.estimate);
+          if (typeof data.address !== "string" || !data.estimate) return;
+          setAddress({ address: data.address, lat: data.lat, lng: data.lng });
+          setEstimate(data.estimate);
           track({
             event: "estimate_seen",
             properties: {
-              address: p.address,
-              lat: p.lat,
-              lng: p.lng,
-              low: p.estimate?.low,
-              high: p.estimate?.high,
-              point: p.estimate?.point,
-              confidence: p.estimate?.confidence,
-              compsUsed: p.estimate?.compsUsed,
+              address: data.address,
+              lat: data.lat,
+              lng: data.lng,
+              low: data.estimate.low,
+              high: data.estimate.high,
+              point: data.estimate.point,
+              compsUsed: data.estimate.compsUsed,
             },
           });
           break;
         }
         case "bndryiq:height": {
-          const h = (data.payload as { height?: number })?.height;
+          const h = data.height;
           if (typeof h === "number" && h > 100 && h < 4000) {
             setIframeHeight(Math.ceil(h));
           }
@@ -216,14 +216,12 @@ export function HomeValueFunnel() {
           source: "home-value",
           funnelStep: "completed",
           intent: "sell",
-          // Pass leadId so /api/lead UPDATES the partial-lead row the hero
-          // already created, instead of creating a duplicate.
-          ...(presetLeadId ? { leadId: presetLeadId } : {}),
-          address: address?.address,
-          lat: address?.lat,
-          lng: address?.lng,
-          hp_company: honeypot,
           ...values,
+          address: values.homeAddress?.trim() || address?.address,
+          lat: values.homeAddress ? undefined : address?.lat,
+          lng: values.homeAddress ? undefined : address?.lng,
+          homeAddress: undefined,
+          hp_company: honeypot,
           ...(attributionRef.current ?? {}),
           // Extra fields persisted via the raw payload; /api/lead also reads
           // visitorId and bndryiqEstimate at the top level (handled by the
@@ -243,9 +241,10 @@ export function HomeValueFunnel() {
           timeframe: values.timeframe,
         },
       });
+      if (values.homeAddress) setAddress({ address: values.homeAddress.trim() });
       setSubmitted(true);
     },
-    [address, estimate],
+    [address, estimate, honeypot],
   );
 
   return (
@@ -257,12 +256,12 @@ export function HomeValueFunnel() {
         {!submitted ? (
           <>
             <Header />
-            {BNDRYIQ_ENABLED ? (
+            <Honeypot value={honeypot} onChange={setHoneypot} />
+            {BNDRYIQ_LIVE ? (
               <>
                 <div className="hv-fade mt-12 overflow-hidden bg-cream">
                   {iframeSrc && (
                     <iframe
-                      ref={iframeRef}
                       src={iframeSrc}
                       width="100%"
                       height={iframeHeight}
@@ -273,53 +272,26 @@ export function HomeValueFunnel() {
                   )}
                 </div>
                 <PoweredBy />
+                <PersonalAnalysisBlock
+                  address={address}
+                  estimate={estimate}
+                  onSubmit={handleSubmit}
+                />
               </>
             ) : (
-              <LookingUpBlock address={address} />
+              <ContactFormInline
+                address={null}
+                askAddress={presetAddress?.address ?? ""}
+                estimate={null}
+                onSubmit={handleSubmit}
+              />
             )}
-
-            <Honeypot value={honeypot} onChange={setHoneypot} />
-            <PersonalAnalysisBlock
-              address={address}
-              estimate={estimate}
-              onSubmit={handleSubmit}
-            />
           </>
         ) : (
           <DoneStep address={address} estimate={estimate} />
         )}
       </div>
     </section>
-  );
-}
-
-// ── Looking-up placeholder (shown when bndryiq is hidden) ──────────────────
-
-function LookingUpBlock({ address }: { address: BndryiqAddress | null }) {
-  return (
-    <div className="hv-fade mt-12 border border-ink/10 bg-cream p-8 md:p-10">
-      <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-ink-soft/70">
-        We have your address
-      </p>
-      {address ? (
-        <p className="mt-4 font-display text-2xl font-semibold tracking-[-0.01em] text-ink md:text-3xl">
-          {address.address}
-        </p>
-      ) : (
-        <p className="mt-4 text-[15px] text-ink-soft">
-          Drop your address below and I&apos;ll pull comps in your area.
-        </p>
-      )}
-      <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-ink-soft/85">
-        I&apos;ll pull recent sales on your block, look at what is actually
-        selling vs sitting, and email you a clear range within 24 hours. No
-        algorithm guess, no marketing fluff. Just an honest read from a local
-        agent.
-      </p>
-      <p className="mt-4 text-[13px] leading-[1.6] text-ink-soft/70">
-        Fill in your contact info below so I know where to send it.
-      </p>
-    </div>
   );
 }
 
@@ -340,8 +312,18 @@ function Header() {
         home worth?
       </h2>
       <p className="hv-fade mt-8 max-w-md text-[15px] leading-[1.7] text-ink-soft/80">
-        Get an instant range from real comparable sales below. Want a
-        personal analysis? Drop me your info after, no pressure.
+        {BNDRYIQ_LIVE ? (
+          <>
+            Get an instant range from real comparable sales below. Want a
+            personal analysis? Drop me your info after, no pressure.
+          </>
+        ) : (
+          <>
+            Tell me the address and I&apos;ll email you an honest range within
+            24 hours, based on what is actually selling nearby. No algorithm
+            guess, no pressure.
+          </>
+        )}
       </p>
     </div>
   );
@@ -404,25 +386,31 @@ function PersonalAnalysisBlock({
   );
 }
 
+// `askAddress` is set (to the prefill, often "") when the form must ask for
+// the address itself, because bndryiq is hidden.
 function ContactFormInline({
   address,
+  askAddress,
   estimate,
   onSubmit,
 }: {
   address: BndryiqAddress | null;
+  askAddress?: string;
   estimate: BndryiqEstimate | null;
   onSubmit: (v: ContactValues) => Promise<void>;
 }) {
+  const asking = askAddress !== undefined;
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<ContactValues>({
-    resolver: zodResolver(contactSchema),
+    resolver: zodResolver(asking ? addressSchema : contactSchema),
     defaultValues: {
       timeframe: "curious",
       smsConsent: false,
       termsConsent: false,
+      ...(asking ? { homeAddress: askAddress } : {}),
     },
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -472,6 +460,16 @@ function ContactFormInline({
         </div>
       )}
 
+      {asking && (
+        <Field
+          label="Home address"
+          autoComplete="street-address"
+          required
+          placeholder="Street, city"
+          error={errors.homeAddress?.message}
+          {...register("homeAddress")}
+        />
+      )}
       <Field
         label="Name"
         autoComplete="name"
@@ -596,7 +594,11 @@ function ContactFormInline({
           disabled={isSubmitting}
           className="group inline-flex items-center gap-3 self-start border border-ink/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-ink transition-all hover:border-ink hover:bg-ink hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-50"
         >
-          {isSubmitting ? "Sending..." : "Talk to Anthony"}
+          {isSubmitting
+            ? "Sending..."
+            : asking
+              ? "Ask for my home value"
+              : "Talk to Anthony"}
           <span
             aria-hidden
             className="transition-transform group-hover:translate-x-1"
@@ -634,7 +636,9 @@ function DoneStep({
         Check your inbox.
       </h2>
       <p className="hv-fade mt-8 max-w-md text-[15px] leading-[1.7] text-ink-soft/80">
-        I&apos;ll personally email you a tighter, more strategic analysis
+        {estimate
+          ? "I'll personally email you a tighter, more strategic analysis"
+          : "I'll personally email you an honest range"}
         {address ? (
           <>
             {" "}for{" "}
@@ -654,8 +658,7 @@ function DoneStep({
             {formatPrice(estimate.low)} to {formatPrice(estimate.high)}
           </p>
           <p className="mt-2 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
-            {estimate.compsUsed} comps · {estimate.confidence} confidence · by
-            bndryiq
+            {estimate.compsUsed} comparable sales · by bndryiq
           </p>
         </div>
       )}

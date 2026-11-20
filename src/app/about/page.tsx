@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { OG_IMAGES } from "@/lib/og";
-import { HOME_VALUE_ENABLED, SELL_FALLBACK_HREF } from "@/lib/feature-flags";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
 
@@ -101,11 +100,11 @@ export default function AboutPage() {
 
           <div className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-2">
             <Link
-              href={HOME_VALUE_ENABLED ? "/home-value" : SELL_FALLBACK_HREF}
+              href="/home-value"
               className="group inline-flex items-center justify-between border border-ink bg-ink px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink"
             >
               <span>
-                {HOME_VALUE_ENABLED ? "Get my home value" : "Ask for my home value"}
+                Ask for my home value
               </span>
               <span aria-hidden className="transition-transform group-hover:translate-x-1">
                 →

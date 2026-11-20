@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { HomeValueFunnel } from "@/components/HomeValueFunnel";
-import { HOME_VALUE_ENABLED, sellFallbackHref } from "@/lib/feature-flags";
+import { getAgentProfile } from "@/lib/agent-profile";
 import { OG_IMAGES } from "@/lib/og";
 
 export const metadata: Metadata = {
@@ -21,33 +20,7 @@ export const metadata: Metadata = {
   },
 };
 
-type SearchParams = Record<string, string | string[] | undefined>;
-
-// The address a seller typed, and the campaign they came from, have to survive
-// the redirect: LeadForm puts the address in its message and captureAttribution
-// reads utm_* from the landing URL.
-function fallbackParams(query: SearchParams): Record<string, string> {
-  const kept: Record<string, string> = {};
-  for (const [key, value] of Object.entries(query)) {
-    if (typeof value !== "string" || !value.trim()) continue;
-    if (key === "address" || key.startsWith("utm_")) kept[key] = value;
-  }
-  return kept;
-}
-
-export default async function HomeValuePage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
-  // Funnel is gated until bndryiq is production-ready. Visitors who arrive
-  // via stale links land on the contact form with intent=sell prefilled,
-  // so we still capture the lead. searchParams is read only on this branch:
-  // reading it makes the page dynamic, and the live funnel stays static.
-  if (!HOME_VALUE_ENABLED) {
-    redirect(sellFallbackHref(fallbackParams(await searchParams)));
-  }
-
+export default function HomeValuePage() {
   return (
     <>
       <a href="#main" className="skip-link">
@@ -58,11 +31,11 @@ export default async function HomeValuePage({
           Free home value estimate for southeast Wisconsin homes
         </h1>
         <Nav />
-        {/* HomeValueFunnel reads URL params via useSearchParams for the hero
-            pre-fill flow. That triggers CSR bailout under static rendering,
+        {/* HomeValueFunnel reads the address a seller typed elsewhere via
+            useSearchParams. That triggers CSR bailout under static rendering,
             so wrap in Suspense per Next's prerender contract. */}
         <Suspense fallback={<div className="min-h-[80vh]" aria-hidden />}>
-          <HomeValueFunnel />
+          <HomeValueFunnel cell={getAgentProfile().mobilePhone} />
         </Suspense>
         <Footer />
       </main>

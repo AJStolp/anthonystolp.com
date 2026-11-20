@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listAll } from "@/lib/niche-pages";
 import { getPublicSlugs } from "@/lib/properties";
-import { HOME_VALUE_ENABLED } from "@/lib/feature-flags";
 
 const SITE_URL = "https://anthonystolp.com";
 
@@ -30,16 +29,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  const homeValueEntry: MetadataRoute.Sitemap = HOME_VALUE_ENABLED
-    ? [
-        {
-          url: `${SITE_URL}/home-value`,
-          lastModified: now,
-          changeFrequency: "monthly",
-          priority: 0.9,
-        },
-      ]
-    : [];
+  const homeValueEntry: MetadataRoute.Sitemap = [
+    {
+      url: `${SITE_URL}/home-value`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+  ];
 
   return [
     {

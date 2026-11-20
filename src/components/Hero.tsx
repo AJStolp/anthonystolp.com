@@ -3,9 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { HeroAddressInput } from "./HeroAddressInput";
 import { SearchGate } from "./SearchGate";
-import { HOME_VALUE_ENABLED, SELL_HREF } from "@/lib/feature-flags";
 import { STATUS_LABEL, type PropertyRow } from "@/lib/properties";
 import { telHref } from "@/lib/phone";
 
@@ -35,62 +33,38 @@ export function Hero({ featured, cell }: Props) {
             </p>
 
             <h1 className="mt-6 font-display text-[clamp(2.25rem,4.4vw,4rem)] leading-[1.05] tracking-[-0.025em] text-ink">
-              {HOME_VALUE_ENABLED ? (
-                <>
-                  <span className="font-normal">What is your</span>{" "}
-                  <span className="font-semibold">home worth?</span>
-                </>
-              ) : (
-                <>
-                  <span className="font-normal">Your partner for</span>{" "}
-                  <span className="font-semibold">Cedarburg and Ozaukee County real estate.</span>
-                </>
-              )}
+              <span className="font-normal">Your partner for</span>{" "}
+              <span className="font-semibold">Cedarburg and Ozaukee County real estate.</span>
             </h1>
 
             <p className="mt-6 max-w-xl text-[15px] leading-[1.7] text-ink/70 md:text-[16px]">
-              {HOME_VALUE_ENABLED
-                ? "A real range from a local agent, sent within 24 hours. No Zestimate guesses, no marketing fluff. Just an honest number based on what is actually selling in your neighborhood."
-                : "Helping buyers and sellers in Cedarburg, Ozaukee County, and nearby Washington County towns like West Bend, Hartford, and Germantown. You work directly with me from the first call to closing. No scripts, just straight answers."}
+              Helping buyers and sellers in Cedarburg, Ozaukee County, and nearby
+              Washington County towns like West Bend, Hartford, and Germantown.
+              You work directly with me from the first call to closing. No
+              scripts, just straight answers.
             </p>
 
-            {HOME_VALUE_ENABLED ? (
-              <>
-                <HeroAddressInput />
-                <div className="mt-5 flex items-center gap-2 text-[13px] text-ink/65">
-                  <span>or</span>
-                  <button
-                    type="button"
-                    onClick={() => setSearchOpen(true)}
-                    className="text-ink underline-offset-4 hover:underline"
-                  >
-                    browse active listings →
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <button
-                  type="button"
-                  onClick={() => setSearchOpen(true)}
-                  className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-cream transition-all hover:bg-transparent hover:text-ink"
-                >
-                  Browse active listings
-                  <span aria-hidden className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
-                </button>
-                <Link
-                  href={SELL_HREF}
-                  className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink/20 px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-ink transition-all hover:border-ink"
-                >
-                  What&apos;s my home worth?
-                  <span aria-hidden className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
-                </Link>
-              </div>
-            )}
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <button
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-cream transition-all hover:bg-transparent hover:text-ink"
+              >
+                Browse active listings
+                <span aria-hidden className="transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </button>
+              <Link
+                href="/home-value"
+                className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink/20 px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-ink transition-all hover:border-ink"
+              >
+                What&apos;s my home worth?
+                <span aria-hidden className="transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            </div>
 
             <a
               href={telHref(cell)}
