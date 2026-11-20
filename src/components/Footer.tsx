@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { ArrowUp } from "lucide-react";
+import { COMMUNITIES, GUIDES, homesHref, valueHref } from "@/lib/communities";
 
 type Props = {
   // The large name across the bottom. Team pages pass their own.
@@ -123,6 +124,43 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
               </li>
             </ul>
           </div>
+        </div>
+
+        {/* Every city page and seller guide, so a crawler starting on any page reaches them all */}
+        <div className="mt-16 grid grid-cols-1 gap-10 md:grid-cols-3 md:gap-12">
+          <nav aria-label="Communities" className="md:col-span-2">
+            <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
+              Communities
+            </p>
+            <ul className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-sm text-ink/75 sm:grid-cols-2">
+              {COMMUNITIES.flatMap((c) => [
+                <li key={homesHref(c.slug)}>
+                  <Link href={homesHref(c.slug)} className="transition-colors hover:text-ink">
+                    {c.name} homes for sale
+                  </Link>
+                </li>,
+                <li key={valueHref(c.slug)}>
+                  <Link href={valueHref(c.slug)} className="transition-colors hover:text-ink">
+                    {c.name} home values
+                  </Link>
+                </li>,
+              ])}
+            </ul>
+          </nav>
+          <nav aria-label="Seller guides">
+            <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
+              Seller guides
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-ink/75">
+              {GUIDES.map((g) => (
+                <li key={g.href}>
+                  <Link href={g.href} className="transition-colors hover:text-ink">
+                    {g.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
 
         {/* Huge wordmark */}
