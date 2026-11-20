@@ -82,7 +82,6 @@ const schema = z.object({
       low: z.number().optional(),
       high: z.number().optional(),
       point: z.number().optional(),
-      confidence: z.enum(["high", "medium", "low"]).optional(),
       compsUsed: z.number().optional(),
       propertyClass: z.string().nullable().optional(),
     })
@@ -648,6 +647,9 @@ async function fireN8nWebhook(
       lat: lead.lat,
       lng: lead.lng,
       message: lead.message,
+      // bndryiq's range for a home value lead (low, high, point), for the
+      // Lofty note. Absent on every other form.
+      bndryiqEstimate: lead.bndryiqEstimate ?? null,
       smsConsent: lead.smsConsent ?? false,
       utm: lead.utm,
       referrer: lead.referrer,

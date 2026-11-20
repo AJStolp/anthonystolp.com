@@ -4,8 +4,8 @@ import type { NextConfig } from "next";
 // Next hydration and the gtag/fbq inline init (src/components/Pixels.tsx) are
 // inline, and a nonce-based policy is too invasive for this change. Third-party
 // hosts below are the ones actually loaded: Google gtag/GTM + Analytics, Meta
-// pixel (connect.facebook.net / facebook.com), Ahrefs analytics, Mapbox
-// (api.mapbox.com), Unsplash images, and same-origin Supabase-backed APIs.
+// pixel (connect.facebook.net / facebook.com), Ahrefs analytics, bndryiq's
+// valuation frame, Unsplash images, and same-origin Supabase-backed APIs.
 //
 // The Google Ads hosts below are pre-flight: no AW- tag is configured yet
 // (NEXT_PUBLIC_GADS_ID is unset), but the conversion tag loads from
@@ -23,14 +23,16 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://connect.facebook.net https://analytics.ahrefs.com",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://images.unsplash.com https://api.mapbox.com https://www.google-analytics.com https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://google.com https://www.facebook.com https://connect.facebook.net",
+  "img-src 'self' data: https://images.unsplash.com https://www.google-analytics.com https://www.googletagmanager.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://www.google.com https://google.com https://www.facebook.com https://connect.facebook.net",
   "font-src 'self' data:",
   // GA4 does not send everything to google-analytics.com. It also beacons
   // page_view and conversion hits to analytics.google.com, the doubleclick
   // stats host, and google.com/g/collect. Those three were being blocked,
   // which is silent: no error surfaces anywhere except the browser console.
-  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.google.com https://www.googletagmanager.com https://analytics.ahrefs.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://ad.doubleclick.net https://google.com https://connect.facebook.net https://www.facebook.com https://api.mapbox.com https://*.supabase.co",
-  "frame-src 'self' https://www.googletagmanager.com https://www.facebook.com https://td.doubleclick.net",
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://www.google.com https://www.googletagmanager.com https://analytics.ahrefs.com https://www.googleadservices.com https://googleads.g.doubleclick.net https://pagead2.googlesyndication.com https://ad.doubleclick.net https://google.com https://connect.facebook.net https://www.facebook.com https://*.supabase.co",
+  // bndryiq's valuation frame on /home-value. bndryiq.vercel.app 308s to
+  // www.bndryiq.com, and both are allowed so the redirect is not blocked.
+  "frame-src 'self' https://www.bndryiq.com https://bndryiq.vercel.app https://www.googletagmanager.com https://www.facebook.com https://td.doubleclick.net",
 ].join("; ");
 
 const securityHeaders = [
@@ -54,10 +56,6 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "api.mapbox.com",
       },
     ],
   },
