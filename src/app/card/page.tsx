@@ -26,12 +26,12 @@ export default function CardPage() {
   const mailHref = `mailto:${p.replyToEmail}`;
 
   const quickAction =
-    "flex flex-col items-center gap-2 rounded-2xl border border-cream/20 py-4 text-[11px] uppercase tracking-[0.16em] text-cream/90 transition-colors hover:border-cream/50 hover:bg-cream hover:text-ink";
+    "flex flex-col items-center gap-2 rounded-2xl border border-white/20 py-4 text-[11px] uppercase tracking-[0.16em] text-white/90 transition-colors hover:border-white/50 hover:bg-white hover:text-ink";
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-cream px-5 py-12 text-ink">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-white px-5 py-12 text-ink">
       <div className="w-full max-w-sm">
-        <div className="overflow-hidden rounded-[28px] bg-ink text-cream shadow-2xl shadow-ink/20">
+        <div className="overflow-hidden rounded-[28px] bg-ink text-white shadow-2xl shadow-ink/20">
           {/* Portrait — transparent cutout sits on the ink panel */}
           <div className="flex justify-center bg-gradient-to-b from-sky-400/15 via-ink to-ink px-6 pt-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -45,21 +45,21 @@ export default function CardPage() {
           </div>
 
           <div className="px-7 pb-8 text-center">
-            <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-cream/50">
+            <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-white/50">
               Realtor · Greater Milwaukee
             </p>
             <h1 className="mt-3 font-display text-[2rem] font-semibold leading-tight tracking-[-0.02em]">
               {p.name}
             </h1>
-            <p className="mt-2 text-sm text-cream/70">Brokered by Epique Realty</p>
-            <p className="mt-1 text-sm text-cream/70">
+            <p className="mt-2 text-sm text-white/70">Brokered by Epique Realty</p>
+            <p className="mt-1 text-sm text-white/70">
               Serving {p.serviceArea}
             </p>
 
             {/* Primary: save contact */}
             <a
               href="/card/vcard"
-              className="mt-7 flex w-full items-center justify-center gap-2 rounded-full bg-cream px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.2em] text-ink transition-colors hover:bg-white"
+              className="mt-7 flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-[12px] font-semibold uppercase tracking-[0.2em] text-ink transition-colors hover:bg-white/85"
             >
               <Download className="h-4 w-4" aria-hidden />
               Save my contact
@@ -84,7 +84,7 @@ export default function CardPage() {
             {/* Funnel into the site */}
             <Link
               href="/"
-              className="mt-6 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.24em] text-cream/60 transition-colors hover:text-cream"
+              className="mt-6 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.24em] text-white/60 transition-colors hover:text-white"
             >
               Search homes on {p.websiteDomain}
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />

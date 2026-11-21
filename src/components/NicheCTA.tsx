@@ -34,13 +34,13 @@ export function NicheCTA({ intent, slug, town }: Props) {
           required
           autoComplete="street-address"
           placeholder={town ? `Your ${town} address` : "Your home address"}
-          className="min-w-0 flex-1 border border-ink/30 bg-cream px-4 py-4 text-[15px] text-ink outline-none placeholder:text-ink/55 focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/60"
+          className="min-w-0 flex-1 border border-ink/30 bg-white px-4 py-4 text-[15px] text-ink outline-none placeholder:text-ink/55 focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/60"
         />
         <input type="hidden" name="utm_source" value="niche" />
         <input type="hidden" name="utm_campaign" value={slug} />
         <button
           type="submit"
-          className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
         >
           Ask for my home value
           <span aria-hidden className="transition-transform group-hover:translate-x-1">
@@ -58,7 +58,7 @@ export function NicheCTA({ intent, slug, town }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="group inline-flex items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+        className="group inline-flex items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         See active listings
         <span aria-hidden className="transition-transform group-hover:translate-x-1">

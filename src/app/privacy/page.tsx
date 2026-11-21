@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="relative w-full overflow-x-hidden bg-cream text-ink">
+    <main className="relative w-full overflow-x-hidden bg-white text-ink">
       <Nav />
       <article className="mx-auto max-w-3xl px-6 pb-24 pt-40 md:pb-32 md:pt-48">
         <h1 className="font-display text-[clamp(2.5rem,5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.025em]">

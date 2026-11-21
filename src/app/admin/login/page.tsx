@@ -15,7 +15,7 @@ export default async function LoginPage({
 }) {
   const { next } = await searchParams;
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-cream px-6">
+    <main className="flex min-h-dvh items-center justify-center bg-white px-6">
       <div className="w-full max-w-sm">
         <p className="text-[11px] uppercase tracking-[0.32em] text-ink-soft/70">
           Admin

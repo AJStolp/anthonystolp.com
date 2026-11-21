@@ -34,8 +34,8 @@ export default async function AdminReportsIndex() {
   const reports = (data ?? []) as ReportRow[];
 
   return (
-    <main className="min-h-dvh bg-cream pb-32">
-      <header className="border-b border-ink/10 bg-cream/95 backdrop-blur">
+    <main className="min-h-dvh bg-white pb-32">
+      <header className="border-b border-ink/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 pt-4 pb-3">
           <AdminNavLinks current="reports" />
           <form action="/api/admin/logout" method="POST">
@@ -121,7 +121,7 @@ export default async function AdminReportsIndex() {
 function StatusPill({ status }: { status: string }) {
   const color =
     status === "sent"
-      ? "bg-ink text-cream"
+      ? "bg-ink text-white"
       : status === "ready"
         ? "bg-accent-soft/30 text-ink"
         : status === "failed"

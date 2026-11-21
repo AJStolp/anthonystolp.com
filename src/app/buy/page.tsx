@@ -136,7 +136,7 @@ export default async function BuyPage() {
       <a href="#main" className="skip-link">
         Skip to content
       </a>
-      <main id="main" className="min-h-dvh bg-cream text-ink">
+      <main id="main" className="min-h-dvh bg-white text-ink">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

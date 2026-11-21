@@ -102,7 +102,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf8f2" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#1a1c1c" },
   ],
   colorScheme: "light",
@@ -118,7 +118,7 @@ export default function RootLayout({
       lang="en"
       className={`${geist.variable} ${inter.variable} antialiased`}
     >
-      <body className="min-h-dvh bg-cream text-ink">
+      <body className="min-h-dvh bg-white text-ink">
         <Pixels />
         <TrackingInit />
         <LenisProvider>{children}</LenisProvider>

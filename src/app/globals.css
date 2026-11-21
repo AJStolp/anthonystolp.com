@@ -5,7 +5,6 @@
   --sky-200: #d9e8f3;
   --sky-300: #b9d3e6;
   --sky-400: #8fbad6;
-  --cream: #faf8f2;
   --cream-deep: #f0ebdc;
   --ink: #1a1c1c;
   --ink-soft: #2a3a48;
@@ -19,7 +18,6 @@
   --color-sky-200: var(--sky-200);
   --color-sky-300: var(--sky-300);
   --color-sky-400: var(--sky-400);
-  --color-cream: var(--cream);
   --color-cream-deep: var(--cream-deep);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
@@ -32,7 +30,7 @@
 
 html,
 body {
-  background: var(--cream);
+  background: #ffffff;
   color: var(--ink);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -64,7 +62,7 @@ html.lenis body {
 
 ::selection {
   background: var(--ink);
-  color: var(--cream);
+  color: #ffffff;
 }
 
 /* Visible keyboard focus — without affecting mouse users */
@@ -82,7 +80,7 @@ html.lenis body {
   z-index: 100;
   padding: 0.625rem 1rem;
   background: var(--ink);
-  color: var(--cream);
+  color: #ffffff;
   font-size: 0.75rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;

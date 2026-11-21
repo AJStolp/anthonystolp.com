@@ -90,14 +90,14 @@ export function QrCustomizer({ slug }: { slug: string }) {
           <a
             href={pngUrl}
             download={`qr-${slug}.png`}
-            className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-cream"
+            className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-white"
           >
             Download PNG (2048px)
           </a>
           <a
             href={svgUrl}
             download={`qr-${slug}.svg`}
-            className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-cream"
+            className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-white"
           >
             Download SVG
           </a>

@@ -140,7 +140,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4 border border-ink/10 bg-cream p-4 text-[12px] text-ink-soft md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 border border-ink/10 bg-white p-4 text-[12px] text-ink-soft md:grid-cols-4">
         <Meta label="Zip">{report.zip}</Meta>
         <Meta label="Month">{report.month.slice(0, 7)}</Meta>
         <Meta label="Status">{status}</Meta>
@@ -148,7 +148,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
       </div>
 
       {report.review_notes ? (
-        <details className="border border-ink/10 bg-cream p-4 text-[13px] text-ink-soft">
+        <details className="border border-ink/10 bg-white p-4 text-[13px] text-ink-soft">
           <summary className="cursor-pointer text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
             Self-review notes
           </summary>
@@ -190,7 +190,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
               onChange={(e) => setBodyText(e.target.value)}
               disabled={isSent}
               rows={20}
-              className="w-full border border-ink/15 bg-cream p-4 font-mono text-[13px] leading-[1.6] text-ink outline-none focus-visible:border-ink"
+              className="w-full border border-ink/15 bg-white p-4 font-mono text-[13px] leading-[1.6] text-ink outline-none focus-visible:border-ink"
             />
           ) : tab === "html" ? (
             <textarea
@@ -198,7 +198,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
               onChange={(e) => setBodyHtml(e.target.value)}
               disabled={isSent}
               rows={20}
-              className="w-full border border-ink/15 bg-cream p-4 font-mono text-[12px] leading-[1.5] text-ink outline-none focus-visible:border-ink"
+              className="w-full border border-ink/15 bg-white p-4 font-mono text-[12px] leading-[1.5] text-ink outline-none focus-visible:border-ink"
             />
           ) : (
             <div
@@ -224,7 +224,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
           type="button"
           onClick={save}
           disabled={saving || sending || !dirty || isSent}
-          className="border border-ink/40 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-cream disabled:opacity-50"
+          className="border border-ink/40 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save changes"}
         </button>
@@ -233,7 +233,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
             type="button"
             onClick={markReady}
             disabled={saving || sending || dirty}
-            className="border border-ink/40 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-cream disabled:opacity-50"
+            className="border border-ink/40 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-white disabled:opacity-50"
           >
             Mark ready
           </button>
@@ -242,7 +242,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
           type="button"
           onClick={send}
           disabled={sending || dirty || isSent || status !== "ready"}
-          className="border border-ink bg-ink px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-cream hover:bg-transparent hover:text-ink disabled:opacity-50"
+          className="border border-ink bg-ink px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-white hover:bg-transparent hover:text-ink disabled:opacity-50"
         >
           {sending ? "Sending…" : `Send to zip ${report.zip}`}
         </button>

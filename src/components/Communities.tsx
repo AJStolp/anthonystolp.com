@@ -11,7 +11,7 @@ export function Communities() {
     <section
       id="communities"
       aria-labelledby="communities-heading"
-      className="border-b border-ink/10 bg-cream"
+      className="border-b border-ink/10 bg-white"
     >
       <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
         <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/70">
@@ -29,7 +29,7 @@ export function Communities() {
         </p>
 
         {/* Each card draws its own right and bottom edge, so the empty cells
-            after the seventh town stay cream instead of showing a grey block. */}
+            after the seventh town stay white instead of showing a grey block. */}
         <ul className="mt-10 grid grid-cols-1 border-t border-l border-ink/10 sm:grid-cols-2 lg:grid-cols-3 md:mt-12">
           {COMMUNITIES.map((c) => (
             <li key={c.slug} className="border-r border-b border-ink/10 p-6">
