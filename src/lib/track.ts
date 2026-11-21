@@ -77,6 +77,13 @@ export type TrackEvent =
       properties: { zip: string };
     })
   | (BaseFields & {
+      // A tap on any tel: or sms: link. `placement` names where the link sits
+      // (sticky_bar, hero, footer, city_top, ...); ContactClickTracking
+      // reads it from the link's data-placement.
+      event: "call_click" | "text_click";
+      properties: { page: string; placement: string };
+    })
+  | (BaseFields & {
       event: "farm_visit";
       properties: {
         qr_token: string;
@@ -110,6 +117,8 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
       window.fbq?.("trackCustom", name, props);
       window.fbq?.("track", "Lead", props);
       break;
+    case "call_click":
+    case "text_click":
     case "home_value_view":
     case "search_gate_view":
     case "search_gate_skip":

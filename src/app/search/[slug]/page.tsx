@@ -14,6 +14,8 @@ import {
 import { getGeoSnapshot, type GeoSnapshot } from "@/lib/market-data/geo-stats";
 import { GUIDES } from "@/lib/communities";
 import { OG_IMAGES } from "@/lib/og";
+import { getAgentProfile } from "@/lib/agent-profile";
+import { telHref } from "@/lib/phone";
 
 export const revalidate = 3600; // ISR: refresh published pages hourly
 
@@ -337,6 +339,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
             slug={page.slug}
             town={page.geo && !isGuide ? geoShort : undefined}
           />
+          {page.geo && !isGuide ? <CityPhoneLine /> : null}
         </div>
 
         {/* Long-form body content, on guides and city pages alike */}
@@ -452,5 +455,24 @@ export default async function NichePage({ params }: { params: RouteParams }) {
       <Footer />
       </main>
     </>
+  );
+}
+
+// Under the main action on the 14 city pages, for anyone who would rather
+// talk than scroll to the footer for a number.
+function CityPhoneLine() {
+  const cell = getAgentProfile().mobilePhone;
+  return (
+    <p className="mt-5 text-[15px] leading-[1.6] text-ink-soft">
+      Rather talk it through? Call or text me at{" "}
+      <a
+        href={telHref(cell)}
+        data-placement="city_top"
+        className="underline underline-offset-4"
+      >
+        {cell}
+      </a>
+      . You&apos;ll get me, not a call center.
+    </p>
   );
 }

@@ -413,8 +413,62 @@ test.describe("Static pages", () => {
     await page.getByLabel(/^email$/i).fill("no-address@example.com");
     await page.getByLabel(/i agree to the terms/i).check();
     await page.getByRole("button", { name: /ask for my home value/i }).click();
-    await expect(page.getByText("Enter your home's address")).toBeVisible();
+    await expect(page.getByText("Add the address so I can pull the right sales.")).toBeVisible();
     expect(posted).toBe(false);
+  });
+
+  // v4 handoff (2026-11-20): a seller who never opens the timeframe list was
+  // filed as "Just curious". Now the list starts on "Pick one" and must be
+  // answered.
+  test("/home-value starts the timeframe on Pick one and refuses a send without one", async ({ page }) => {
+    let posted = false;
+    await page.route("**/api/lead", (r) => { posted = true; return r.abort(); });
+    await page.goto("/home-value");
+    const timeframe = page.getByLabel("Thinking about selling");
+    await expect(timeframe).toHaveValue("");
+    await expect(timeframe.locator("option").first()).toHaveText("Pick one");
+    await expect(timeframe.locator("option").nth(1)).toHaveText("1 to 3 months");
+    await page.getByLabel(/home address/i).fill("123 Main St Cedarburg");
+    await page.getByLabel(/^name$/i).fill("No Timeframe");
+    await page.getByLabel(/^email$/i).fill("no-timeframe@example.com");
+    await page.getByLabel(/i agree to the terms/i).check();
+    await page.getByRole("button", { name: /ask for my home value/i }).click();
+    await expect(page.getByText("Pick a timeframe so I know how soon to reach out.")).toBeVisible();
+    await expect(timeframe).toHaveAttribute("aria-invalid", "true");
+    expect(posted).toBe(false);
+  });
+
+  test("/home-value sends the timeframe the seller picked", async ({ page }) => {
+    let body: Record<string, unknown> = {};
+    await page.route("**/api/lead", async (r) => {
+      body = JSON.parse(r.request().postData() ?? "{}");
+      await r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
+    });
+    await page.goto("/home-value");
+    await page.getByLabel(/home address/i).fill("123 Main St Cedarburg");
+    await page.getByLabel(/^name$/i).fill("Picked Timeframe");
+    await page.getByLabel(/^email$/i).fill("picked-timeframe@example.com");
+    await page.getByLabel("Thinking about selling").selectOption("1-3mo");
+    await page.getByLabel(/i agree to the terms/i).check();
+    await page.getByRole("button", { name: /ask for my home value/i }).click();
+    await expect(page.getByText(/I'll personally email you an honest range/)).toBeVisible();
+    expect(body.timeframe).toBe("1-3mo");
+    expect(body.source).toBe("home-value");
+  });
+
+  // Google listed /home-value as unknown: its server HTML held only the nav
+  // and footer. The heading and intro now ship in that HTML.
+  test("/home-value's heading, intro and area are in the server HTML", async ({ request }) => {
+    const html = await (await request.get("/home-value")).text();
+    expect(html).toMatch(/<h1[^>]*>What&#x27;s your<br\/>home worth\?<\/h1>/);
+    expect(html).toContain("No algorithm guess, no pressure.");
+    expect(html).toContain("Free home value for Cedarburg, Ozaukee County, and nearby Washington County");
+    expect(html).toContain("Hartford, Germantown, Jackson, and Slinger");
+    expect(html).toContain(
+      '<meta name="description" content="Free home value for Cedarburg, Ozaukee County, and nearby Washington County. An honest range from Anthony Stolp, sent within 24 hours."/>',
+    );
+    expect(html).not.toMatch(/southeast Wisconsin/i);
+    expect(html.match(/<h1[\s>]/g) ?? []).toHaveLength(1);
   });
 });
 

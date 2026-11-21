@@ -177,6 +177,7 @@ export function LeadForm({
                 Call or text me at{" "}
                 <a
                   href={telHref(cell)}
+                  data-placement="contact_form"
                   className="text-white underline underline-offset-4"
                 >
                   {cell}
@@ -215,6 +216,7 @@ export function LeadForm({
                 urgent, call or text me at{" "}
                 <a
                   href={telHref(cell)}
+                  data-placement="contact_form"
                   className="text-white underline underline-offset-4"
                 >
                   {cell}
