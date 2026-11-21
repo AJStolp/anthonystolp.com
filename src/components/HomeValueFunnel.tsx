@@ -17,18 +17,13 @@ import { captureAttribution, type Attribution } from "@/lib/attribution";
 import { getOrCreateVisitorId } from "@/lib/visitor";
 import { track } from "@/lib/track";
 import { Honeypot } from "@/components/Honeypot";
+import { BNDRYIQ_LIVE } from "@/lib/home-value";
 
 // ── Bndryiq embed contract ─────────────────────────────────────────────────
 
 // bndryiq.vercel.app now 308s to www.bndryiq.com, so the frame loads from
 // there. Messages are still accepted from the old host in case an old page
-// posts from it.
-// AJ, 2026-11-20: bndryiq's estimate stays hidden until it is ready. While
-// this is false, /home-value asks for the address and Anthony emails a range
-// within 24 hours. To turn it on, set this true and add Anthony's embed key
-// (bndryiq.com/widgets) as `key` in the frame URL: bndryiq refuses every
-// estimate from a frame without one.
-const BNDRYIQ_LIVE = false;
+// posts from it. Whether the frame shows at all is BNDRYIQ_LIVE.
 
 const BNDRYIQ_ORIGIN = "https://www.bndryiq.com";
 const BNDRYIQ_ORIGINS = new Set([BNDRYIQ_ORIGIN, "https://bndryiq.vercel.app"]);
@@ -67,6 +62,7 @@ const contactSchema = z.object({
   phone: z.string().optional(),
   timeframe: z.enum(
     TIMEFRAMES.map((t) => t.value) as [TimeframeValue, ...TimeframeValue[]],
+    { error: "Pick a timeframe so I know how soon to reach out." },
   ),
   message: z.string().optional(),
   // Asked for only while bndryiq is hidden; otherwise bndryiq supplies it.
@@ -79,14 +75,14 @@ const contactSchema = z.object({
 type ContactValues = z.infer<typeof contactSchema>;
 
 const addressSchema = contactSchema.extend({
-  homeAddress: z.string().trim().min(5, "Enter your home's address"),
+  homeAddress: z.string().trim().min(5, "Add the address so I can pull the right sales."),
 });
 
 // ── Component ──────────────────────────────────────────────────────────────
 
 // `cell` is Anthony's cell, shown in the bndryiq frame as the number to call.
 export function HomeValueFunnel({ cell }: { cell: string }) {
-  const sectionRef = useRef<HTMLElement | null>(null);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
   const attributionRef = useRef<Attribution | null>(null);
   const searchParams = useSearchParams();
 
@@ -248,14 +244,9 @@ export function HomeValueFunnel({ cell }: { cell: string }) {
   );
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative w-full bg-white pb-32 pt-32 md:pt-40"
-    >
-      <div className="mx-auto w-full max-w-3xl px-6 md:px-12">
+    <div ref={sectionRef}>
         {!submitted ? (
           <>
-            <Header />
             <Honeypot value={honeypot} onChange={setHoneypot} />
             {BNDRYIQ_LIVE ? (
               <>
@@ -290,44 +281,11 @@ export function HomeValueFunnel({ cell }: { cell: string }) {
         ) : (
           <DoneStep address={address} estimate={estimate} />
         )}
-      </div>
-    </section>
-  );
-}
-
-// ── Header ─────────────────────────────────────────────────────────────────
-
-function Header() {
-  return (
-    <div>
-      <p className="hv-fade text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
-        Free Home Value
-      </p>
-      {/* Visual heading only — the page's real <h1> is server-rendered in
-          home-value/page.tsx so crawlers see it without waiting on the
-          client-side Suspense (useSearchParams) boundary to hydrate. */}
-      <h2 className="hv-fade mt-6 font-display text-[clamp(2.5rem,6vw,5rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-ink">
-        What&apos;s your
-        <br />
-        home worth?
-      </h2>
-      <p className="hv-fade mt-8 max-w-md text-[15px] leading-[1.7] text-ink-soft/80">
-        {BNDRYIQ_LIVE ? (
-          <>
-            Get an instant range from real comparable sales below. Want a
-            personal analysis? Drop me your info after, no pressure.
-          </>
-        ) : (
-          <>
-            Tell me the address and I&apos;ll email you an honest range within
-            24 hours, based on what is actually selling nearby. No algorithm
-            guess, no pressure.
-          </>
-        )}
-      </p>
     </div>
   );
 }
+
+// ── Personal analysis ask (gated step) ─────────────────────────────────────
 
 function PoweredBy() {
   return (
@@ -336,8 +294,6 @@ function PoweredBy() {
     </p>
   );
 }
-
-// ── Personal analysis ask (gated step) ─────────────────────────────────────
 
 function PersonalAnalysisBlock({
   address,
@@ -407,7 +363,9 @@ function ContactFormInline({
   } = useForm<ContactValues>({
     resolver: zodResolver(asking ? addressSchema : contactSchema),
     defaultValues: {
-      timeframe: "curious",
+      // Starts on "Pick one", so a seller who never opens the list is asked
+      // rather than filed as "Just curious" (v4 handoff, 2026-11-20).
+      timeframe: "" as TimeframeValue,
       smsConsent: false,
       termsConsent: false,
       ...(asking ? { homeAddress: askAddress } : {}),
@@ -505,15 +463,26 @@ function ContactFormInline({
         </label>
         <select
           id={timeframeId}
+          required
+          aria-invalid={errors.timeframe ? "true" : undefined}
+          aria-describedby={errors.timeframe ? `${timeframeId}-error` : undefined}
           {...register("timeframe")}
           className="mt-3 w-full appearance-none border-0 border-b border-ink/20 bg-transparent py-3 text-lg text-ink outline-none focus-visible:border-ink"
         >
+          <option value="" disabled className="bg-white">
+            Pick one
+          </option>
           {TIMEFRAMES.map((t) => (
             <option key={t.value} value={t.value} className="bg-white">
               {t.label}
             </option>
           ))}
         </select>
+        {errors.timeframe && (
+          <p id={`${timeframeId}-error`} className="mt-2 text-[11px] tracking-[0.12em] text-accent">
+            {errors.timeframe.message}
+          </p>
+        )}
       </div>
 
       <div>
