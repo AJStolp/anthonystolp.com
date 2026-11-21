@@ -199,7 +199,7 @@ function LeadCard({
           value={lead.status}
           disabled={statusSaving}
           onChange={(e) => onStatus(e.target.value as LeadRow["status"])}
-          className="border border-ink/20 bg-cream px-3 py-2 text-sm uppercase tracking-[0.16em] text-ink focus-visible:border-ink"
+          className="border border-ink/20 bg-white px-3 py-2 text-sm uppercase tracking-[0.16em] text-ink focus-visible:border-ink"
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
@@ -263,7 +263,7 @@ function LeadCard({
               onBlur={onNotesBlur}
               rows={3}
               placeholder="Anything you want to remember about this lead..."
-              className="mt-2 w-full resize-y border border-ink/15 bg-cream p-3 text-[14px] text-ink outline-none placeholder:text-ink/30 focus-visible:border-ink"
+              className="mt-2 w-full resize-y border border-ink/15 bg-white p-3 text-[14px] text-ink outline-none placeholder:text-ink/30 focus-visible:border-ink"
             />
             {notesSaving && (
               <p className="mt-1 text-[11px] text-ink-soft/70">Saving...</p>

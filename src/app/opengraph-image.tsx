@@ -12,7 +12,7 @@ export default function Image() {
         style={{
           width: "100%",
           height: "100%",
-          background: "#faf8f2",
+          background: "#ffffff",
           color: "#1a1c1c",
           display: "flex",
           flexDirection: "column",

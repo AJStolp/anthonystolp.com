@@ -4,7 +4,7 @@ export function TrustStrip() {
   return (
     <section
       aria-label="Credibility"
-      className="border-y border-ink/10 bg-cream"
+      className="border-y border-ink/10 bg-white"
     >
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-8 gap-y-7 px-6 py-10 sm:grid-cols-2 md:px-12 lg:grid-cols-4">
         <Item icon={BadgeCheck} label="Licensed">

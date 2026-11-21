@@ -45,7 +45,7 @@ function Photo({ p, className }: { p: PropertyRow; className: string }) {
       ) : (
         <div className="h-full w-full" />
       )}
-      <span className="absolute left-4 top-4 rounded-[10px] bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-cream">
+      <span className="absolute left-4 top-4 rounded-[10px] bg-accent px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.28em] text-white">
         {STATUS_LABEL[p.status] ?? p.status}
       </span>
     </div>
@@ -62,7 +62,7 @@ export function RecentResults({ results }: { results: PropertyRow[] }) {
   return (
     <section
       aria-labelledby="recent-results-heading"
-      className="border-b border-ink/10 bg-cream"
+      className="border-b border-ink/10 bg-white"
     >
       <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
         <h2
@@ -89,7 +89,7 @@ export function RecentResults({ results }: { results: PropertyRow[] }) {
               <Link
                 key={p.slug}
                 href={`/property/${p.slug}`}
-                className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-cream ${
+                className={`group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white ${
                   single ? "md:grid md:grid-cols-12 md:gap-10" : ""
                 }`}
               >

@@ -69,7 +69,7 @@ The site is built to be accessible — match these patterns, don't regress them:
 - **`import type { … }`** for type-only imports.
 - **Server Components by default.** Add `"use client"` only for interactivity/hooks (~16 of 39 components). Keep data fetching and secrets on the server.
 - **Naming**: components are `PascalCase.tsx` in `src/components/`; libs are `kebab-case.ts` in `src/lib/`.
-- **Metadata** via an exported `metadata` object or `generateMetadata` (see the `OG_IMAGES` note above). **Styling** is Tailwind utilities only (no CSS modules); `cream`/`ink` design tokens come from CSS variables.
+- **Metadata** via an exported `metadata` object or `generateMetadata` (see the `OG_IMAGES` note above). **Styling** is Tailwind utilities only (no CSS modules); `ink`, `cream-deep` and `accent` design tokens come from CSS variables.
 
 ## Env
 

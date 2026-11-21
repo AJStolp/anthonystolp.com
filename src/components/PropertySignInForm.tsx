@@ -91,7 +91,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
       <div
         role="status"
         aria-live="polite"
-        className="flex min-h-[420px] flex-col items-start justify-center border border-cream/15 bg-ink p-10 text-cream"
+        className="flex min-h-[420px] flex-col items-start justify-center border border-white/15 bg-ink p-10 text-white"
       >
         <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-accent-soft">
           Signed in
@@ -99,7 +99,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
         <h3 className="mt-4 font-display text-3xl font-semibold tracking-[-0.02em]">
           Thanks for stopping by.
         </h3>
-        <p className="mt-4 max-w-sm text-[15px] leading-[1.7] text-cream/70">
+        <p className="mt-4 max-w-sm text-[15px] leading-[1.7] text-white/70">
           I will send the full details your way shortly. Grab a coffee and enjoy
           the home.
         </p>
@@ -110,17 +110,17 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-7 border border-cream/15 bg-ink p-8 text-cream md:p-10"
+      className="space-y-7 border border-white/15 bg-ink p-8 text-white md:p-10"
       noValidate
     >
       <div>
-        <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-cream/60">
+        <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-white/60">
           Welcome
         </p>
         <h3 className="mt-3 font-display text-3xl font-semibold tracking-[-0.02em]">
           Sign in
         </h3>
-        <p className="mt-3 text-[14px] leading-[1.6] text-cream/60">
+        <p className="mt-3 text-[14px] leading-[1.6] text-white/60">
           The owners like to know who came through, and I will send you the full
           details.
         </p>
@@ -157,7 +157,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
       <div>
         <label
           htmlFor={agentId}
-          className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+          className="block text-[11px] uppercase tracking-[0.32em] text-white/60"
         >
           Are you working with an agent?
         </label>
@@ -165,7 +165,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
           <select
             id={agentId}
             {...register("hasAgent")}
-            className="w-full appearance-none border-0 border-b border-cream/20 bg-transparent py-3 pr-8 text-lg text-cream outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
+            className="w-full appearance-none border-0 border-b border-white/20 bg-transparent py-3 pr-8 text-lg text-white outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
           >
             <option value="no" className="bg-ink">
               No, I am not
@@ -183,7 +183,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
             fill="none"
             stroke="currentColor"
             strokeWidth="1.5"
-            className="pointer-events-none absolute right-1 top-1/2 h-4 w-4 -translate-y-1/2 text-cream/50"
+            className="pointer-events-none absolute right-1 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50"
           >
             <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -193,13 +193,13 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
       <div className="space-y-4 pt-1">
         <label
           htmlFor={smsId}
-          className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65"
+          className="flex items-start gap-3 text-[12px] leading-[1.55] text-white/65"
         >
           <input
             id={smsId}
             type="checkbox"
             {...register("smsConsent")}
-            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cream"
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-white"
           />
           <span>
             By checking this box, I agree to receive text messages from Anthony
@@ -210,7 +210,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
         </label>
         <label
           htmlFor={termsId}
-          className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65"
+          className="flex items-start gap-3 text-[12px] leading-[1.55] text-white/65"
         >
           <input
             id={termsId}
@@ -219,20 +219,20 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
             aria-required="true"
             aria-invalid={errors.termsConsent ? "true" : undefined}
             aria-describedby={errors.termsConsent ? termsErrorId : undefined}
-            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cream"
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-white"
           />
           <span>
             By checking this box, I agree to the{" "}
             <a
               href="/terms"
-              className="underline underline-offset-2 hover:text-cream"
+              className="underline underline-offset-2 hover:text-white"
             >
               Terms of Service
             </a>{" "}
             and{" "}
             <a
               href="/privacy"
-              className="underline underline-offset-2 hover:text-cream"
+              className="underline underline-offset-2 hover:text-white"
             >
               Privacy Policy
             </a>{" "}
@@ -254,7 +254,7 @@ export function PropertySignInForm({ propertySlug }: { propertySlug: string }) {
           type="submit"
           disabled={isSubmitting}
           aria-describedby={submitError ? formErrorId : undefined}
-          className="group inline-flex items-center justify-center gap-3 border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
+          className="group inline-flex items-center justify-center gap-3 border border-white/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-white transition-all hover:border-white hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
         >
           {isSubmitting ? "Signing in…" : "Sign in"}
           <span
@@ -291,7 +291,7 @@ const Field = function Field({ label, error, id, ...props }: FieldProps) {
     <div>
       <label
         htmlFor={fieldId}
-        className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+        className="block text-[11px] uppercase tracking-[0.32em] text-white/60"
       >
         {label}
       </label>
@@ -300,7 +300,7 @@ const Field = function Field({ label, error, id, ...props }: FieldProps) {
         aria-invalid={error ? "true" : undefined}
         aria-describedby={error ? errorId : undefined}
         {...props}
-        className="mt-3 w-full border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
+        className="mt-3 w-full border-0 border-b border-white/20 bg-transparent py-3 text-lg text-white outline-none placeholder:text-white/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
       />
       {error && (
         <p

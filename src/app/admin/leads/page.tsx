@@ -50,7 +50,7 @@ export default async function LeadsPage({
   const { data, error } = await query;
   if (error) {
     return (
-      <main className="min-h-dvh bg-cream px-6 py-20 text-ink">
+      <main className="min-h-dvh bg-white px-6 py-20 text-ink">
         <p className="text-accent">Error loading leads: {error.message}</p>
       </main>
     );
@@ -61,8 +61,8 @@ export default async function LeadsPage({
   const counts = await fetchCounts();
 
   return (
-    <main className="min-h-dvh bg-cream pb-32">
-      <header className="border-b border-ink/10 bg-cream/95 backdrop-blur">
+    <main className="min-h-dvh bg-white pb-32">
+      <header className="border-b border-ink/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 pt-4 pb-3">
           <AdminNavLinks current="leads" />
           <form action="/api/admin/logout" method="POST">

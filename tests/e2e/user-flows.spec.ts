@@ -180,6 +180,18 @@ test.describe("Wording AJ chose", () => {
   });
 });
 
+test.describe("Look AJ chose", () => {
+  for (const path of ["/", "/about", "/home-value"]) {
+    test(`${path} sits on a white background, not cream`, async ({ page }) => {
+      await page.goto(path);
+      const body = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      expect(body).toBe("rgb(255, 255, 255)");
+      const main = await page.evaluate(() => getComputedStyle(document.querySelector("main") ?? document.body).backgroundColor);
+      expect(["rgb(255, 255, 255)", "rgba(0, 0, 0, 0)"]).toContain(main);
+    });
+  }
+});
+
 test.describe("Funnel submissions (real DB writes)", () => {
   test.skip(!PRODUCTION_WRITES, NEEDS_PRODUCTION_WRITES);
 

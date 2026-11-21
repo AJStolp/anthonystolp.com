@@ -154,18 +154,18 @@ export function SearchGate({
     >
       <div
         ref={dialogRef}
-        className="relative w-full max-w-lg border border-cream/15 bg-ink p-8 text-cream md:p-10"
+        className="relative w-full max-w-lg border border-white/15 bg-ink p-8 text-white md:p-10"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-5 top-5 text-[11px] uppercase tracking-[0.32em] text-cream/60 transition-colors hover:text-cream"
+          className="absolute right-5 top-5 text-[11px] uppercase tracking-[0.32em] text-white/60 transition-colors hover:text-white"
         >
           Close
         </button>
 
-        <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-cream/60">
+        <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-white/60">
           Active listings
         </p>
         <h2
@@ -176,7 +176,7 @@ export function SearchGate({
             ? `Want new ${town} listings sent to you first?`
             : "Want new listings sent to you first?"}
         </h2>
-        <p className="mt-3 text-[13px] leading-[1.7] text-cream/70">
+        <p className="mt-3 text-[13px] leading-[1.7] text-white/70">
           Drop your email and I&apos;ll send new listings that match as they
           hit the MLS. No spam, unsubscribe any time. Or skip this and browse
           now.
@@ -187,7 +187,7 @@ export function SearchGate({
           <div>
             <label
               htmlFor={emailId}
-              className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+              className="block text-[11px] uppercase tracking-[0.32em] text-white/60"
             >
               Email
             </label>
@@ -203,7 +203,7 @@ export function SearchGate({
                 firstFieldRef.current = el;
               }}
               aria-invalid={errors.email ? "true" : undefined}
-              className="mt-3 w-full border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
+              className="mt-3 w-full border-0 border-b border-white/20 bg-transparent py-3 text-lg text-white outline-none placeholder:text-white/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
             />
             {errors.email && (
               <p className="mt-2 text-[11px] tracking-[0.12em] text-accent-soft">
@@ -215,14 +215,14 @@ export function SearchGate({
           <div>
             <label
               htmlFor={timeframeId}
-              className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+              className="block text-[11px] uppercase tracking-[0.32em] text-white/60"
             >
               Timeframe
             </label>
             <select
               id={timeframeId}
               {...register("timeframe")}
-              className="mt-3 w-full appearance-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
+              className="mt-3 w-full appearance-none border-0 border-b border-white/20 bg-transparent py-3 text-lg text-white outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
             >
               {TIMEFRAMES.map((t) => (
                 <option key={t.value} value={t.value} className="bg-ink">
@@ -234,7 +234,7 @@ export function SearchGate({
 
           <label
             htmlFor={termsId}
-            className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65"
+            className="flex items-start gap-3 text-[12px] leading-[1.55] text-white/65"
           >
             <input
               id={termsId}
@@ -242,20 +242,20 @@ export function SearchGate({
               {...register("termsConsent")}
               aria-required="true"
               aria-invalid={errors.termsConsent ? "true" : undefined}
-              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cream"
+              className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-white"
             />
             <span>
               I agree to the{" "}
               <a
                 href="/terms"
-                className="underline underline-offset-2 hover:text-cream"
+                className="underline underline-offset-2 hover:text-white"
               >
                 Terms
               </a>{" "}
               and{" "}
               <a
                 href="/privacy"
-                className="underline underline-offset-2 hover:text-cream"
+                className="underline underline-offset-2 hover:text-white"
               >
                 Privacy Policy
               </a>
@@ -273,7 +273,7 @@ export function SearchGate({
               type="submit"
               disabled={isSubmitting}
               aria-describedby={submitError ? formErrorId : undefined}
-              className="group inline-flex items-center justify-center gap-3 border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
+              className="group inline-flex items-center justify-center gap-3 border border-white/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-white transition-all hover:border-white hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
             >
               {isSubmitting ? "Sending…" : "See active listings"}
               <span aria-hidden className="transition-transform group-hover:translate-x-1">
@@ -292,7 +292,7 @@ export function SearchGate({
             <button
               type="button"
               onClick={onSkip}
-              className="self-center py-2 text-[11px] uppercase tracking-[0.32em] text-cream/60 underline underline-offset-4 transition-colors hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+              className="self-center py-2 text-[11px] uppercase tracking-[0.32em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
             >
               Skip, just show me listings &rarr;
             </button>

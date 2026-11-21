@@ -161,23 +161,23 @@ export function LeadForm({
     <section
       id="contact"
       ref={sectionRef}
-      className="relative w-full bg-ink py-24 text-cream md:py-32"
+      className="relative w-full bg-ink py-24 text-white md:py-32"
     >
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-16 px-6 md:grid-cols-12 md:px-12">
         <div className="md:order-2 md:col-span-6">
-          <p className="lead-fade text-[11px] font-medium uppercase tracking-[0.38em] text-cream/60">
+          <p className="lead-fade text-[11px] font-medium uppercase tracking-[0.38em] text-white/60">
             Let&apos;s talk
           </p>
           <h2 className="lead-fade mt-6 font-display text-[clamp(2.5rem,5vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.025em]">
             {heading}
           </h2>
-          <p className="lead-fade mt-8 max-w-md text-[15px] leading-[1.7] text-cream/70">
+          <p className="lead-fade mt-8 max-w-md text-[15px] leading-[1.7] text-white/70">
             {intro ?? (
               <>
                 Call or text me at{" "}
                 <a
                   href={telHref(cell)}
-                  className="text-cream underline underline-offset-4"
+                  className="text-white underline underline-offset-4"
                 >
                   {cell}
                 </a>
@@ -190,7 +190,7 @@ export function LeadForm({
           <div className="lead-fade mt-12">
             <a
               href="mailto:anthony@exsellexperts.com"
-              className="text-[13px] lowercase tracking-[0.12em] text-cream/70 transition-colors hover:text-cream"
+              className="text-[13px] lowercase tracking-[0.12em] text-white/70 transition-colors hover:text-white"
             >
               anthony@exsellexperts.com
             </a>
@@ -202,7 +202,7 @@ export function LeadForm({
             <div
               role="status"
               aria-live="polite"
-              className="lead-fade flex h-full min-h-[400px] flex-col items-start justify-center border border-cream/15 p-10"
+              className="lead-fade flex h-full min-h-[400px] flex-col items-start justify-center border border-white/15 p-10"
             >
               <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-accent-soft">
                 Sent
@@ -210,12 +210,12 @@ export function LeadForm({
               <h3 className="mt-4 font-display text-4xl font-semibold tracking-[-0.02em]">
                 Got it.
               </h3>
-              <p className="mt-3 max-w-sm text-[15px] leading-[1.6] text-cream/75">
+              <p className="mt-3 max-w-sm text-[15px] leading-[1.6] text-white/75">
                 I&apos;ll reply within the day, usually sooner. If it&apos;s
                 urgent, call or text me at{" "}
                 <a
                   href={telHref(cell)}
-                  className="text-cream underline underline-offset-4"
+                  className="text-white underline underline-offset-4"
                 >
                   {cell}
                 </a>
@@ -223,7 +223,7 @@ export function LeadForm({
               </p>
               <button
                 onClick={() => setSubmitted(false)}
-                className="mt-8 text-[11px] uppercase tracking-[0.32em] text-cream/60 underline-offset-4 hover:underline"
+                className="mt-8 text-[11px] uppercase tracking-[0.32em] text-white/60 underline-offset-4 hover:underline"
               >
                 Send another →
               </button>
@@ -264,14 +264,14 @@ export function LeadForm({
               <div>
                 <label
                   htmlFor={intentId}
-                  className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+                  className="block text-[11px] uppercase tracking-[0.32em] text-white/60"
                 >
                   I&apos;m looking to
                 </label>
                 <select
                   id={intentId}
                   {...register("intent")}
-                  className="mt-3 w-full appearance-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50 focus-visible:ring-offset-0"
+                  className="mt-3 w-full appearance-none border-0 border-b border-white/20 bg-transparent py-3 text-lg text-white outline-none focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50 focus-visible:ring-offset-0"
                 >
                   <option value="buy" className="bg-ink">
                     Buy a home
@@ -291,7 +291,7 @@ export function LeadForm({
               <div>
                 <label
                   htmlFor={messageId}
-                  className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+                  className="block text-[11px] uppercase tracking-[0.32em] text-white/60"
                 >
                   Anything else?
                 </label>
@@ -299,7 +299,7 @@ export function LeadForm({
                   id={messageId}
                   {...register("message")}
                   rows={3}
-                  className="mt-3 w-full resize-none border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
+                  className="mt-3 w-full resize-none border-0 border-b border-white/20 bg-transparent py-3 text-lg text-white outline-none placeholder:text-white/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/50"
                   placeholder={messagePlaceholder}
                 />
               </div>
@@ -311,13 +311,13 @@ export function LeadForm({
               <div className="space-y-4 pt-2">
                 <label
                   htmlFor={smsId}
-                  className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65"
+                  className="flex items-start gap-3 text-[12px] leading-[1.55] text-white/65"
                 >
                   <input
                     id={smsId}
                     type="checkbox"
                     {...register("smsConsent")}
-                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cream"
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-white"
                   />
                   <span>
                     By checking this box, I agree to receive text messages from
@@ -329,7 +329,7 @@ export function LeadForm({
                 </label>
                 <label
                   htmlFor={termsId}
-                  className="flex items-start gap-3 text-[12px] leading-[1.55] text-cream/65"
+                  className="flex items-start gap-3 text-[12px] leading-[1.55] text-white/65"
                 >
                   <input
                     id={termsId}
@@ -340,20 +340,20 @@ export function LeadForm({
                     aria-describedby={
                       errors.termsConsent ? termsErrorId : undefined
                     }
-                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-cream"
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-white"
                   />
                   <span>
                     By checking this box, I agree to the{" "}
                     <a
                       href="/terms"
-                      className="underline underline-offset-2 hover:text-cream"
+                      className="underline underline-offset-2 hover:text-white"
                     >
                       Terms of Service
                     </a>{" "}
                     and{" "}
                     <a
                       href="/privacy"
-                      className="underline underline-offset-2 hover:text-cream"
+                      className="underline underline-offset-2 hover:text-white"
                     >
                       Privacy Policy
                     </a>{" "}
@@ -375,7 +375,7 @@ export function LeadForm({
                   type="submit"
                   disabled={isSubmitting}
                   aria-describedby={submitError ? formErrorId : undefined}
-                  className="group inline-flex items-center gap-3 self-start border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
+                  className="group inline-flex items-center gap-3 self-start border border-white/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-white transition-all hover:border-white hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
                 >
                   {isSubmitting ? "Sending…" : "Send"}
                   <span
@@ -416,7 +416,7 @@ const Field = function Field({ label, error, id, ...props }: FieldProps) {
     <div>
       <label
         htmlFor={fieldId}
-        className="block text-[11px] uppercase tracking-[0.32em] text-cream/60"
+        className="block text-[11px] uppercase tracking-[0.32em] text-white/60"
       >
         {label}
       </label>
@@ -425,7 +425,7 @@ const Field = function Field({ label, error, id, ...props }: FieldProps) {
         aria-invalid={error ? "true" : undefined}
         aria-describedby={error ? errorId : undefined}
         {...props}
-        className="mt-3 w-full border-0 border-b border-cream/20 bg-transparent py-3 text-lg text-cream outline-none placeholder:text-cream/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
+        className="mt-3 w-full border-0 border-b border-white/20 bg-transparent py-3 text-lg text-white outline-none placeholder:text-white/30 focus-visible:border-accent-soft focus-visible:ring-2 focus-visible:ring-accent-soft/40"
       />
       {error && (
         <p

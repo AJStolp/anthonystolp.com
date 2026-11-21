@@ -60,7 +60,7 @@ export function LoginForm({ next }: { next?: string }) {
       <button
         type="submit"
         disabled={submitting || !password}
-        className="inline-flex items-center gap-3 border border-ink/40 px-6 py-3 text-[11px] uppercase tracking-[0.32em] text-ink transition-colors hover:bg-ink hover:text-cream disabled:opacity-50"
+        className="inline-flex items-center gap-3 border border-ink/40 px-6 py-3 text-[11px] uppercase tracking-[0.32em] text-ink transition-colors hover:bg-ink hover:text-white disabled:opacity-50"
       >
         {submitting ? "Signing in..." : "Sign in"}
         <span aria-hidden>→</span>

@@ -92,7 +92,7 @@ Both passes must succeed for `status: "ready"`; otherwise `"draft"` for human in
 - **`track.ts` event names are wired into live Google Ads and Meta conversion configs.** Renaming one silently breaks conversion tracking with no error anywhere. `home_value_lead`, `search_gate_view`, and the rest are external contracts, not internal identifiers.
 - **CSP lives in `next.config.ts`.** Any new third party script, image host, or API endpoint must be added there or it is blocked in production only.
 - **Feature flags are `NEXT_PUBLIC_*`, inlined at build time**, default OFF (`src/lib/feature-flags.ts`). Flipping one requires a redeploy, not an env change.
-- **Tailwind v4 with no config file.** Design tokens are declared in the `@theme` block of `src/app/globals.css`: `cream`, `ink`, `accent`, `sky-*`, `--font-display`, `--font-sans`.
+- **Tailwind v4 with no config file.** Design tokens are declared in the `@theme` block of `src/app/globals.css`: `ink`, `cream-deep`, `accent`, `sky-*`, `--font-display`, `--font-sans`.
 - **Env vars are documented inline in `.env.local.example`.** Read it before adding one.
 
 ## Deploy

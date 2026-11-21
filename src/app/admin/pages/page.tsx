@@ -14,8 +14,8 @@ export default async function AdminPagesIndex() {
   const pages = await listAll();
 
   return (
-    <main className="min-h-dvh bg-cream pb-32">
-      <header className="border-b border-ink/10 bg-cream/95 backdrop-blur">
+    <main className="min-h-dvh bg-white pb-32">
+      <header className="border-b border-ink/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 pt-4 pb-3">
           <AdminNavLinks current="pages" />
           <form action="/api/admin/logout" method="POST">
@@ -38,7 +38,7 @@ export default async function AdminPagesIndex() {
           </div>
           <Link
             href="/admin/pages/new"
-            className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-cream"
+            className="border border-ink px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-white"
           >
             New page
           </Link>

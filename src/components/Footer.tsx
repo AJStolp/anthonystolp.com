@@ -29,8 +29,8 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
 
   return (
     <footer className="relative w-full">
-      {/* Footer proper — cream */}
-      <div className="bg-cream text-ink">
+      {/* Footer proper, white */}
+      <div className="bg-white text-ink">
       <div className="mx-auto w-full max-w-[1600px] px-6 pt-20 pb-8 md:px-12 md:pt-24">
         {/* Top grid — left: contact row; right: nav columns */}
         <div className="grid grid-cols-1 gap-16 md:grid-cols-12 md:gap-12">
