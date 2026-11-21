@@ -124,7 +124,7 @@ test.describe("Homepage", () => {
   test("hero has the year end line under the buttons, above the phone line", async ({ page }) => {
     await page.goto("/");
     const line = page.getByText(
-      "Want to buy or sell before the new year? Call or text me this week and I'll tell you honestly whether the timing works for you.",
+      "Want to buy or sell before the new year? Call or text me this week and I'll let you know if the timing works for you.",
     );
     await expect(line).toBeVisible();
     const phone = page.locator("a[data-placement=hero]");

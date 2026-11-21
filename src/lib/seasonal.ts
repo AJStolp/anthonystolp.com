@@ -4,7 +4,7 @@
 const YEAR_END_UNTIL = new Date("2027-01-01T00:00:00-06:00");
 
 export const YEAR_END_LINE =
-  "Want to buy or sell before the new year? Call or text me this week and I'll tell you honestly whether the timing works for you.";
+  "Want to buy or sell before the new year? Call or text me this week and I'll let you know if the timing works for you.";
 
 export function seasonalLine(now: Date = new Date()): string | null {
   return now < YEAR_END_UNTIL ? YEAR_END_LINE : null;
