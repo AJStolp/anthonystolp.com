@@ -37,8 +37,8 @@ export default function PrivacyPage() {
             </h2>
             <p className="mt-3">
               Anthony Stolp is a licensed real estate agent in the State of
-              Wisconsin (License #114204-94), affiliated with ExSell Experts at
-              Epique Realty in Germantown, WI (&ldquo;we,&rdquo; &ldquo;us,&rdquo;
+              Wisconsin (License #114204-94), affiliated with ExSell Experts | Epique Realty in
+              Germantown, WI (&ldquo;we,&rdquo; &ldquo;us,&rdquo;
               or &ldquo;our&rdquo;). This Privacy Policy explains what
               information we collect through anthonystolp.com (the
               &ldquo;Site&rdquo;) and how we use it.

@@ -65,6 +65,7 @@ export function Communities() {
           Jackson, and Slinger. Call or text me at{" "}
           <a
             href={telHref(cell)}
+            data-placement="communities"
             className="text-ink underline underline-offset-4"
           >
             {cell}

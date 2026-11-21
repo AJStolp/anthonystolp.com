@@ -4,6 +4,9 @@ import "./globals.css";
 import { LenisProvider } from "@/components/LenisProvider";
 import { Pixels } from "@/components/Pixels";
 import { TrackingInit } from "@/components/TrackingInit";
+import { ContactClickTracking } from "@/components/ContactClickTracking";
+import { MobileContactBar } from "@/components/MobileContactBar";
+import { getAgentProfile } from "@/lib/agent-profile";
 import { OG_IMAGES } from "@/lib/og";
 
 const geist = Geist({
@@ -121,7 +124,9 @@ export default function RootLayout({
       <body className="min-h-dvh bg-white text-ink">
         <Pixels />
         <TrackingInit />
+        <ContactClickTracking />
         <LenisProvider>{children}</LenisProvider>
+        <MobileContactBar cell={getAgentProfile().mobilePhone} />
       </body>
     </html>
   );
