@@ -6,6 +6,7 @@ import { runLeadDefenses } from "@/lib/bot-defense";
 import { getSupabase } from "@/lib/supabase-server";
 import { resolveToken, type LinkTokenContext } from "@/lib/link-tokens";
 import { createLoftyLead } from "@/lib/lofty";
+import { alertSubject, homeValueLoftyLead, isHotLead } from "@/lib/hot-lead";
 import { escapeHtml } from "@/lib/utils";
 import { northwoodsCc } from "@/lib/northwoods";
 
@@ -244,6 +245,21 @@ export async function POST(req: Request) {
       });
     }
 
+    // Home value requests go into Lofty too, tagged Seller, Home Value, the
+    // town and the timeframe, plus Hot for 1 to 3 months, so a Lofty text
+    // alert on the Hot tag reaches Anthony (AJ, 2026-11-20, T-073). If the
+    // n8n webhook is ever set again and also creates Lofty leads, one of the
+    // two must stop, or every request lands in Lofty twice.
+    if (lead.source === "home-value") {
+      const loftyLead = homeValueLoftyLead(lead);
+      if (loftyLead) {
+        after(async () => {
+          const id = await createLoftyLead(loftyLead);
+          if (!id) console.error("[lead] home value lead not created in Lofty");
+        });
+      }
+    }
+
     // AI draft generation runs after the response returns so the user doesn't
     // wait on Claude. Failures here must never block the lead-save path.
     if (leadId) {
@@ -374,7 +390,10 @@ async function sendNotificationEmail(lead: LeadInput): Promise<boolean> {
 
   const resend = new Resend(apiKey);
   const srcLabel = sourceLabel[lead.source] ?? lead.source;
-  const subject = `New ${srcLabel.toLowerCase()}: ${lead.name ?? lead.email ?? "anonymous"}`;
+  const subject = alertSubject(
+    lead,
+    `New ${srcLabel.toLowerCase()}: ${lead.name ?? lead.email ?? "anonymous"}`,
+  );
 
   const rows: Array<[string, string]> = [
     ["Source", srcLabel],
@@ -633,6 +652,7 @@ async function fireN8nWebhook(
     body: JSON.stringify({
       event: "lead.completed",
       leadId,
+      hot: isHotLead(lead),
       source: lead.source,
       name: lead.name,
       email: lead.email,
