@@ -97,6 +97,7 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
                   <>
                     <a
                       href={telHref(cell)}
+                      data-placement="footer"
                       className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
                     >
                       Call or text Anthony:{" "}

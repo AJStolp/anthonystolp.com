@@ -17,9 +17,11 @@ type Props = {
   // Anthony's cell, from the agent profile. A string rather than the profile,
   // because this is a client component and its props ship to the browser.
   cell: string;
+  // A time limited line under the buttons (src/lib/seasonal.ts), or null.
+  seasonal: string | null;
 };
 
-export function Hero({ featured, cell }: Props) {
+export function Hero({ featured, cell, seasonal }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
@@ -66,9 +68,16 @@ export function Hero({ featured, cell }: Props) {
               </Link>
             </div>
 
+            {seasonal ? (
+              <p className="mt-6 max-w-md text-[14px] leading-[1.6] text-ink/70">
+                {seasonal}
+              </p>
+            ) : null}
+
             <a
               href={telHref(cell)}
-              className="mt-6 inline-block text-[14px] text-ink/75 underline-offset-4 transition-colors hover:text-ink hover:underline"
+              data-placement="hero"
+              className={`${seasonal ? "mt-4" : "mt-6"} inline-block text-[14px] text-ink/75 underline-offset-4 transition-colors hover:text-ink hover:underline`}
             >
               Call or text Anthony: {cell}
             </a>

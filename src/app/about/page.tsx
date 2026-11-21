@@ -89,6 +89,7 @@ export default function AboutPage() {
                 Call or text me at{" "}
                 <a
                   href={telHref(cell)}
+                  data-placement="about"
                   className="text-ink underline underline-offset-4"
                 >
                   {cell}
