@@ -50,7 +50,7 @@ export function Nav() {
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
         hidden ? "-translate-y-full" : "translate-y-0"
-      } ${withBg || mobileOpen ? "bg-cream/95 text-ink backdrop-blur-md" : "bg-cream text-ink"}`}
+      } ${withBg || mobileOpen ? "bg-white/95 text-ink backdrop-blur-md" : "bg-white text-ink"}`}
     >
       <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-4 md:px-12 md:py-5">
         <Link
@@ -89,7 +89,7 @@ export function Nav() {
       </div>
 
       {mobileOpen ? (
-        <nav className="border-t border-ink/10 bg-cream md:hidden">
+        <nav className="border-t border-ink/10 bg-white md:hidden">
           <ul className="flex flex-col">
             {LINKS.map((l) => (
               <li key={l.href} className="border-b border-ink/5 last:border-b-0">

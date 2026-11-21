@@ -91,7 +91,7 @@ export function MarketReportSubscribe() {
     <section
       id="market-report"
       aria-labelledby="market-report-heading"
-      className="relative w-full bg-cream py-24 text-ink md:py-32"
+      className="relative w-full bg-white py-24 text-ink md:py-32"
     >
       <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 px-6 md:grid-cols-12 md:gap-16 md:px-12">
         <div className="md:col-span-6">
@@ -116,7 +116,7 @@ export function MarketReportSubscribe() {
             <div
               role="status"
               aria-live="polite"
-              className="flex h-full min-h-[260px] flex-col items-start justify-center border border-ink/15 bg-cream p-10"
+              className="flex h-full min-h-[260px] flex-col items-start justify-center border border-ink/15 bg-white p-10"
             >
               <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-accent">
                 Subscribed
@@ -215,7 +215,7 @@ export function MarketReportSubscribe() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="group inline-flex items-center gap-3 border border-ink bg-ink px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink disabled:opacity-50"
+                className="group inline-flex items-center gap-3 border border-ink bg-ink px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink disabled:opacity-50"
               >
                 {submitting ? "Subscribing…" : "Send me the report"}
                 <span aria-hidden className="transition-transform group-hover:translate-x-1">

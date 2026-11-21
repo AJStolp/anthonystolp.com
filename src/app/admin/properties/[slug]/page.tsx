@@ -51,8 +51,8 @@ export default async function EditPropertyPage({
   const publicUrl = `${siteUrl}/property/${property.slug}`;
 
   return (
-    <main className="min-h-dvh bg-cream pb-32">
-      <header className="border-b border-ink/10 bg-cream/95 backdrop-blur">
+    <main className="min-h-dvh bg-white pb-32">
+      <header className="border-b border-ink/10 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 pt-4 pb-3">
           <AdminNavLinks current="properties" />
           <form action="/api/admin/logout" method="POST">

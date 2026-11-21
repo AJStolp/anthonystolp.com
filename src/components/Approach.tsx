@@ -94,7 +94,7 @@ export function Approach() {
       id="approach"
       ref={sectionRef}
       aria-labelledby="approach-heading"
-      className="border-b border-ink/10 bg-cream"
+      className="border-b border-ink/10 bg-white"
     >
       <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
         <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/70">
@@ -127,7 +127,7 @@ export function Approach() {
                       }
                     : undefined
                 }
-                className="svc-fade group flex flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-cream"
+                className="svc-fade group flex flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white"
               >
                 {/* Photo — badge straddles the lower edge, so it lives outside
                     the overflow-hidden wrapper that clips the hover zoom. */}

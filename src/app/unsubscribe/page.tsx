@@ -22,7 +22,7 @@ export default async function UnsubscribePage({
   const action = `/api/unsubscribe?lid=${encodeURIComponent(lid ?? "")}&t=${encodeURIComponent(t ?? "")}`;
 
   return (
-    <main className="relative w-full overflow-x-hidden bg-cream text-ink">
+    <main className="relative w-full overflow-x-hidden bg-white text-ink">
       <Nav />
       <article className="mx-auto max-w-xl px-6 pb-24 pt-40 md:pb-32 md:pt-48">
         <h1 className="font-display text-[clamp(2rem,4vw,3rem)] font-semibold leading-[1.05] tracking-[-0.025em]">
@@ -37,7 +37,7 @@ export default async function UnsubscribePage({
             <form action={action} method="POST" className="mt-8">
               <button
                 type="submit"
-                className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-cream transition-colors hover:bg-ink/85"
+                className="rounded-full bg-ink px-7 py-3 text-sm font-medium text-white transition-colors hover:bg-ink/85"
               >
                 Unsubscribe me
               </button>

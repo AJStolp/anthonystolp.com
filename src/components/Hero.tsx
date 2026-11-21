@@ -23,7 +23,7 @@ export function Hero({ featured, cell }: Props) {
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <section className="w-full bg-cream">
+    <section className="w-full bg-white">
       <div className="mx-auto max-w-7xl px-6 pt-28 pb-14 md:px-12 md:pt-36 md:pb-20">
         <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-12 md:gap-14">
           {/* Copy */}
@@ -48,7 +48,7 @@ export function Hero({ featured, cell }: Props) {
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
-                className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-cream transition-all hover:bg-transparent hover:text-ink"
+                className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-white transition-all hover:bg-transparent hover:text-ink"
               >
                 Browse active listings
                 <span aria-hidden className="transition-transform group-hover:translate-x-1">
@@ -79,7 +79,7 @@ export function Hero({ featured, cell }: Props) {
               desktop, and sits under it on mobile (AJ, 2026-11-20, T-062). */}
           <div className="relative md:col-span-6">
             {featured ? <FeaturedCard p={featured} /> : <FallbackFrame />}
-            <figure className="mt-6 flex items-center gap-4 md:absolute md:-bottom-10 md:-left-10 md:mt-0 md:rounded-2xl md:bg-cream md:p-3 md:pr-6 md:shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)]">
+            <figure className="mt-6 flex items-center gap-4 md:absolute md:-bottom-10 md:-left-10 md:mt-0 md:rounded-2xl md:bg-white md:p-3 md:pr-6 md:shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)]">
               <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-ink">
                 <Image
                   src="/images/anthony-headshot.png"
@@ -117,7 +117,7 @@ function FeaturedCard({ p }: { p: PropertyRow }) {
   return (
     <Link
       href={`/property/${p.slug}`}
-      className="group relative block overflow-hidden rounded-[20px] bg-ink/5 shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-cream"
+      className="group relative block overflow-hidden rounded-[20px] bg-ink/5 shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white"
     >
       {p.photo_url ? (
         // Plain img so any URL (local /public now, S3 later) renders without
@@ -135,9 +135,9 @@ function FeaturedCard({ p }: { p: PropertyRow }) {
 
       {/* Floating label panel — the whole point of the card is to make the
           newest result legible above the fold. Opaque on purpose: at 90%
-          cream a dark patch of photo pulls the accent label to 3.9:1, under
+          white a dark patch of photo pulls the accent label to 3.9:1, under
           WCAG AA, and the shadow already lifts it off the photo. */}
-      <div className="absolute left-4 top-4 max-w-[78%] rounded-[10px] bg-cream px-5 py-4 shadow-[0_6px_20px_-8px_rgba(26,28,28,0.35)] md:left-6 md:top-6">
+      <div className="absolute left-4 top-4 max-w-[78%] rounded-[10px] bg-white px-5 py-4 shadow-[0_6px_20px_-8px_rgba(26,28,28,0.35)] md:left-6 md:top-6">
         <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-accent">
           {where}
         </p>

@@ -250,7 +250,7 @@ export function HomeValueFunnel({ cell }: { cell: string }) {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full bg-cream pb-32 pt-32 md:pt-40"
+      className="relative w-full bg-white pb-32 pt-32 md:pt-40"
     >
       <div className="mx-auto w-full max-w-3xl px-6 md:px-12">
         {!submitted ? (
@@ -259,7 +259,7 @@ export function HomeValueFunnel({ cell }: { cell: string }) {
             <Honeypot value={honeypot} onChange={setHoneypot} />
             {BNDRYIQ_LIVE ? (
               <>
-                <div className="hv-fade mt-12 overflow-hidden bg-cream">
+                <div className="hv-fade mt-12 overflow-hidden bg-white">
                   {iframeSrc && (
                     <iframe
                       src={iframeSrc}
@@ -509,7 +509,7 @@ function ContactFormInline({
           className="mt-3 w-full appearance-none border-0 border-b border-ink/20 bg-transparent py-3 text-lg text-ink outline-none focus-visible:border-ink"
         >
           {TIMEFRAMES.map((t) => (
-            <option key={t.value} value={t.value} className="bg-cream">
+            <option key={t.value} value={t.value} className="bg-white">
               {t.label}
             </option>
           ))}
@@ -592,7 +592,7 @@ function ContactFormInline({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="group inline-flex items-center gap-3 self-start border border-ink/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-ink transition-all hover:border-ink hover:bg-ink hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream disabled:opacity-50"
+          className="group inline-flex items-center gap-3 self-start border border-ink/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-ink transition-all hover:border-ink hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:opacity-50"
         >
           {isSubmitting
             ? "Sending..."

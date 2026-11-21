@@ -202,7 +202,7 @@ export default function NorthwoodsPage() {
       <a href="#main" className="skip-link">
         Skip to content
       </a>
-      <main id="main" className="relative w-full overflow-x-hidden bg-cream text-ink">
+      <main id="main" className="relative w-full overflow-x-hidden bg-white text-ink">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -227,13 +227,13 @@ export default function NorthwoodsPage() {
             className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/60 to-ink/55"
           />
           <div className="relative mx-auto w-full max-w-6xl px-6 pb-14 md:px-12 md:pb-20">
-            <p className="inline-block bg-ink/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-cream md:tracking-[0.38em]">
+            <p className="inline-block bg-ink/50 px-3 py-1.5 text-[11px] font-medium uppercase tracking-[0.22em] text-white md:tracking-[0.38em]">
               Marinette County · Northwoods
             </p>
-            <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.25rem,7vw,5rem)] font-semibold uppercase leading-[1.02] tracking-[-0.02em] text-cream">
+            <h1 className="mt-5 max-w-4xl font-display text-[clamp(2.25rem,7vw,5rem)] font-semibold uppercase leading-[1.02] tracking-[-0.02em] text-white">
               From the ground and air, we know this land.
             </h1>
-            <p className="mt-5 max-w-xl text-[17px] leading-[1.6] text-cream md:text-[19px]">
+            <p className="mt-5 max-w-xl text-[17px] leading-[1.6] text-white md:text-[19px]">
               This place runs deep in our family.
             </p>
 
@@ -241,11 +241,11 @@ export default function NorthwoodsPage() {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <NorthwoodsSearch
                 label="Search Northwoods Listings"
-                className="group inline-flex items-center justify-center gap-3 border border-cream bg-cream px-7 py-4 text-[12px] uppercase tracking-[0.24em] text-ink transition-all hover:bg-transparent hover:text-cream focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                className="group inline-flex items-center justify-center gap-3 border border-white bg-white px-7 py-4 text-[12px] uppercase tracking-[0.24em] text-ink transition-all hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               />
               <a
                 href="#team"
-                className="inline-flex items-center justify-center gap-3 border border-cream/60 px-7 py-4 text-[12px] uppercase tracking-[0.24em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                className="inline-flex items-center justify-center gap-3 border border-white/60 px-7 py-4 text-[12px] uppercase tracking-[0.24em] text-white transition-all hover:border-white hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
                 <Phone className="h-4 w-4" aria-hidden />
                 Call or Text Us
@@ -295,23 +295,23 @@ export default function NorthwoodsPage() {
         </section>
 
         {/* 5. Drone callout */}
-        <section aria-labelledby="drone-heading" className="bg-ink text-cream">
+        <section aria-labelledby="drone-heading" className="bg-ink text-white">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
-            <p className={`${eyebrow} text-cream/65`}>Sellers and land owners</p>
+            <p className={`${eyebrow} text-white/65`}>Sellers and land owners</p>
             <h2 id="drone-heading" className={`mt-4 ${sectionHeading}`}>
               See your property from above.
             </h2>
-            <p className="mt-5 max-w-2xl text-[16px] leading-[1.7] text-cream/80">
+            <p className="mt-5 max-w-2xl text-[16px] leading-[1.7] text-white/80">
               Selling a home, lake lot, or land? We photograph Northwoods
               properties from the air so buyers see the shoreline, the acreage,
               and the setting the way we do.
             </p>
-            <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-3 border-t border-cream/15 pt-8 text-[12px] uppercase tracking-[0.24em] text-cream/90">
+            <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/15 pt-8 text-[12px] uppercase tracking-[0.24em] text-white/90">
               {SERVICES.map((s) => (
                 <li key={s}>{s}</li>
               ))}
             </ul>
-            <p className="mt-6 text-[14px] leading-[1.7] text-cream/70">
+            <p className="mt-6 text-[14px] leading-[1.7] text-white/70">
               Serving Marinette County and the surrounding Northwoods lakes,
               land, and hometowns.
             </p>
@@ -358,7 +358,7 @@ export default function NorthwoodsPage() {
             </p>
             <a
               href="#contact"
-              className="group mt-8 inline-flex w-full items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.28em] text-cream transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-cream sm:w-auto"
+              className="group mt-8 inline-flex w-full items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.28em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:w-auto"
             >
               Tell us about your land
               <span aria-hidden className="transition-transform group-hover:translate-x-1">
@@ -435,14 +435,14 @@ function TeamCard({ member: m }: { member: TeamMember }) {
   const tel = telHref(m.phone);
   const sms = tel.replace("tel:", "sms:");
   const action =
-    "flex flex-col items-center gap-2 rounded-2xl border border-cream/20 py-4 text-[11px] uppercase tracking-[0.16em] text-cream/90 transition-colors hover:border-cream/50 hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/70";
+    "flex flex-col items-center gap-2 rounded-2xl border border-white/20 py-4 text-[11px] uppercase tracking-[0.16em] text-white/90 transition-colors hover:border-white/50 hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
   const initials = m.name
     .split(" ")
     .map((w) => w[0])
     .join("");
 
   return (
-    <div className="overflow-hidden rounded-[24px] bg-ink text-cream">
+    <div className="overflow-hidden rounded-[24px] bg-ink text-white">
       <div className="flex h-56 items-end justify-center bg-gradient-to-b from-sky-400/15 via-ink to-ink px-6 pt-6">
         {m.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -456,7 +456,7 @@ function TeamCard({ member: m }: { member: TeamMember }) {
         ) : (
           <div
             aria-hidden
-            className="mb-4 flex h-40 w-40 items-center justify-center rounded-full border border-cream/20 font-display text-4xl font-semibold tracking-[0.04em] text-cream/70"
+            className="mb-4 flex h-40 w-40 items-center justify-center rounded-full border border-white/20 font-display text-4xl font-semibold tracking-[0.04em] text-white/70"
           >
             {initials}
           </div>
@@ -464,13 +464,13 @@ function TeamCard({ member: m }: { member: TeamMember }) {
       </div>
       <div className="px-6 pb-7 text-center md:px-8">
         <h3 className="font-display text-[1.75rem] font-semibold tracking-[-0.02em]">{m.name}</h3>
-        <p className="mt-1 text-[12px] uppercase tracking-[0.24em] text-cream/65">{m.title}</p>
-        <a href={tel} className="mt-4 block text-[17px] text-cream hover:underline">
+        <p className="mt-1 text-[12px] uppercase tracking-[0.24em] text-white/65">{m.title}</p>
+        <a href={tel} className="mt-4 block text-[17px] text-white hover:underline">
           {m.phone}
         </a>
         <a
           href={`mailto:${m.email}`}
-          className="mt-1 block break-all text-[14px] text-cream/75 hover:text-cream hover:underline"
+          className="mt-1 block break-all text-[14px] text-white/75 hover:text-white hover:underline"
         >
           {m.email}
         </a>

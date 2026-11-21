@@ -25,7 +25,7 @@ export default function AboutPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-dvh bg-cream pt-28 pb-24 text-ink md:pt-36">
+      <main className="min-h-dvh bg-white pt-28 pb-24 text-ink md:pt-36">
         <div className="mx-auto max-w-5xl px-6 md:px-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
             About
@@ -101,7 +101,7 @@ export default function AboutPage() {
           <div className="mt-16 grid grid-cols-1 gap-4 md:grid-cols-2">
             <Link
               href="/home-value"
-              className="group inline-flex items-center justify-between border border-ink bg-ink px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:bg-transparent hover:text-ink"
+              className="group inline-flex items-center justify-between border border-ink bg-ink px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink"
             >
               <span>
                 Ask for my home value
@@ -112,7 +112,7 @@ export default function AboutPage() {
             </Link>
             <Link
               href="/#contact"
-              className="group inline-flex items-center justify-between border border-ink px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-ink transition-all hover:bg-ink hover:text-cream"
+              className="group inline-flex items-center justify-between border border-ink px-6 py-5 text-[11px] uppercase tracking-[0.32em] text-ink transition-all hover:bg-ink hover:text-white"
             >
               <span>Send me a note</span>
               <span aria-hidden className="transition-transform group-hover:translate-x-1">

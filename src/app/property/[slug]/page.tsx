@@ -243,7 +243,7 @@ export default async function PropertyPage({
         __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
       }}
     />
-    <main className="min-h-screen bg-cream text-ink">
+    <main className="min-h-screen bg-white text-ink">
       {/* Hero photo */}
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-ink/5 md:aspect-[21/9]">
         {p.photo_url ? (
@@ -262,7 +262,7 @@ export default async function PropertyPage({
             </span>
           </div>
         )}
-        <span className="absolute left-6 top-6 bg-ink px-4 py-2 text-[11px] font-medium uppercase tracking-[0.28em] text-cream">
+        <span className="absolute left-6 top-6 bg-ink px-4 py-2 text-[11px] font-medium uppercase tracking-[0.28em] text-white">
           {STATUS_LABEL[p.status] ?? p.status}
         </span>
       </div>
@@ -361,14 +361,14 @@ export default async function PropertyPage({
         <div className="md:col-span-5">
           <div className="md:sticky md:top-12">
             {sold ? (
-              <div className="border border-cream/15 bg-ink p-8 text-cream md:p-10">
-                <p className="text-[11px] uppercase tracking-[0.28em] text-cream/50">
+              <div className="border border-white/15 bg-ink p-8 text-white md:p-10">
+                <p className="text-[11px] uppercase tracking-[0.28em] text-white/50">
                   Thinking about selling?
                 </p>
                 <p className="mt-4 font-display text-2xl font-semibold leading-[1.2] tracking-[-0.02em]">
                   This one did not sit on the market.
                 </p>
-                <p className="mt-5 text-[15px] leading-[1.7] text-cream/70">
+                <p className="mt-5 text-[15px] leading-[1.7] text-white/70">
                   What a home sells for, and how fast, comes down to how it is
                   priced against what buyers are actually paying right now.
                   Start with an honest read on your number and the comparable
@@ -376,7 +376,7 @@ export default async function PropertyPage({
                 </p>
                 <Link
                   href={`/home-value?utm_source=property&utm_campaign=${p.slug}`}
-                  className="group mt-8 inline-flex items-center justify-center gap-3 border border-cream/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-cream transition-all hover:border-cream hover:bg-cream hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cream/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                  className="group mt-8 inline-flex items-center justify-center gap-3 border border-white/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-white transition-all hover:border-white hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
                 >
                   Ask for my home value
                   <span

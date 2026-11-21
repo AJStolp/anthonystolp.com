@@ -335,7 +335,7 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
         <button
           type="submit"
           disabled={submitting}
-          className="border border-ink bg-ink px-6 py-3 text-[11px] uppercase tracking-[0.32em] text-cream hover:bg-transparent hover:text-ink disabled:opacity-50"
+          className="border border-ink bg-ink px-6 py-3 text-[11px] uppercase tracking-[0.32em] text-white hover:bg-transparent hover:text-ink disabled:opacity-50"
         >
           {submitting
             ? "Saving…"
