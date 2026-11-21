@@ -1,6 +1,7 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { TrustStrip } from "@/components/TrustStrip";
+import { Reviews } from "@/components/Reviews";
 import { RecentResults } from "@/components/RecentResults";
 import { Approach } from "@/components/Approach";
 import { Communities } from "@/components/Communities";
@@ -10,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { getRecentResults } from "@/lib/properties";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
+import { seasonalLine } from "@/lib/seasonal";
 
 // The hero card reads properties from Supabase, so the home page is ISR rather
 // than fully static: a status flip in /admin shows up within the window.
@@ -107,8 +109,13 @@ export default async function Home() {
           }}
         />
         <Nav />
-        <Hero featured={featured ?? null} cell={getAgentProfile().mobilePhone} />
+        <Hero
+          featured={featured ?? null}
+          cell={getAgentProfile().mobilePhone}
+          seasonal={seasonalLine()}
+        />
         <TrustStrip />
+        <Reviews />
         <RecentResults results={rest} />
         <Approach />
         <Communities />
