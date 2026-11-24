@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicBySlug, getPublicSlugs, SOLD_STATUSES } from "@/lib/properties";
 import { PropertySignInForm } from "@/components/PropertySignInForm";
+import { SaveHomeForm } from "@/components/SaveHomeForm";
 import { getAgentProfile } from "@/lib/agent-profile";
+import { smsHref, telHref } from "@/lib/phone";
 import { Footer } from "@/components/Footer";
 
 // Public property page: showcase + open-house sign-in. ISR so edits (price,
@@ -294,6 +296,13 @@ export default async function PropertyPage({
             </div>
           )}
 
+          <TourLine
+            cell={getAgentProfile(p.agent_id).mobilePhone}
+            slug={p.slug}
+            address={p.address}
+            sold={sold}
+          />
+
           {stats.length > 0 && (
             <dl className="mt-10 flex flex-wrap gap-x-12 gap-y-6 border-t border-ink/10 pt-8">
               {stats.map((s) => (
@@ -390,11 +399,67 @@ export default async function PropertyPage({
             ) : (
               <PropertySignInForm propertySlug={p.slug} />
             )}
+            <SaveHomeForm
+              slug={p.slug}
+              address={p.address}
+              status={p.status}
+              variant={sold ? "similar" : "save"}
+            />
           </div>
         </div>
       </div>
     </main>
     <Footer />
     </>
+  );
+}
+
+// Anthony's own line, first among the ways to reach someone on a listing
+// (T-078). A home on the market offers a tour; a pending or sold one asks
+// about selling. ContactClickTracking reports the taps as call_click and
+// text_click with this placement and the property's slug.
+function TourLine({
+  cell,
+  slug,
+  address,
+  sold,
+}: {
+  cell: string;
+  slug: string;
+  address: string;
+  sold: boolean;
+}) {
+  const placement = sold ? "property_sell" : "property_tour";
+  const smsBody = sold
+    ? `Hi Anthony, I saw ${address} and I'm thinking about selling.`
+    : `Hi Anthony, I'd like to tour ${address}.`;
+  const button =
+    "inline-flex min-h-11 items-center justify-center border border-ink px-6 py-3 text-[12px] uppercase tracking-[0.28em] text-ink transition-all hover:bg-ink hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white";
+  return (
+    <div className="mt-8">
+      <p className="text-[16px] font-medium text-ink">
+        {`${sold ? "Thinking about selling?" : "Want a tour?"} Call or text me at ${cell}`}
+      </p>
+      <div className="mt-4 flex gap-3">
+        <a
+          href={telHref(cell)}
+          data-placement={placement}
+          data-property-slug={slug}
+          aria-label={`Call Anthony at ${cell}`}
+          className={button}
+        >
+          Call
+        </a>
+        <a
+          href={smsHref(cell, smsBody)}
+          data-placement={placement}
+          data-property-slug={slug}
+          aria-label={`Text Anthony at ${cell}`}
+          className={button}
+        >
+          Text
+        </a>
+      </div>
+    </div>
   );
 }

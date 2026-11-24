@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getSupabase } from "./supabase-server";
+import { getFixtureProperty } from "./property-fixtures";
 
 // Slug must be URL-safe and stable; lowercase letters, digits, hyphens.
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -110,6 +111,8 @@ export async function getPublicSlugs(): Promise<string[]> {
 export async function getPublicBySlug(
   slug: string,
 ): Promise<PropertyRow | null> {
+  const fixture = getFixtureProperty(slug);
+  if (fixture) return fixture;
   const supabase = trySupabase();
   if (!supabase) return null;
   const { data, error } = await supabase
