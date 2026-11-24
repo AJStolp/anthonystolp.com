@@ -344,33 +344,90 @@ test.describe("Listings gate skip", () => {
     return new URL((await outbound).url());
   }
 
-  test("from a city page, skip goes to listings with no email", async ({ page }) => {
+  test("from a city page, skip goes to that town's search with no email", async ({ page }) => {
     const gate = await openGate(page, "/search/cedarburg-homes-for-sale", /see active listings/i);
     await expect(
       gate.modal.getByRole("heading", { name: /want new cedarburg listings sent to you first/i }),
     ).toBeVisible();
 
     const landed = await skip(page, gate.modal);
-    expect(landed.pathname).toBe("/anthony-stolp/");
-    expect(landed.searchParams.get("utm_campaign")).toBe("niche-search");
+    expect(landed.pathname).toBe("/properties/city-Cedarburg,%20WI/");
+    expect(landed.searchParams.get("status")).toBe("Active");
+    expect(landed.searchParams.get("utm_campaign")).toBe("town-search");
+    expect(landed.searchParams.get("utm_content")).toBe("cedarburg");
     expect(gate.leadPosted()).toBe(false);
     await expect
       .poll(() => gate.pushed.find((e) => e.name === "search_gate_skip")?.props)
-      .toMatchObject({ niche_slug: "cedarburg-homes-for-sale" });
+      .toMatchObject({
+        niche_slug: "cedarburg-homes-for-sale",
+        town: "cedarburg",
+        destination: "town_search",
+      });
+    await expect
+      .poll(() => gate.pushed.find((e) => e.name === "search_outbound")?.props)
+      .toMatchObject({ town: "cedarburg", source: "gate_skip" });
   });
 
-  test("from the homepage hero, skip goes to listings with no email", async ({ page }) => {
+  test("after a skip, the button goes straight to the listings", async ({ page }) => {
+    const gate = await openGate(page, "/search/mequon-homes-for-sale", /see active listings/i);
+    await skip(page, gate.modal);
+
+    await page.goto("/search/grafton-homes-for-sale");
+    const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"));
+    await page.getByRole("button", { name: /see active listings/i }).click();
+    const landed = new URL((await outbound).url());
+    expect(landed.pathname).toBe("/properties/city-Grafton,%20WI/");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect
+      .poll(() => gate.pushed.filter((e) => e.name === "search_outbound").at(-1)?.props)
+      .toMatchObject({ town: "grafton", source: "direct" });
+  });
+
+  test("closing the gate is remembered too", async ({ page }) => {
+    const gate = await openGate(page, "/search/saukville-homes-for-sale", /see active listings/i);
+    await gate.modal.getByRole("button", { name: "Close" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"));
+    await page.getByRole("button", { name: /see active listings/i }).click();
+    expect(new URL((await outbound).url()).pathname).toBe("/properties/city-Saukville,%20WI/");
+  });
+
+  test("from the homepage hero, skip goes to the Ozaukee County search", async ({ page }) => {
     const gate = await openGate(page, "/", /browse active listings/i);
     await expect(gate.modal.getByRole("heading", { name: /want new listings sent to you first/i })).toBeVisible();
 
     const landed = await skip(page, gate.modal);
-    expect(landed.pathname).toBe("/anthony-stolp/");
-    expect(landed.searchParams.get("utm_campaign")).toBe("hero-search");
+    expect(landed.pathname).toBe("/properties/county-Ozaukee,%20WI/");
+    expect(landed.searchParams.get("utm_campaign")).toBe("town-search");
+    expect(landed.searchParams.get("utm_content")).toBe("ozaukee-county");
     expect(gate.leadPosted()).toBe(false);
-    // The hero carries no campaign context, so neither does its skip.
     await expect
-      .poll(() => gate.pushed.some((e) => e.name === "search_gate_skip"))
-      .toBe(true);
+      .poll(() => gate.pushed.find((e) => e.name === "search_gate_skip")?.props)
+      .toMatchObject({ town: "ozaukee-county", destination: "town_search" });
+  });
+
+  test("/buy has no one town, so it opens the Ozaukee County search", async ({ page }) => {
+    const gate = await openGate(page, "/buy", /see active listings/i);
+    const landed = await skip(page, gate.modal);
+    expect(landed.pathname).toBe("/properties/county-Ozaukee,%20WI/");
+  });
+
+  test("Northwoods offers Marinette County homes and land as separate searches", async ({ page }) => {
+    const homes = await openGate(page, "/northwoods", /see homes and cabins/i);
+    const toHomes = await skip(page, homes.modal);
+    expect(toHomes.pathname).toBe("/properties/county-Marinette,%20WI/");
+    expect(toHomes.searchParams.get("listingType")).toBe("Residential");
+    expect(toHomes.searchParams.get("utm_content")).toBe("marinette-homes");
+
+    // The skip is remembered, so the land button goes straight through.
+    await page.goto("/northwoods");
+    const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"));
+    await page.getByRole("button", { name: /^see land/i }).click();
+    const toLand = new URL((await outbound).url());
+    expect(toLand.pathname).toBe("/properties/county-Marinette,%20WI/");
+    expect(toLand.searchParams.get("listingType")).toBe("Land");
+    expect(toLand.searchParams.get("utm_content")).toBe("marinette-land");
   });
 });
 
