@@ -7,6 +7,15 @@ import { getSupabase } from "@/lib/supabase-server";
 import { resolveToken, type LinkTokenContext } from "@/lib/link-tokens";
 import { createLoftyLead } from "@/lib/lofty";
 import { alertSubject, homeValueLoftyLead, isHotLead } from "@/lib/hot-lead";
+import {
+  BEDS_VALUES,
+  bedsLabel,
+  isListingLeadSource,
+  listingLoftyLead,
+  PRICE_RANGE_VALUES,
+  priceRangeLabel,
+} from "@/lib/listing-leads";
+import { PropertyStatus } from "@/lib/properties";
 import { escapeHtml } from "@/lib/utils";
 import { northwoodsCc } from "@/lib/northwoods";
 
@@ -76,6 +85,13 @@ const schema = z.object({
   propertySlug: z.string().max(80).optional(),
   hasAgent: z.enum(["no", "yes", "agent"]).optional(),
 
+  // Listing sign ups (sources listing-alert, save-home, similar-homes).
+  // propertySlug and address above name the home for the last two.
+  town: z.string().max(100).optional(),
+  priceRange: z.enum(PRICE_RANGE_VALUES).optional(),
+  beds: z.enum(BEDS_VALUES).optional(),
+  propertyStatus: PropertyStatus.optional(),
+
   // Cross-domain visitor + persisted estimate (from bndryiq iframe).
   visitorId: z.string().max(128).optional(),
   bndryiqEstimate: z
@@ -131,6 +147,9 @@ const sourceLabel: Record<string, string> = {
   "open-house": "Open house sign-in",
   northwoods: "Northwoods contact form",
   "northwoods-search": "Northwoods search (active listings)",
+  "listing-alert": "Listing alert sign up",
+  "save-home": "Saved home",
+  "similar-homes": "Homes like a sold listing",
 };
 
 const hasAgentLabel: Record<string, string> = {
@@ -256,6 +275,19 @@ export async function POST(req: Request) {
         after(async () => {
           const id = await createLoftyLead(loftyLead);
           if (!id) console.error("[lead] home value lead not created in Lofty");
+        });
+      }
+    }
+
+    // Listing sign ups go straight into Lofty, tagged with the town or the
+    // home, so Anthony can set up the saved search (T-078). Not through n8n,
+    // which AJ is retiring (T-080).
+    if (isListingLeadSource(lead.source)) {
+      const loftyLead = listingLoftyLead(lead);
+      if (loftyLead) {
+        after(async () => {
+          const id = await createLoftyLead(loftyLead);
+          if (!id) console.error(`[lead] ${lead.source} lead not created in Lofty`);
         });
       }
     }
@@ -403,6 +435,10 @@ async function sendNotificationEmail(lead: LeadInput): Promise<boolean> {
   ];
   if (lead.address) rows.push(["Address", lead.address]);
   if (lead.propertySlug) rows.push(["Property", lead.propertySlug]);
+  if (lead.propertyStatus) rows.push(["Listing status", lead.propertyStatus]);
+  if (lead.town) rows.push(["Town", lead.town]);
+  if (lead.priceRange) rows.push(["Price range", priceRangeLabel(lead.priceRange)]);
+  if (lead.beds) rows.push(["Beds", bedsLabel(lead.beds)]);
   if (lead.hasAgent)
     rows.push(["Working w/ agent", hasAgentLabel[lead.hasAgent] ?? lead.hasAgent]);
   if (lead.intent) rows.push(["Intent", intentLabel[lead.intent] ?? lead.intent]);
