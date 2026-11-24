@@ -15,15 +15,13 @@ const SITE_LINKS: { href: string; label: string }[] = [
 ];
 
 type Props = {
-  // The large name across the bottom. Team pages pass their own.
+  // The large name across the bottom. The Northwoods page passes its own.
   wordmark?: string;
   // Optional line under the wordmark.
   tagline?: string;
-  // Team pages list each person's email and cell in place of the office line.
-  contacts?: { name: string; email: string; phone: string }[];
 };
 
-export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props = {}) {
+export function Footer({ wordmark = "ANTHONY STOLP", tagline }: Props = {}) {
   const year = new Date().getFullYear();
   const { mobilePhone: cell, phone: office } = getAgentProfile();
 
@@ -51,67 +49,34 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
-                  Email Us
+                  Email Me
                 </p>
-                {contacts ? (
-                  <ul className="mt-4 space-y-2">
-                    {contacts.map((c) => (
-                      <li key={c.email}>
-                        <a
-                          href={`mailto:${c.email}`}
-                          className="block break-all text-sm text-ink/75 transition-colors hover:text-ink"
-                        >
-                          {c.email}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <a
-                    href="mailto:anthony@exsellexperts.com"
-                    className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
-                  >
-                    anthony@exsellexperts.com
-                  </a>
-                )}
+                <a
+                  href="mailto:anthony@exsellexperts.com"
+                  className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
+                >
+                  anthony@exsellexperts.com
+                </a>
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
-                  Call Us
+                  Call Me
                 </p>
-                {contacts ? (
-                  <ul className="mt-4 space-y-2">
-                    {contacts.map((c) => (
-                      <li key={c.phone}>
-                        <a
-                          href={`tel:+1${c.phone.replace(/\D/g, "")}`}
-                          className="block text-sm text-ink/75 transition-colors hover:text-ink"
-                        >
-                          <span className="text-ink/65">{c.name.split(" ")[0]}</span>{" "}
-                          {c.phone}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <>
-                    <a
-                      href={telHref(cell)}
-                      data-placement="footer"
-                      className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
-                    >
-                      Call or text Anthony:{" "}
-                      <span className="whitespace-nowrap">{cell}</span>
-                    </a>
-                    <a
-                      href={telHref(office)}
-                      className="mt-2 block text-sm text-ink/75 transition-colors hover:text-ink"
-                    >
-                      Office:{" "}
-                      <span className="whitespace-nowrap">{office}</span>
-                    </a>
-                  </>
-                )}
+                <a
+                  href={telHref(cell)}
+                  data-placement="footer"
+                  className="mt-4 block text-sm text-ink/75 transition-colors hover:text-ink"
+                >
+                  Call or text Anthony:{" "}
+                  <span className="whitespace-nowrap">{cell}</span>
+                </a>
+                <a
+                  href={telHref(office)}
+                  className="mt-2 block text-sm text-ink/75 transition-colors hover:text-ink"
+                >
+                  Office:{" "}
+                  <span className="whitespace-nowrap">{office}</span>
+                </a>
               </div>
             </div>
           </div>
