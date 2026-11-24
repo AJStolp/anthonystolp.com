@@ -1,14 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { SearchGate } from "./SearchGate";
+import { SearchGate, useSearchGate } from "./SearchGate";
 import { STATUS_LABEL, type PropertyRow } from "@/lib/properties";
 import { telHref } from "@/lib/phone";
-
-const EXSELL_REDIRECT =
-  "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=hero-search";
+import { FALLBACK_SEARCH } from "@/lib/listing-search";
 
 type Props = {
   // Newest pending/sold listing, or null when there are none — also the
@@ -22,7 +19,7 @@ type Props = {
 };
 
 export function Hero({ featured, cell, seasonal }: Props) {
-  const [searchOpen, setSearchOpen] = useState(false);
+  const gate = useSearchGate(FALLBACK_SEARCH);
 
   return (
     <section className="w-full bg-white">
@@ -49,7 +46,7 @@ export function Hero({ featured, cell, seasonal }: Props) {
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <button
                 type="button"
-                onClick={() => setSearchOpen(true)}
+                onClick={gate.request}
                 className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-white transition-all hover:bg-transparent hover:text-ink"
               >
                 Browse active listings
@@ -109,9 +106,9 @@ export function Hero({ featured, cell, seasonal }: Props) {
       </div>
 
       <SearchGate
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        redirectUrl={EXSELL_REDIRECT}
+        open={gate.open}
+        onClose={gate.close}
+        search={FALLBACK_SEARCH}
       />
     </section>
   );

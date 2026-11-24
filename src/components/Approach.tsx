@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { ArrowRight, Check } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SearchGate } from "@/components/SearchGate";
-
-const SEARCH_REDIRECT_URL =
-  "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=search-cta";
+import { SearchGate, useSearchGate } from "@/components/SearchGate";
+import { FALLBACK_SEARCH, listingSearchUrl } from "@/lib/listing-search";
 
 const services: {
   n: string;
@@ -56,13 +54,13 @@ const services: {
     ],
     cta: "Browse listings",
     image: "/images/services/aerial.jpeg",
-    href: SEARCH_REDIRECT_URL,
+    href: listingSearchUrl(FALLBACK_SEARCH),
   },
 ];
 
 export function Approach() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const [searchGateOpen, setSearchGateOpen] = useState(false);
+  const gate = useSearchGate(FALLBACK_SEARCH);
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -123,7 +121,7 @@ export function Approach() {
                   isSearchGate
                     ? (e) => {
                         e.preventDefault();
-                        setSearchGateOpen(true);
+                        gate.request();
                       }
                     : undefined
                 }
@@ -190,9 +188,9 @@ export function Approach() {
       </div>
 
       <SearchGate
-        open={searchGateOpen}
-        onClose={() => setSearchGateOpen(false)}
-        redirectUrl={SEARCH_REDIRECT_URL}
+        open={gate.open}
+        onClose={gate.close}
+        search={FALLBACK_SEARCH}
       />
     </section>
   );
