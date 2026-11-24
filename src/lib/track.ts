@@ -135,9 +135,9 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "home_value_view":
     case "search_gate_view":
     case "search_gate_skip":
-    case "search_outbound":
     case "market_report_view":
     case "farm_visit":
+    case "search_outbound":
       window.gtag?.("event", name, props);
       window.fbq?.("trackCustom", name, props);
       break;
