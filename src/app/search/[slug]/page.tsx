@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { NicheCTA } from "@/components/NicheCTA";
+import { ListingAlertCard } from "@/components/ListingAlertCard";
 import {
   getActiveBySlug,
   getActiveDirectory,
@@ -231,6 +232,9 @@ export default async function NichePage({ params }: { params: RouteParams }) {
   // A guide is marked as one. Body copy alone does not make a page a guide:
   // city pages carry body copy and keep their city treatment.
   const isGuide = page.is_guide;
+  // Buy pages for one town get the listing alert sign up (T-078); guides,
+  // seller pages and pages with no town do not.
+  const listingAlerts = page.intent === "buy" && Boolean(page.geo) && !isGuide;
   const area = page.geo ?? (page.intent === "sell" ? "Sellers" : "Buyers");
   const eyebrow = isGuide ? `Seller guide · ${area}` : area;
   // The guides share one geo, so "nearby" never reaches them. A reader in one
@@ -367,6 +371,8 @@ export default async function NichePage({ params }: { params: RouteParams }) {
 
         {snap ? <MarketSnapshot snap={snap} geoShort={geoShort} /> : null}
 
+        {listingAlerts ? <ListingAlertCard town={geoShort} /> : null}
+
         {/* FAQ */}
         <section className="mt-16 w-full">
           <h2 className="font-display text-2xl font-semibold tracking-[-0.01em] text-ink">
@@ -451,6 +457,8 @@ export default async function NichePage({ params }: { params: RouteParams }) {
             ) : null}
           </section>
         ) : null}
+
+        {listingAlerts ? <ListingAlertCard town={geoShort} /> : null}
       </section>
       <Footer />
       </main>
