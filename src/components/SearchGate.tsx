@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { captureAttribution, type Attribution } from "@/lib/attribution";
+import { listingSearchUrl, type ListingSearch } from "@/lib/listing-search";
 import { track } from "@/lib/track";
 import { Honeypot } from "@/components/Honeypot";
 
@@ -28,6 +29,49 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+// A visitor who has skipped, closed or answered the gate is not asked again
+// for 30 days: the button takes them straight to the listings. Kept in
+// localStorage as the time it runs out. Storage can be missing or throw (a
+// private window, blocked site data), and then the gate simply opens again.
+const GATE_SEEN_KEY = "as_gate_seen";
+const GATE_SEEN_MS = 30 * 24 * 60 * 60 * 1000;
+
+function gateSeen(): boolean {
+  try {
+    return Number(window.localStorage.getItem(GATE_SEEN_KEY)) > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function rememberGate(): void {
+  try {
+    window.localStorage.setItem(GATE_SEEN_KEY, String(Date.now() + GATE_SEEN_MS));
+  } catch {
+    // Not remembered; the gate opens again next time, which is harmless.
+  }
+}
+
+function goToListings(
+  search: ListingSearch,
+  source: "gate_skip" | "gate_submit" | "direct",
+): void {
+  track({ event: "search_outbound", properties: { town: search, source } });
+  window.location.href = listingSearchUrl(search);
+}
+
+// What every "See active listings" button needs: `request` opens the gate,
+// or goes straight to the listings for a visitor who has already seen it.
+export function useSearchGate(search: ListingSearch) {
+  const [open, setOpen] = useState(false);
+  const request = useCallback(() => {
+    if (gateSeen()) goToListings(search, "direct");
+    else setOpen(true);
+  }, [search]);
+  const close = useCallback(() => setOpen(false), []);
+  return { open, request, close };
+}
+
 export type CampaignContext = {
   campaign_id?: string;
   target_id?: string;
@@ -38,7 +82,8 @@ export type CampaignContext = {
 type Props = {
   open: boolean;
   onClose: () => void;
-  redirectUrl: string;
+  // The AgentFire search a skip or a submit leads to.
+  search: ListingSearch;
   campaignContext?: CampaignContext;
   // Lead source sent to /api/lead. Pages with their own funnel label pass one.
   source?: string;
@@ -50,7 +95,7 @@ type Props = {
 export function SearchGate({
   open,
   onClose,
-  redirectUrl,
+  search,
   campaignContext,
   source = "search-redirect",
   town,
@@ -74,6 +119,11 @@ export function SearchGate({
     defaultValues: { timeframe: "1-3mo", termsConsent: false },
   });
 
+  const dismiss = useCallback(() => {
+    rememberGate();
+    onClose();
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
     attributionRef.current = captureAttribution();
@@ -82,7 +132,7 @@ export function SearchGate({
     document.body.style.overflow = "hidden";
     const t = window.setTimeout(() => firstFieldRef.current?.focus(), 50);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") dismiss();
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -90,7 +140,7 @@ export function SearchGate({
       window.clearTimeout(t);
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, onClose, campaignContext]);
+  }, [open, dismiss, campaignContext]);
 
   const onSubmit = useCallback(
     async (values: FormValues) => {
@@ -121,7 +171,8 @@ export function SearchGate({
           event: "search_gate_lead",
           properties: { timeframe: values.timeframe, ...campaignContext },
         });
-        window.location.href = redirectUrl;
+        rememberGate();
+        goToListings(search, "gate_submit");
       } catch (err) {
         setSubmitError(
           err instanceof Error
@@ -130,15 +181,19 @@ export function SearchGate({
         );
       }
     },
-    [campaignContext, redirectUrl, source, honeypot],
+    [campaignContext, search, source, honeypot],
   );
 
   // Straight to the listings with no email asked. Recorded so the gate's
   // conversion rate can be compared against the skips.
   const onSkip = useCallback(() => {
-    track({ event: "search_gate_skip", properties: campaignContext });
-    window.location.href = redirectUrl;
-  }, [campaignContext, redirectUrl]);
+    rememberGate();
+    track({
+      event: "search_gate_skip",
+      properties: { ...campaignContext, town: search, destination: "town_search" },
+    });
+    goToListings(search, "gate_skip");
+  }, [campaignContext, search]);
 
   if (!open) return null;
 
@@ -149,7 +204,7 @@ export function SearchGate({
       aria-labelledby={`${emailId}-title`}
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/70 px-4 py-6 backdrop-blur-sm md:items-center md:py-12"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target === e.currentTarget) dismiss();
       }}
     >
       <div
@@ -158,7 +213,7 @@ export function SearchGate({
       >
         <button
           type="button"
-          onClick={onClose}
+          onClick={dismiss}
           aria-label="Close"
           className="absolute right-5 top-5 text-[11px] uppercase tracking-[0.32em] text-white/60 transition-colors hover:text-white"
         >
@@ -276,9 +331,6 @@ export function SearchGate({
               className="group inline-flex items-center justify-center gap-3 border border-white/40 px-7 py-4 text-[11px] uppercase tracking-[0.32em] text-white transition-all hover:border-white hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-50"
             >
               {isSubmitting ? "Sending…" : "See active listings"}
-              <span aria-hidden className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
             </button>
             {submitError && (
               <p
@@ -292,9 +344,9 @@ export function SearchGate({
             <button
               type="button"
               onClick={onSkip}
-              className="self-center py-2 text-[11px] uppercase tracking-[0.32em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+              className="min-h-11 self-center px-2 py-3 text-[11px] uppercase tracking-[0.32em] text-white/60 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
             >
-              Skip, just show me listings &rarr;
+              Skip, just show me listings
             </button>
           </div>
         </form>

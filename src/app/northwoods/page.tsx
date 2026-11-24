@@ -240,7 +240,8 @@ export default function NorthwoodsPage() {
             {/* 2. Calls to action */}
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <NorthwoodsSearch
-                label="Search Northwoods Listings"
+                kind="land"
+                label="Search Northwoods land"
                 className="group inline-flex items-center justify-center gap-3 border border-white bg-white px-7 py-4 text-[12px] uppercase tracking-[0.24em] text-ink transition-all hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               />
               <a
@@ -288,8 +289,9 @@ export default function NorthwoodsPage() {
               your email and we will send new Northwoods listings the moment they
               hit the MLS.
             </p>
-            <div className="mt-8">
-              <NorthwoodsSearch />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <NorthwoodsSearch kind="homes" label="See homes and cabins" />
+              <NorthwoodsSearch kind="land" label="See land" />
             </div>
           </div>
         </section>

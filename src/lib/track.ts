@@ -51,11 +51,24 @@ export type TrackEvent =
     })
   | (BaseFields & {
       event: "search_gate_skip";
-      properties?: {
+      properties: {
         campaign_id?: string;
         target_id?: string;
         qr_token?: string;
         niche_slug?: string;
+        // The listing search the skip leads to, e.g. "cedarburg".
+        town: string;
+        destination: "town_search";
+      };
+    })
+  | (BaseFields & {
+      // Any click out to an AgentFire listing search. `source` says how the
+      // visitor got there: by skipping the gate, by submitting it, or straight
+      // through because they had already seen it.
+      event: "search_outbound";
+      properties: {
+        town: string;
+        source: "gate_skip" | "gate_submit" | "direct";
       };
     })
   | (BaseFields & {
@@ -122,6 +135,7 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "home_value_view":
     case "search_gate_view":
     case "search_gate_skip":
+    case "search_outbound":
     case "market_report_view":
     case "farm_visit":
       window.gtag?.("event", name, props);
