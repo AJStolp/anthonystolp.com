@@ -81,7 +81,30 @@ export type TrackEvent =
       // (sticky_bar, hero, footer, city_top, ...); ContactClickTracking
       // reads it from the link's data-placement.
       event: "call_click" | "text_click";
-      properties: { page: string; placement: string };
+      // property_slug is set on a property page's own call or text line.
+      properties: { page: string; placement: string; property_slug?: string };
+    })
+  | (BaseFields & {
+      // The listing alert card on a town page scrolled into view, once a page.
+      event: "listing_alert_view";
+      properties: { town: string; page_path: string };
+    })
+  | (BaseFields & {
+      event: "listing_alert_lead";
+      properties: {
+        town: string;
+        price_range?: string;
+        beds?: string;
+        page_path: string;
+      };
+    })
+  | (BaseFields & {
+      event: "save_home_click" | "save_home_lead";
+      properties: { property_slug: string; status: string; page_path: string };
+    })
+  | (BaseFields & {
+      event: "similar_homes_lead";
+      properties: { property_slug: string; page_path: string };
     })
   | (BaseFields & {
       event: "farm_visit";
@@ -113,6 +136,8 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "market_report_lead":
     case "contact_form_lead":
     case "open_house_lead":
+    case "listing_alert_lead":
+    case "save_home_lead":
       window.gtag?.("event", name, props);
       window.fbq?.("trackCustom", name, props);
       window.fbq?.("track", "Lead", props);
@@ -122,6 +147,9 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "home_value_view":
     case "search_gate_view":
     case "search_gate_skip":
+    case "listing_alert_view":
+    case "save_home_click":
+    case "similar_homes_lead":
     case "market_report_view":
     case "farm_visit":
       window.gtag?.("event", name, props);

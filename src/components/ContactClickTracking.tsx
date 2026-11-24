@@ -24,6 +24,9 @@ export function ContactClickTracking() {
         properties: {
           page: window.location.pathname,
           placement: link.dataset.placement ?? "inline",
+          ...(link.dataset.propertySlug
+            ? { property_slug: link.dataset.propertySlug }
+            : {}),
         },
       });
     };

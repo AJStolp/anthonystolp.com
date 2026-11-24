@@ -42,13 +42,14 @@ test.describe("Niche pages: city page with body vs guide", () => {
       main.getByRole("heading", { level: 2, name: "Fixture city second heading" }),
     ).toBeVisible();
 
-    // Body sits between the button and the market snapshot, and the FAQ
-    // heading is the city one.
+    // Body sits between the button and the market snapshot, the listing
+    // alert follows the snapshot (T-078), and the FAQ heading is the city one.
     const h2s = (await main.locator("h2").allTextContents()).map((t) => t.trim());
-    expect(h2s.slice(0, 4)).toEqual([
+    expect(h2s.slice(0, 5)).toEqual([
       "Fixture city body heading",
       "Fixture city second heading",
       "Cedarburg market snapshot",
+      "Get new Cedarburg listings first",
       "Cedarburg questions, answered",
     ]);
     const buttonBeforeBody = await main
