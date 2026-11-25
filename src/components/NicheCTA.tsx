@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { SearchGate, type CampaignContext } from "@/components/SearchGate";
-
-const EXSELL_REDIRECT =
-  "https://exsellexperts.com/anthony-stolp/?utm_source=anthonystolp&utm_medium=referral&utm_campaign=niche-search";
+import { SearchGate, useSearchGate, type CampaignContext } from "@/components/SearchGate";
+import { listingSearchForSlug } from "@/lib/listing-search";
 
 type Props = {
   intent: "buy" | "sell";
@@ -14,7 +11,8 @@ type Props = {
 };
 
 export function NicheCTA({ intent, slug, town }: Props) {
-  const [open, setOpen] = useState(false);
+  const search = listingSearchForSlug(slug);
+  const gate = useSearchGate(search);
 
   // A seller types the address here, and /home-value starts its form with
   // it, so they never type it twice.
@@ -57,7 +55,7 @@ export function NicheCTA({ intent, slug, town }: Props) {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={gate.request}
         className="group inline-flex items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
         See active listings
@@ -66,9 +64,9 @@ export function NicheCTA({ intent, slug, town }: Props) {
         </span>
       </button>
       <SearchGate
-        open={open}
-        onClose={() => setOpen(false)}
-        redirectUrl={EXSELL_REDIRECT}
+        open={gate.open}
+        onClose={gate.close}
+        search={search}
         campaignContext={campaignContext}
         town={town}
       />

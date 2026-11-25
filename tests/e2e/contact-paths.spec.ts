@@ -145,3 +145,23 @@ test.describe("Homepage", () => {
     expect(await page.content()).not.toMatch(/\[REAL QUOTE|\[FIRST NAME|\[GOOGLE REVIEW/);
   });
 });
+
+test.describe("Northwoods has one contact, Anthony", () => {
+  test("no trace of Jay's email or phone, and every link reaches Anthony", async ({ page }) => {
+    const res = await page.request.get("/northwoods");
+    const html = await res.text();
+    expect(html).not.toContain("jaystolp@exsellexperts.com");
+    expect(html).not.toMatch(/807[^0-9]*2478/);
+
+    await page.goto("/northwoods");
+    await expect(page.getByRole("link", { name: "Tell me about your land" })).toBeVisible();
+    const tels = await page.locator("a[href^='tel:']").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+    const office = "tel:+12628853310";
+    expect(tels.length).toBeGreaterThan(0);
+    for (const href of tels) expect([CELL_TEL, office]).toContain(href);
+    const mails = await page.locator("a[href^='mailto:']").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+    expect(mails.length).toBeGreaterThan(0);
+    for (const href of mails) expect(href).toBe("mailto:anthony@exsellexperts.com");
+    await expect(page.getByText(/\bJay and Anthony both read\b|Anthony and Jay\./)).toHaveCount(0);
+  });
+});

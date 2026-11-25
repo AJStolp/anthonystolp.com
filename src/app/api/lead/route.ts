@@ -17,7 +17,6 @@ import {
 } from "@/lib/listing-leads";
 import { PropertyStatus } from "@/lib/properties";
 import { escapeHtml } from "@/lib/utils";
-import { northwoodsCc } from "@/lib/northwoods";
 
 // ── Validation ─────────────────────────────────────────────────────────────
 //
@@ -497,7 +496,6 @@ async function sendNotificationEmail(lead: LeadInput): Promise<boolean> {
   const res = await resend.emails.send({
     from: `Anthony Stolp Site <${FROM_EMAIL}>`,
     to: TO_EMAIL,
-    cc: northwoodsCc(lead.source),
     replyTo: lead.email ?? undefined,
     subject,
     text,

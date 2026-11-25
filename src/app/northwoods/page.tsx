@@ -5,11 +5,7 @@ import { Nav } from "@/components/Nav";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { NorthwoodsSearch } from "@/components/NorthwoodsSearch";
-import {
-  NORTHWOODS_SOURCES,
-  NORTHWOODS_TEAM,
-  type TeamMember,
-} from "@/lib/northwoods";
+import { NORTHWOODS_SOURCES } from "@/lib/northwoods";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
 
@@ -48,6 +44,15 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     images: [OG_IMAGE.url],
   },
+};
+
+// The one contact on the page, the same as everywhere else on the site.
+const CONTACT = {
+  name: "Anthony Stolp",
+  title: "REALTOR®",
+  phone: getAgentProfile().mobilePhone,
+  email: "anthony@exsellexperts.com",
+  photo: "/images/anthony-headshot.png",
 };
 
 // Drone shot of the river corridor near Pembine, Marinette County.
@@ -112,7 +117,7 @@ const LAND_STEPS = [
 const FAQS = [
   {
     q: "Can you sell land that has no address, only GPS coordinates?",
-    a: "Yes. A lot of rural land in Marinette County has no street address, no driveway, and no mailbox. Send us the coordinates or the parcel number and we will find it, walk it, and photograph it from the ground and the air.",
+    a: "Yes. A lot of rural land in Marinette County has no street address, no driveway, and no mailbox. Send me the coordinates or the parcel number and we will find it, walk it, and photograph it from the ground and the air.",
   },
   {
     q: "Do you take drone photos of land and lake property?",
@@ -128,7 +133,7 @@ const FAQS = [
   },
   {
     q: "Can you help us buy a cabin or hunting land up north?",
-    a: "Yes. We spend most weekends up here and know the backroads, the lakes, and the parcels that don't come up often. Tell us what you're after and we'll send listings as they hit the MLS.",
+    a: "Yes. We spend most weekends up here and know the backroads, the lakes, and the parcels that don't come up often. Tell me what you're after and I'll send listings as they hit the MLS.",
   },
 ];
 
@@ -137,12 +142,8 @@ const areaServed = [
   ...TOWNS.map((t) => ({ "@type": "City", name: `${t}, Wisconsin` })),
 ];
 
-// Anthony keeps the home page's id so search engines read one person.
-function agentId(m: TeamMember): string {
-  return m.name === "Anthony Stolp"
-    ? `${SITE_URL}/#agent`
-    : `${PAGE_URL}#${m.name.split(" ")[0].toLowerCase()}`;
-}
+// The home page's id, so search engines read one person.
+const AGENT_ID = `${SITE_URL}/#agent`;
 
 const brokerage = {
   "@type": "RealEstateOrganization",
@@ -160,24 +161,24 @@ const jsonLd = {
       description: DESCRIPTION,
       primaryImageOfPage: `${SITE_URL}${OG_IMAGE.url}`,
     },
-    ...NORTHWOODS_TEAM.map((m) => ({
+    {
       "@type": "RealEstateAgent",
-      "@id": agentId(m),
-      name: m.name,
-      jobTitle: "REALTOR®",
-      telephone: `+1-${m.phone.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")}`,
-      email: m.email.toLowerCase(),
-      ...(m.photo ? { image: `${SITE_URL}${m.photo}` } : {}),
+      "@id": AGENT_ID,
+      name: CONTACT.name,
+      jobTitle: CONTACT.title,
+      telephone: `+1-${CONTACT.phone.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")}`,
+      email: CONTACT.email,
+      image: `${SITE_URL}${CONTACT.photo}`,
       url: PAGE_URL,
       worksFor: brokerage,
       areaServed,
-    })),
+    },
     {
       "@type": "Service",
       "@id": `${PAGE_URL}#aerial-photography`,
       name: "Drone aerial photography for land and lake property",
       serviceType: "Real estate aerial photography",
-      provider: NORTHWOODS_TEAM.map((m) => ({ "@id": agentId(m) })),
+      provider: { "@id": AGENT_ID },
       areaServed,
     },
     {
@@ -240,7 +241,8 @@ export default function NorthwoodsPage() {
             {/* 2. Calls to action */}
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <NorthwoodsSearch
-                label="Search Northwoods Listings"
+                kind="land"
+                label="Search Northwoods land"
                 className="group inline-flex items-center justify-center gap-3 border border-white bg-white px-7 py-4 text-[12px] uppercase tracking-[0.24em] text-ink transition-all hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               />
               <a
@@ -248,7 +250,7 @@ export default function NorthwoodsPage() {
                 className="inline-flex items-center justify-center gap-3 border border-white/60 px-7 py-4 text-[12px] uppercase tracking-[0.24em] text-white transition-all hover:border-white hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
                 <Phone className="h-4 w-4" aria-hidden />
-                Call or Text Us
+                Call or Text Me
               </a>
             </div>
           </div>
@@ -285,11 +287,12 @@ export default function NorthwoodsPage() {
             </h2>
             <p className="mt-5 max-w-xl text-[15px] leading-[1.7] text-ink/75">
               Homes, cabins, lake lots, and land across Marinette County. Drop
-              your email and we will send new Northwoods listings the moment they
+              your email and I will send new Northwoods listings the moment they
               hit the MLS.
             </p>
-            <div className="mt-8">
-              <NorthwoodsSearch />
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <NorthwoodsSearch kind="homes" label="See homes and cabins" />
+              <NorthwoodsSearch kind="land" label="See land" />
             </div>
           </div>
         </section>
@@ -332,7 +335,7 @@ export default function NorthwoodsPage() {
             <div className="mt-6 max-w-2xl space-y-5 text-[16px] leading-[1.75] text-ink/75">
               <p>
                 A lot of the best land in Marinette County has no driveway, no
-                mailbox, and no street number. Send us the GPS coordinates or the
+                mailbox, and no street number. Send me the GPS coordinates or the
                 parcel number and we will find it, walk it, and fly it, so buyers
                 see the real thing instead of a blurry shot from the road.
               </p>
@@ -360,7 +363,7 @@ export default function NorthwoodsPage() {
               href="#contact"
               className="group mt-8 inline-flex w-full items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.28em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white sm:w-auto"
             >
-              Tell us about your land
+              Tell me about your land
               <span aria-hidden className="transition-transform group-hover:translate-x-1">
                 →
               </span>
@@ -375,14 +378,12 @@ export default function NorthwoodsPage() {
           className="scroll-mt-20 border-b border-ink/10"
         >
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-24">
-            <p className={`${eyebrow} text-ink-soft/70`}>Call or text us</p>
+            <p className={`${eyebrow} text-ink-soft/70`}>Call or text me</p>
             <h2 id="team-heading" className={`mt-4 ${sectionHeading}`}>
-              Anthony and Jay.
+              Anthony Stolp.
             </h2>
-            <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-              {NORTHWOODS_TEAM.map((m) => (
-                <TeamCard key={m.name} member={m} />
-              ))}
+            <div className="mt-10 max-w-md">
+              <ContactCard />
             </div>
             <p className="mt-6 text-[11px] uppercase tracking-[0.24em] text-ink-soft/70">
               {getAgentProfile().brokerage}
@@ -394,7 +395,7 @@ export default function NorthwoodsPage() {
         <section aria-labelledby="faq-heading" className="border-b border-ink/10 bg-cream-deep">
           <div className="mx-auto max-w-3xl px-6 py-16 md:px-12 md:py-24">
             <h2 id="faq-heading" className={sectionHeading}>
-              Questions land owners ask us.
+              Questions land owners ask me.
             </h2>
             <dl className="mt-8 divide-y divide-ink/10 border-t border-ink/10">
               {FAQS.map((f) => (
@@ -417,13 +418,12 @@ export default function NorthwoodsPage() {
               up north.
             </>
           }
-          intro="Tell us what you're after: a cabin, a lake lot, acreage, or selling what you have. Jay and Anthony both read every message and reply within the day."
+          intro="Tell me what you're after: a cabin, a lake lot, acreage, or selling what you have. I read every message and reply within the day."
           cell={getAgentProfile().mobilePhone}
           messagePlaceholder="Township, lake, acreage, timing, anything on your mind."
         />
         <Footer
           wordmark="NORTHWOODS"
-          contacts={NORTHWOODS_TEAM}
           tagline={`Cousins Jay and Anthony Stolp, REALTORS® · ${getAgentProfile().brokerage}`}
         />
       </main>
@@ -431,36 +431,24 @@ export default function NorthwoodsPage() {
   );
 }
 
-function TeamCard({ member: m }: { member: TeamMember }) {
+function ContactCard() {
+  const m = CONTACT;
   const tel = telHref(m.phone);
   const sms = tel.replace("tel:", "sms:");
   const action =
     "flex flex-col items-center gap-2 rounded-2xl border border-white/20 py-4 text-[11px] uppercase tracking-[0.16em] text-white/90 transition-colors hover:border-white/50 hover:bg-white hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70";
-  const initials = m.name
-    .split(" ")
-    .map((w) => w[0])
-    .join("");
 
   return (
     <div className="overflow-hidden rounded-[24px] bg-ink text-white">
       <div className="flex h-56 items-end justify-center bg-gradient-to-b from-sky-400/15 via-ink to-ink px-6 pt-6">
-        {m.photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={m.photo}
-            alt={m.name}
-            width={208}
-            height={208}
-            className="h-52 w-auto object-contain"
-          />
-        ) : (
-          <div
-            aria-hidden
-            className="mb-4 flex h-40 w-40 items-center justify-center rounded-full border border-white/20 font-display text-4xl font-semibold tracking-[0.04em] text-white/70"
-          >
-            {initials}
-          </div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={m.photo}
+          alt={m.name}
+          width={208}
+          height={208}
+          className="h-52 w-auto object-contain"
+        />
       </div>
       <div className="px-6 pb-7 text-center md:px-8">
         <h3 className="font-display text-[1.75rem] font-semibold tracking-[-0.02em]">{m.name}</h3>
