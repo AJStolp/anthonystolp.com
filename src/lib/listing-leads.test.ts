@@ -6,13 +6,16 @@ describe("listing sign ups in Lofty", () => {
     expect(
       listingLoftyLead({
         source: "listing-alert",
+        firstName: "Jamie",
+        lastName: "Rivera",
         email: "buyer@example.com",
         town: "Cedarburg",
         priceRange: "300k-500k",
         beds: "3",
       }),
     ).toEqual({
-      firstName: "buyer",
+      firstName: "Jamie",
+      lastName: "Rivera",
       email: "buyer@example.com",
       source: "Website Listing Alert",
       tags: ["Buyer", "Listing alert: Cedarburg"],
@@ -23,6 +26,8 @@ describe("listing sign ups in Lofty", () => {
   test("a saved home is tagged with its address", () => {
     const lead = listingLoftyLead({
       source: "save-home",
+      firstName: "Pat",
+      lastName: "Lee",
       email: "a@b.co",
       address: "521 Alta Loma",
       propertySlug: "521-alta-loma",
@@ -34,6 +39,7 @@ describe("listing sign ups in Lofty", () => {
   test("homes like a sold one are tagged Similar homes", () => {
     const lead = listingLoftyLead({
       source: "similar-homes",
+      firstName: "Pat",
       email: "a@b.co",
       address: "521 Alta Loma",
     });
@@ -41,8 +47,27 @@ describe("listing sign ups in Lofty", () => {
   });
 
   test("not for another form, and not without an email", () => {
-    expect(listingLoftyLead({ source: "contact-form", email: "a@b.co" })).toBeNull();
-    expect(listingLoftyLead({ source: "listing-alert", town: "Mequon" })).toBeNull();
-    expect(listingLoftyLead({ source: "listing-alert", email: "  " })).toBeNull();
+    expect(
+      listingLoftyLead({ source: "contact-form", firstName: "Pat", email: "a@b.co" }),
+    ).toBeNull();
+    expect(
+      listingLoftyLead({ source: "listing-alert", firstName: "Pat", town: "Mequon" }),
+    ).toBeNull();
+    expect(
+      listingLoftyLead({ source: "listing-alert", firstName: "Pat", email: "  " }),
+    ).toBeNull();
+  });
+
+  test("never filed under part of the email: no first name, no Lofty lead", () => {
+    expect(listingLoftyLead({ source: "listing-alert", email: "jsmith42@example.com" })).toBeNull();
+    expect(
+      listingLoftyLead({ source: "save-home", firstName: "  ", email: "jsmith42@example.com" }),
+    ).toBeNull();
+  });
+
+  test("a missing last name is left empty, not invented", () => {
+    const lead = listingLoftyLead({ source: "similar-homes", firstName: "Pat", email: "a@b.co" });
+    expect(lead?.firstName).toBe("Pat");
+    expect(lead?.lastName).toBeNull();
   });
 });

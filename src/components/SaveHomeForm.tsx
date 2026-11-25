@@ -10,6 +10,8 @@ import { track } from "@/lib/track";
 import { Honeypot } from "@/components/Honeypot";
 
 const schema = z.object({
+  firstName: z.string().trim().min(1, "First name is required").max(60),
+  lastName: z.string().trim().min(1, "Last name is required").max(60),
   email: z.string().email("Valid email required"),
   termsConsent: z
     .boolean()
@@ -51,10 +53,14 @@ export function SaveHomeForm({ slug, address, status, variant }: Props) {
   const [done, setDone] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const emailRef = useRef<HTMLInputElement | null>(null);
+  const firstRef = useRef<HTMLInputElement | null>(null);
 
   const id = useId();
   const panelId = `${id}-panel`;
+  const firstId = `${id}-first`;
+  const firstErrorId = `${id}-first-error`;
+  const lastId = `${id}-last`;
+  const lastErrorId = `${id}-last-error`;
   const emailId = `${id}-email`;
   const emailErrorId = `${id}-email-error`;
   const termsId = `${id}-terms`;
@@ -67,12 +73,12 @@ export function SaveHomeForm({ slug, address, status, variant }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { termsConsent: false },
+    defaultValues: { firstName: "", lastName: "", termsConsent: false },
   });
-  const emailField = register("email");
+  const firstField = register("firstName");
 
   useEffect(() => {
-    if (open) emailRef.current?.focus();
+    if (open) firstRef.current?.focus();
   }, [open]);
 
   const onOpen = () => {
@@ -95,6 +101,8 @@ export function SaveHomeForm({ slug, address, status, variant }: Props) {
           source: copy.source,
           funnelStep: "completed",
           intent: "buy",
+          firstName: values.firstName,
+          lastName: values.lastName,
           email: values.email,
           propertySlug: slug,
           address,
@@ -151,6 +159,52 @@ export function SaveHomeForm({ slug, address, status, variant }: Props) {
             <p className="mt-5 text-[14px] leading-[1.7] text-ink/75">{copy.body}</p>
             <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-4 space-y-5">
               <Honeypot value={honeypot} onChange={setHoneypot} />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div>
+                  <label htmlFor={firstId} className="block text-[11px] uppercase tracking-[0.28em] text-ink/65">
+                    First name
+                  </label>
+                  <input
+                    id={firstId}
+                    type="text"
+                    autoComplete="given-name"
+                    aria-required="true"
+                    aria-invalid={errors.firstName ? "true" : undefined}
+                    aria-describedby={errors.firstName ? firstErrorId : undefined}
+                    {...firstField}
+                    ref={(el) => {
+                      firstField.ref(el);
+                      firstRef.current = el;
+                    }}
+                    className="mt-2 w-full border-0 border-b border-ink/25 bg-transparent py-3 text-[16px] text-ink outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/30"
+                  />
+                  {errors.firstName ? (
+                    <p id={firstErrorId} role="alert" className="mt-2 text-[12px] text-accent">
+                      {errors.firstName.message}
+                    </p>
+                  ) : null}
+                </div>
+                <div>
+                  <label htmlFor={lastId} className="block text-[11px] uppercase tracking-[0.28em] text-ink/65">
+                    Last name
+                  </label>
+                  <input
+                    id={lastId}
+                    type="text"
+                    autoComplete="family-name"
+                    aria-required="true"
+                    aria-invalid={errors.lastName ? "true" : undefined}
+                    aria-describedby={errors.lastName ? lastErrorId : undefined}
+                    {...register("lastName")}
+                    className="mt-2 w-full border-0 border-b border-ink/25 bg-transparent py-3 text-[16px] text-ink outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/30"
+                  />
+                  {errors.lastName ? (
+                    <p id={lastErrorId} role="alert" className="mt-2 text-[12px] text-accent">
+                      {errors.lastName.message}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
               <div>
                 <label
                   htmlFor={emailId}
@@ -166,11 +220,7 @@ export function SaveHomeForm({ slug, address, status, variant }: Props) {
                   aria-required="true"
                   aria-invalid={errors.email ? "true" : undefined}
                   aria-describedby={errors.email ? emailErrorId : undefined}
-                  {...emailField}
-                  ref={(el) => {
-                    emailField.ref(el);
-                    emailRef.current = el;
-                  }}
+                  {...register("email")}
                   className="mt-2 w-full border-0 border-b border-ink/25 bg-transparent py-3 text-[16px] text-ink outline-none focus-visible:border-ink focus-visible:ring-2 focus-visible:ring-ink/30"
                 />
                 {errors.email ? (

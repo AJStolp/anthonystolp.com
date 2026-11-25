@@ -51,6 +51,8 @@ export function bedsLabel(value: string): string {
 
 export type ListingLead = {
   source: string;
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   town?: string | null;
   priceRange?: string | null;
@@ -65,15 +67,15 @@ const LOFTY_SOURCE: Record<ListingLeadSource, string> = {
   "similar-homes": "Website Similar Homes",
 };
 
-// The Lofty lead for a listing sign up, or null when it is not one or has no
-// email. These forms ask for no name, and Lofty's lead has to be filed under
-// one, so it takes the part of the email before the @ until Anthony learns
-// the real one.
+// The Lofty lead for a listing sign up, or null when it is not one, or has no
+// email or first name to file it under. The forms ask for first and last name
+// (AJ, 2026-11-24, T-082); a lead is never filed under part of its email.
 export function listingLoftyLead(lead: ListingLead): LoftyLeadInput | null {
   if (!isListingLeadSource(lead.source)) return null;
   const email = lead.email?.trim();
-  const firstName = email?.split("@")[0];
+  const firstName = lead.firstName?.trim();
   if (!email || !firstName) return null;
+  const lastName = lead.lastName?.trim() || null;
 
   const town = lead.town?.trim() || null;
   const address = lead.address?.trim() || lead.propertySlug || "a listing";
@@ -105,6 +107,7 @@ export function listingLoftyLead(lead: ListingLead): LoftyLeadInput | null {
 
   return {
     firstName,
+    lastName,
     email,
     source: LOFTY_SOURCE[lead.source],
     tags: ["Buyer", tag],
