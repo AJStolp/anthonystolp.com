@@ -57,6 +57,8 @@ test.describe("Listing alert on a town page", () => {
       .getByRole("region", { name: "Get new Cedarburg listings first" })
       .first();
     await card.scrollIntoViewIfNeeded();
+    await card.getByLabel("First name").fill("Jamie");
+    await card.getByLabel("Last name").fill("Rivera");
     await card.getByLabel("Email").fill("buyer@example.com");
     await card.getByLabel("Price range (optional)").selectOption("300k-500k");
     await card.getByLabel("Beds (optional)").selectOption("3");
@@ -69,6 +71,8 @@ test.describe("Listing alert on a town page", () => {
     expect(leads).toHaveLength(1);
     expect(leads[0]).toMatchObject({
       source: "listing-alert",
+      firstName: "Jamie",
+      lastName: "Rivera",
       email: "buyer@example.com",
       town: "Cedarburg",
       priceRange: "300k-500k",
@@ -92,9 +96,24 @@ test.describe("Listing alert on a town page", () => {
     const { leads } = await watch(page);
     await page.goto("/search/mequon-homes-for-sale");
     const card = page.getByRole("region", { name: "Get new Mequon listings first" }).first();
+    await card.getByLabel("First name").fill("Jamie");
+    await card.getByLabel("Last name").fill("Rivera");
     await card.getByLabel("Email").fill("buyer@example.com");
     await card.getByRole("button", { name: "Get Mequon listings" }).click();
     await expect(card.getByRole("alert")).toContainText("You must agree to continue");
+    expect(leads).toHaveLength(0);
+  });
+
+  test("needs a first and last name, because Lofty files the lead under them", async ({ page }) => {
+    const { leads } = await watch(page);
+    await page.goto("/search/grafton-homes-for-sale");
+    const card = page.getByRole("region", { name: "Get new Grafton listings first" }).first();
+    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel(/I agree to the/).check();
+    await card.getByRole("button", { name: "Get Grafton listings" }).click();
+    await expect(card.getByText("First name is required")).toBeVisible();
+    await expect(card.getByText("Last name is required")).toBeVisible();
+    await expect(card.getByLabel("First name")).toHaveAttribute("aria-invalid", "true");
     expect(leads).toHaveLength(0);
   });
 });
@@ -125,6 +144,9 @@ test.describe("A listing on the market", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.getByRole("button", { name: "Save this home" }).click();
     await expect(page.getByText("I'll email you this home's details, plus similar homes nearby.")).toBeVisible();
+    await expect(page.getByLabel("First name").last()).toBeFocused();
+    await page.getByLabel("First name").last().fill("Pat");
+    await page.getByLabel("Last name").last().fill("Lee");
     await page.getByLabel("Email", { exact: true }).last().fill("saver@example.com");
     await page.getByLabel(/I agree to the/).last().check();
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -133,6 +155,8 @@ test.describe("A listing on the market", () => {
     expect(leads).toHaveLength(1);
     expect(leads[0]).toMatchObject({
       source: "save-home",
+      firstName: "Pat",
+      lastName: "Lee",
       email: "saver@example.com",
       propertySlug: "e2e-fixture-active",
       address: "100 Fixture Lane",
@@ -166,6 +190,8 @@ test.describe("A sold listing", () => {
     await expect(page.getByRole("button", { name: "Save this home" })).toHaveCount(0);
 
     await page.getByRole("button", { name: "Get homes like this one" }).click();
+    await page.getByLabel("First name").last().fill("Sam");
+    await page.getByLabel("Last name").last().fill("Ortiz");
     await page.getByLabel("Email", { exact: true }).last().fill("similar@example.com");
     await page.getByLabel(/I agree to the/).last().check();
     await page.getByRole("button", { name: "Send them to me" }).click();
@@ -173,6 +199,8 @@ test.describe("A sold listing", () => {
     await expect(page.getByText(/^You're set\. I'll send homes like this one/)).toBeVisible();
     expect(leads[0]).toMatchObject({
       source: "similar-homes",
+      firstName: "Sam",
+      lastName: "Ortiz",
       propertySlug: "521-alta-loma",
       propertyStatus: "sold",
     });

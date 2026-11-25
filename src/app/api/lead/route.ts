@@ -71,6 +71,11 @@ const schema = z.object({
 
   // Contact (optional for partial captures)
   name: z.string().max(120).optional(),
+  // Forms that ask for the two separately (the listing sign ups, T-082).
+  // Lofty wants them apart; `name` is filled from them when a form sends
+  // no `name` of its own.
+  firstName: z.string().trim().max(60).optional(),
+  lastName: z.string().trim().max(60).optional(),
   email: z.string().email("Valid email required").optional(),
   phone: z.string().max(32).optional(),
 
@@ -181,7 +186,13 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const lead = parsed.data;
+  const lead: LeadInput = {
+    ...parsed.data,
+    name:
+      parsed.data.name ??
+      ([parsed.data.firstName, parsed.data.lastName].filter(Boolean).join(" ") ||
+        undefined),
+  };
 
   // ── 1. Persist to Supabase (insert new row or update existing one) ──
   //
