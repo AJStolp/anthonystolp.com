@@ -55,7 +55,7 @@ Lazy construction is deliberate: Vercel builds run without env vars, so a module
 - The zod schema is **intentionally permissive**. Each funnel enforces its own UX requirements client side; the server requires only what produces a useful row plus an email. **Adding a funnel means adding optional fields, not a new endpoint.**
 - `funnelStep: "address-only" | "completed"` supports two step capture. Passing `leadId` updates an existing row, but only when `visitorId` also matches, so a guessable UUID cannot drive an unbounded update.
 - **Email is the durable channel.** Supabase write failures are logged and do not block the send. Only a failed email returns non 2xx.
-- Side effects run in `after()` or unawaited promises so they never block the response: AI draft via Claude, Lofty push, n8n webhook, tracking backfill, farm loop close. Keep them that way.
+- Side effects run in `after()` or unawaited promises so they never block the response: AI draft via Claude, Lofty push, tracking backfill, farm loop close. Keep them that way.
 - Public POST endpoints run `runLeadDefenses()` from `src/lib/bot-defense.ts`: origin allowlist, honeypot (`hp_company`, which trips a **silent 200**), and a Supabase RPC rate limiter with an in memory sliding window fallback.
 
 ### Visitor identity thread

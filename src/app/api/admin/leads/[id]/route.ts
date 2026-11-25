@@ -10,7 +10,6 @@ const patchSchema = z.object({
   notes: z.string().optional(),
 });
 
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
 
 export async function PATCH(
   req: NextRequest,
@@ -43,12 +42,9 @@ export async function PATCH(
 
   const supabase = getSupabase();
 
-  // Fetch prior status so we can fire a status-change webhook to n8n.
   const { data: prior, error: priorErr } = await supabase
     .from("funnel_leads")
-    .select(
-      "id,status,source,name,email,phone,address,timeframe,intent,agent_id",
-    )
+    .select("id")
     .eq("id", id)
     .single();
   if (priorErr || !prior) {
@@ -67,33 +63,6 @@ export async function PATCH(
   if (error) {
     console.error("[admin/leads] update failed:", error);
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
-  }
-
-  if (
-    patch.status &&
-    patch.status !== prior.status &&
-    N8N_WEBHOOK_URL
-  ) {
-    fetch(N8N_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        event: "lead.status_changed",
-        leadId: id,
-        fromStatus: prior.status,
-        toStatus: patch.status,
-        source: prior.source,
-        name: prior.name,
-        email: prior.email,
-        phone: prior.phone,
-        address: prior.address,
-        timeframe: prior.timeframe,
-        intent: prior.intent,
-        agentId: prior.agent_id,
-      }),
-    }).catch((err) => {
-      console.error("[admin/leads] n8n status webhook failed:", err);
-    });
   }
 
   return NextResponse.json({ lead: data });

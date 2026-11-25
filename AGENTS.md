@@ -29,7 +29,7 @@ Next.js 16 (App Router, code in `src/app`), React 19, Tailwind, GSAP + Lenis (sc
 ## Core systems
 
 - **Niche SEO pages** — `/search/[slug]`, data-driven from Supabase `niche_pages`, managed in `/admin`. ISR (`revalidate = 3600`), enriched with Redfin market data + JSON-LD (Breadcrumb / RealEstateAgent / FAQ). Lib: `src/lib/niche-pages.ts`, `src/lib/market-data/`.
-- **Funnels** — `/buy` (buyer hub), `/home-value` (seller, flag-gated), homepage self-routes by intent. Lead capture → `src/app/api/lead/route.ts` → Resend + n8n webhook.
+- **Funnels** — `/buy` (buyer hub), `/home-value` (seller, flag-gated), homepage self-routes by intent. Lead capture → `src/app/api/lead/route.ts` → Resend + Lofty.
 - **Market reports** — cron (`src/app/api/cron/market-reports/`) emails subscribers; CAN-SPAM compliant (`src/lib/email-compliance.ts`).
 - **Measurement** — `src/components/Pixels.tsx` renders GA4 / Google Ads / Meta pixel, all env-gated. Funnel events flow through `src/lib/track.ts` (mirrored to `window.gtag`). GA4 is live (`G-1032NNNCV7`); Search Console verified as a DNS domain property.
 - **Admin** — cookie-auth (`src/lib/admin-auth.ts`), niche-page CMS + lead inbox + report editor. All admin routes are `noindex`.
