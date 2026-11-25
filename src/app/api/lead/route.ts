@@ -6,7 +6,8 @@ import { runLeadDefenses } from "@/lib/bot-defense";
 import { getSupabase } from "@/lib/supabase-server";
 import { resolveToken, type LinkTokenContext } from "@/lib/link-tokens";
 import { createLoftyLead } from "@/lib/lofty";
-import { alertSubject, homeValueLoftyLead, isHotLead } from "@/lib/hot-lead";
+import { contactLoftyLead, isContactLeadSource } from "@/lib/contact-leads";
+import { alertSubject, homeValueLoftyLead } from "@/lib/hot-lead";
 import {
   BEDS_VALUES,
   bedsLabel,
@@ -121,7 +122,6 @@ type LeadInput = z.infer<typeof schema>;
 
 const FROM_EMAIL = process.env.LEAD_FROM_EMAIL ?? "hello@anthonystolp.com";
 const TO_EMAIL = process.env.LEAD_TO_EMAIL ?? "anthony@exsellexperts.com";
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
 
 const intentLabel: Record<string, string> = {
   buy: "Buy a home",
@@ -244,13 +244,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // n8n webhook (best-effort) — AJ owns downstream workflows there.
-    if (N8N_WEBHOOK_URL) {
-      fireN8nWebhook(lead, leadId).catch((err) => {
-        console.error("[lead] n8n webhook failed:", err);
-      });
-    }
-
     // Open-house sign-ins get pushed into Lofty as new leads. Best-effort and
     // deferred so a slow/failed Lofty call never blocks the sign-in response.
     if (lead.source === "open-house" && lead.name?.trim()) {
@@ -265,9 +258,7 @@ export async function POST(req: Request) {
 
     // Home value requests go into Lofty too, tagged Seller, Home Value, the
     // town and the timeframe, plus Hot for 1 to 3 months, so a Lofty text
-    // alert on the Hot tag reaches Anthony (AJ, 2026-11-20, T-073). If the
-    // n8n webhook is ever set again and also creates Lofty leads, one of the
-    // two must stop, or every request lands in Lofty twice.
+    // alert on the Hot tag reaches Anthony (AJ, 2026-11-20, T-073).
     if (lead.source === "home-value") {
       const loftyLead = homeValueLoftyLead(lead);
       if (loftyLead) {
@@ -279,10 +270,21 @@ export async function POST(req: Request) {
     }
 
     // Listing sign ups go straight into Lofty, tagged with the town or the
-    // home, so Anthony can set up the saved search (T-078). Not through n8n,
-    // which AJ is retiring (T-080).
+    // home, so Anthony can set up the saved search (T-078).
     if (isListingLeadSource(lead.source)) {
       const loftyLead = listingLoftyLead(lead);
+      if (loftyLead) {
+        after(async () => {
+          const id = await createLoftyLead(loftyLead);
+          if (!id) console.error(`[lead] ${lead.source} lead not created in Lofty`);
+        });
+      }
+    }
+
+    // The contact forms on the home page and the Northwoods page go into
+    // Lofty with the name, what they want and their message (T-080).
+    if (isContactLeadSource(lead.source)) {
+      const loftyLead = contactLoftyLead(lead);
       if (loftyLead) {
         after(async () => {
           const id = await createLoftyLead(loftyLead);
@@ -671,48 +673,6 @@ async function closeFarmOutreachLoop(
     .from("farm_targets")
     .update({ status: "responded" })
     .eq("id", targetId);
-}
-
-// ── n8n webhook ────────────────────────────────────────────────────────────
-
-async function fireN8nWebhook(
-  lead: LeadInput,
-  leadId: string | null,
-): Promise<void> {
-  if (!N8N_WEBHOOK_URL) return;
-  const res = await fetch(N8N_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      event: "lead.completed",
-      leadId,
-      hot: isHotLead(lead),
-      source: lead.source,
-      name: lead.name,
-      email: lead.email,
-      phone: lead.phone,
-      intent: lead.intent,
-      timeframe: lead.timeframe,
-      address: lead.address,
-      addressLine1: lead.addressLine1,
-      city: lead.city,
-      state: lead.state,
-      postalCode: lead.postalCode,
-      lat: lead.lat,
-      lng: lead.lng,
-      message: lead.message,
-      // bndryiq's range for a home value lead (low, high, point), for the
-      // Lofty note. Absent on every other form.
-      bndryiqEstimate: lead.bndryiqEstimate ?? null,
-      smsConsent: lead.smsConsent ?? false,
-      utm: lead.utm,
-      referrer: lead.referrer,
-      landingPage: lead.landingPage,
-    }),
-  });
-  if (!res.ok) {
-    console.error("[lead] n8n webhook non-2xx:", res.status);
-  }
 }
 
 // ── Lofty push (open-house sign-ins) ───────────────────────────────────────

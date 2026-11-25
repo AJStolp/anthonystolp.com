@@ -5,7 +5,7 @@ const STAMP = `pw-${Date.now()}`;
 const email = (suffix: string) => `${STAMP}+${suffix}@anthonystolp.com`;
 
 // Two groups reach production when .env.local holds the live keys: "Funnel
-// submissions" posts real leads (Supabase rows, Resend mail, the n8n webhook),
+// submissions" posts real leads (Supabase rows, Resend mail, Lofty leads),
 // and "Conversion events" fires the live GA4 tag. A plain `bun run test:e2e`
 // must never do that, whoever runs it: on 2026-11-20 the factory's builder ran
 // the suite in its worktree and wrote 24 leads (T-054; T-010 before it). They
