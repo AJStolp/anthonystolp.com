@@ -45,14 +45,22 @@ export function listingSearchForSlug(slug: string): ListingSearch {
   return isListingSearch(town) ? town : FALLBACK_SEARCH;
 }
 
+// Where on the site a listings link sits. It becomes the link's utm_term and
+// the search_outbound event's placement, so the two always agree.
+export type ListingPlacement = "hero" | "buy" | "town_page" | "northwoods";
+
 // Every AgentFire URL above already carries a query string, so the UTM
 // parameters join it with "&".
-export function listingSearchUrl(search: ListingSearch): string {
+export function listingSearchUrl(
+  search: ListingSearch,
+  placement: ListingPlacement,
+): string {
   const utm = new URLSearchParams({
     utm_source: "anthonystolp",
     utm_medium: "referral",
     utm_campaign: "town-search",
     utm_content: search,
+    utm_term: placement,
   });
   return `${LISTING_SEARCH[search]}&${utm.toString()}`;
 }

@@ -1,19 +1,16 @@
-"use client";
-
-import { SearchGate, useSearchGate, type CampaignContext } from "@/components/SearchGate";
+import { GetAlertsLine } from "@/components/GetAlertsLine";
+import { ListingSearchLink } from "@/components/ListingSearchLink";
 import { listingSearchForSlug } from "@/lib/listing-search";
 
 type Props = {
   intent: "buy" | "sell";
   slug: string;
-  // Shown in the listings gate's heading. Omitted where there is no one town.
+  // Names the town on the button and the alerts line. Omitted where there is
+  // no one town.
   town?: string;
 };
 
 export function NicheCTA({ intent, slug, town }: Props) {
-  const search = listingSearchForSlug(slug);
-  const gate = useSearchGate(search);
-
   // A seller types the address here, and /home-value starts its form with
   // it, so they never type it twice.
   if (intent === "sell") {
@@ -49,27 +46,18 @@ export function NicheCTA({ intent, slug, town }: Props) {
     );
   }
 
-  const campaignContext: CampaignContext = { niche_slug: slug };
-
+  // Straight to the town's listings, with the alert sign up one line below
+  // for anyone who would rather be sent them (T-088).
   return (
     <>
-      <button
-        type="button"
-        onClick={gate.request}
-        className="group inline-flex items-center justify-center gap-3 border border-ink bg-ink px-8 py-4 text-[12px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+      <ListingSearchLink
+        search={listingSearchForSlug(slug)}
+        placement="town_page"
+        className="inline-flex items-center justify-center border border-ink bg-ink px-8 py-4 text-center text-[12px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       >
-        See active listings
-        <span aria-hidden className="transition-transform group-hover:translate-x-1">
-          →
-        </span>
-      </button>
-      <SearchGate
-        open={gate.open}
-        onClose={gate.close}
-        search={search}
-        campaignContext={campaignContext}
-        town={town}
-      />
+        {town ? `See all ${town} homes for sale` : "See homes for sale"}
+      </ListingSearchLink>
+      <GetAlertsLine town={town} />
     </>
   );
 }

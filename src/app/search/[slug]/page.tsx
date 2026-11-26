@@ -371,7 +371,13 @@ export default async function NichePage({ params }: { params: RouteParams }) {
 
         {snap ? <MarketSnapshot snap={snap} geoShort={geoShort} /> : null}
 
-        {listingAlerts ? <ListingAlertCard town={geoShort} /> : null}
+        {/* "Get alerts" under the button lands here: the first of the two
+            cards carries the page's one id="alerts" (T-088). */}
+        {listingAlerts ? (
+          <div id="alerts" className="w-full scroll-mt-20">
+            <ListingAlertCard town={geoShort} />
+          </div>
+        ) : null}
 
         {/* FAQ */}
         <section className="mt-16 w-full">

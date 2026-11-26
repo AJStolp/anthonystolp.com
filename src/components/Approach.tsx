@@ -5,8 +5,8 @@ import Image from "next/image";
 import { ArrowRight, Check } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SearchGate, useSearchGate } from "@/components/SearchGate";
 import { FALLBACK_SEARCH, listingSearchUrl } from "@/lib/listing-search";
+import { track } from "@/lib/track";
 
 const services: {
   n: string;
@@ -54,13 +54,12 @@ const services: {
     ],
     cta: "Browse listings",
     image: "/images/services/aerial.jpeg",
-    href: listingSearchUrl(FALLBACK_SEARCH),
+    href: listingSearchUrl(FALLBACK_SEARCH, "hero"),
   },
 ];
 
 export function Approach() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const gate = useSearchGate(FALLBACK_SEARCH);
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -107,22 +106,27 @@ export function Approach() {
 
         <div className="mt-10 grid grid-cols-1 gap-6 md:mt-12 md:grid-cols-3 md:gap-8">
           {services.map((s) => {
-            const isSearchGate = s.word === "Search";
+            // The listings search opens in the same tab, with no gate, and the
+            // click is recorded without stopping it (T-088).
+            const isSearch = s.word === "Search";
             const isExternal = s.href.startsWith("http");
             return (
               <a
                 key={s.word}
                 href={s.href}
-                target={isExternal && !isSearchGate ? "_blank" : undefined}
-                rel={
-                  isExternal && !isSearchGate ? "noopener noreferrer" : undefined
-                }
+                target={isExternal && !isSearch ? "_blank" : undefined}
+                rel={isExternal && !isSearch ? "noopener noreferrer" : undefined}
                 onClick={
-                  isSearchGate
-                    ? (e) => {
-                        e.preventDefault();
-                        gate.request();
-                      }
+                  isSearch
+                    ? () =>
+                        track({
+                          event: "search_outbound",
+                          properties: {
+                            town: FALLBACK_SEARCH,
+                            source: "direct",
+                            placement: "hero",
+                          },
+                        })
                     : undefined
                 }
                 className="svc-fade group flex flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_18px_50px_-14px_rgba(26,28,28,0.3)] transition-shadow duration-500 hover:shadow-[0_26px_64px_-14px_rgba(26,28,28,0.36)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white"
@@ -186,12 +190,6 @@ export function Approach() {
           })}
         </div>
       </div>
-
-      <SearchGate
-        open={gate.open}
-        onClose={gate.close}
-        search={FALLBACK_SEARCH}
-      />
     </section>
   );
 }

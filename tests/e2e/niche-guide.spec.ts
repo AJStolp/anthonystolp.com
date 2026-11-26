@@ -53,7 +53,7 @@ test.describe("Niche pages: city page with body vs guide", () => {
       "Cedarburg questions, answered",
     ]);
     const buttonBeforeBody = await main
-      .getByRole("button", { name: /see active listings/i })
+      .getByRole("link", { name: "See all Cedarburg homes for sale", exact: true })
       .evaluate((btn) => {
         const h = [...document.querySelectorAll("main h2")].find(
           (e) => e.textContent?.trim() === "Fixture city body heading",
