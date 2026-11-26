@@ -7,6 +7,7 @@ import { getSupabase } from "@/lib/supabase-server";
 import { resolveToken, type LinkTokenContext } from "@/lib/link-tokens";
 import { createLoftyLead } from "@/lib/lofty";
 import { contactLoftyLead, isContactLeadSource } from "@/lib/contact-leads";
+import { northwoodsCc } from "@/lib/northwoods";
 import { alertSubject, homeValueLoftyLead } from "@/lib/hot-lead";
 import {
   BEDS_VALUES,
@@ -498,6 +499,8 @@ async function sendNotificationEmail(lead: LeadInput): Promise<boolean> {
   const res = await resend.emails.send({
     from: `Anthony Stolp Site <${FROM_EMAIL}>`,
     to: TO_EMAIL,
+    // Jay works the Northwoods page with Anthony and gets its leads too.
+    cc: northwoodsCc(lead.source),
     replyTo: lead.email ?? undefined,
     subject,
     text,
