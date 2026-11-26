@@ -97,15 +97,19 @@ function trySupabase(): ReturnType<typeof getSupabase> | null {
   }
 }
 
-export async function getPublicSlugs(): Promise<string[]> {
+// Every public listing's slug, with the time the row was last edited so the
+// sitemap can give each property page its own lastmod.
+export async function getPublicPages(): Promise<
+  Pick<PropertyRow, "slug" | "updated_at">[]
+> {
   const supabase = trySupabase();
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("properties")
-    .select("slug")
+    .select("slug,updated_at")
     .in("status", PUBLIC_STATUSES);
   if (error || !data) return [];
-  return data.map((r) => r.slug as string);
+  return data as Pick<PropertyRow, "slug" | "updated_at">[];
 }
 
 export async function getPublicBySlug(

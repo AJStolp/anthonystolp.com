@@ -38,7 +38,7 @@ const FIXTURES: NichePageRow[] = [
     geo: "Wisconsin",
     filters: null,
     hero_copy: null,
-    body: "## Fixture guide body heading\n\nFixture guide body paragraph.",
+    body: "## Fixture guide body heading\n\nFixture guide body paragraph.\n\n## Fixture guide second heading\n\nFixture guide second paragraph.",
     faqs: [{ q: "Fixture guide question?", a: "Fixture guide answer." }],
     is_guide: true,
     og_image: null,
