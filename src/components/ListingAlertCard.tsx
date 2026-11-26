@@ -13,6 +13,9 @@ const schema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(60),
   lastName: z.string().trim().min(1, "Last name is required").max(60),
   email: z.string().email("Valid email required"),
+  // A town page fills this with its own town. The homepage leaves it empty
+  // until the visitor picks one from the dropdown.
+  town: z.string().min(1, "Choose a town"),
   priceRange: z.string(),
   beds: z.string(),
   termsConsent: z
@@ -31,14 +34,28 @@ const labelClass = "block text-[11px] uppercase tracking-[0.28em] text-ink-soft/
 // "Get new [Town] listings first": an inline sign up on each buy town page,
 // never a modal (T-078). Anthony sets up each alert by hand in Lofty, and the
 // copy promises only that.
-export function ListingAlertCard({ town }: { town: string }) {
+//
+// With `towns`, as on the homepage (T-095), the visitor picks the town from a
+// labelled dropdown, and the lead, listing_alert_lead and the "You're set"
+// line carry that choice. The heading, the intro, the button and the view
+// event keep `town`, which there is "Ozaukee County".
+export function ListingAlertCard({
+  town,
+  towns,
+}: {
+  town: string;
+  towns?: readonly string[];
+}) {
   const rootRef = useRef<HTMLElement | null>(null);
   const [done, setDone] = useState(false);
+  const [signedUpTown, setSignedUpTown] = useState(town);
   const [honeypot, setHoneypot] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const id = useId();
   const headingId = `${id}-heading`;
+  const townId = `${id}-town`;
+  const townErrorId = `${id}-town-error`;
   const firstId = `${id}-first`;
   const firstErrorId = `${id}-first-error`;
   const lastId = `${id}-last`;
@@ -60,6 +77,7 @@ export function ListingAlertCard({ town }: { town: string }) {
     defaultValues: {
       firstName: "",
       lastName: "",
+      town: towns ? "" : town,
       priceRange: "",
       beds: "",
       termsConsent: false,
@@ -83,6 +101,7 @@ export function ListingAlertCard({ town }: { town: string }) {
 
   const onSubmit = async (values: FormValues) => {
     setSubmitError(null);
+    const chosenTown = towns ? values.town : town;
     try {
       const res = await fetch("/api/lead", {
         method: "POST",
@@ -94,7 +113,7 @@ export function ListingAlertCard({ town }: { town: string }) {
           firstName: values.firstName,
           lastName: values.lastName,
           email: values.email,
-          town,
+          town: chosenTown,
           ...(values.priceRange ? { priceRange: values.priceRange } : {}),
           ...(values.beds ? { beds: values.beds } : {}),
           termsConsent: values.termsConsent,
@@ -113,13 +132,14 @@ export function ListingAlertCard({ town }: { town: string }) {
         track({
           event: "listing_alert_lead",
           properties: {
-            town,
+            town: chosenTown,
             ...(values.priceRange ? { price_range: values.priceRange } : {}),
             ...(values.beds ? { beds: values.beds } : {}),
             page_path: window.location.pathname,
           },
         });
       }
+      setSignedUpTown(chosenTown);
       setDone(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong. Try again?");
@@ -141,7 +161,7 @@ export function ListingAlertCard({ town }: { town: string }) {
       <div role="status" aria-live="polite">
         {done ? (
           <p className="mt-4 max-w-xl text-[15px] leading-[1.7] text-ink-soft">
-            {`You're set. I'll set up your ${town} alert myself and you'll see the first matches soon. Questions? Call or text me at (262) 483-7932.`}
+            {`You're set. I'll set up your ${signedUpTown} alert myself and you'll see the first matches soon. Questions? Call or text me at (262) 483-7932.`}
           </p>
         ) : null}
       </div>
@@ -152,6 +172,33 @@ export function ListingAlertCard({ town }: { town: string }) {
           </p>
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="mt-6 space-y-6">
             <Honeypot value={honeypot} onChange={setHoneypot} />
+            {towns ? (
+              <div>
+                <label htmlFor={townId} className={labelClass}>
+                  Town
+                </label>
+                <select
+                  id={townId}
+                  aria-required="true"
+                  aria-invalid={errors.town ? "true" : undefined}
+                  aria-describedby={errors.town ? townErrorId : undefined}
+                  {...register("town")}
+                  className={fieldClass}
+                >
+                  <option value="">Choose a town</option>
+                  {towns.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+                {errors.town ? (
+                  <p id={townErrorId} role="alert" className="mt-2 text-[12px] text-accent">
+                    {errors.town.message}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
                 <label htmlFor={firstId} className={labelClass}>

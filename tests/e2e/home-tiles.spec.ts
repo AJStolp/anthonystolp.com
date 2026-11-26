@@ -54,22 +54,31 @@ function tile(homes: Locator, name: string) {
 
 type Sent = { event: string; properties?: Record<string, unknown> };
 
-// Stubs every write, and records each /api/track body as it arrives.
+// Stubs every write, and records each /api/track and /api/lead body as it
+// arrives. The lead stub answers as a real sign up does, accepted.
 async function stubWrites(page: Page) {
   const sent: Sent[] = [];
+  const leads: Record<string, unknown>[] = [];
   await page.route("**/api/track", (route) => {
     sent.push(JSON.parse(route.request().postData() ?? "{}"));
     return route.fulfill({ status: 204 });
   });
-  await page.route("**/api/lead", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }),
-  );
+  await page.route("**/api/lead", (route) => {
+    leads.push(JSON.parse(route.request().postData() ?? "{}"));
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: '{"ok":true,"accepted":true}',
+    });
+  });
   await page.route("https://www.googletagmanager.com/**", (r) => r.abort());
   await page.route("https://connect.facebook.net/**", (r) => r.abort());
   await page.route("https://exsellexperts.com/**", (r) =>
     r.fulfill({ status: 200, contentType: "text/html", body: "<title>search</title>" }),
   );
-  return (event: string) => sent.filter((s) => s.event === event).map((s) => s.properties);
+  const named = (event: string) =>
+    sent.filter((s) => s.event === event).map((s) => s.properties);
+  return Object.assign(named, { leads });
 }
 
 // TrackingInit's page_view goes out from an effect, so once it has reached
@@ -281,5 +290,82 @@ test.describe("The hero's See homes for sale button", () => {
     const end = ys[ys.length - 1];
     expect(Math.abs(top - 80)).toBeLessThan(4);
     expect(ys.filter((y) => y > 0 && y < end - 1)).toEqual([]);
+  });
+});
+
+// T-095: the homepage alert card asks which town; a town page's card does not.
+test.describe("The homepage listing alert", () => {
+  test("has a Town dropdown on the homepage, and none on a town page", async ({ request }) => {
+    const home = await (await request.get("/")).text();
+    expect(home).toContain(">Choose a town</option>");
+    const town = await (await request.get("/search/cedarburg-homes-for-sale")).text();
+    expect(town).toContain("Get new Cedarburg listings first");
+    expect(town).not.toContain("Choose a town");
+  });
+
+  test.describe("with JavaScript off", () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("the dropdown is labelled Town and lists the seven towns in order", async ({ page }) => {
+      await page.goto("/");
+      const select = page.locator("section#homes").getByLabel("Town", { exact: true });
+      await expect(select).toHaveCount(1);
+      await expect(select.locator("option")).toHaveText([
+        "Choose a town",
+        ...TOWNS.map(([, name]) => name),
+      ]);
+    });
+  });
+
+  test("signs up for the town picked, Grafton, and sends listing_alert_lead with it", async ({ page }) => {
+    const sent = await stubWrites(page);
+    await gotoHydrated(page, "/");
+    const card = page
+      .locator("section#homes")
+      .getByRole("region", { name: "Get new Ozaukee County listings first" });
+    await card.scrollIntoViewIfNeeded();
+    await card.getByLabel("Town", { exact: true }).selectOption("Grafton");
+    await card.getByLabel("First name").fill("Jamie");
+    await card.getByLabel("Last name").fill("Rivera");
+    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel(/I agree to the/).check();
+    await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
+
+    await expect(card.getByRole("status")).toContainText(
+      "You're set. I'll set up your Grafton alert myself",
+    );
+    expect(sent.leads).toHaveLength(1);
+    expect(sent.leads[0]).toMatchObject({
+      source: "listing-alert",
+      firstName: "Jamie",
+      lastName: "Rivera",
+      email: "buyer@example.com",
+      town: "Grafton",
+      termsConsent: true,
+    });
+    await expect.poll(() => sent("listing_alert_lead")).toEqual([{ town: "Grafton", page_path: "/" }]);
+  });
+
+  test("sends nothing until a town is picked, and says so on the dropdown", async ({ page }) => {
+    const sent = await stubWrites(page);
+    await gotoHydrated(page, "/");
+    const card = page
+      .locator("section#homes")
+      .getByRole("region", { name: "Get new Ozaukee County listings first" });
+    await card.scrollIntoViewIfNeeded();
+    await card.getByLabel("First name").fill("Jamie");
+    await card.getByLabel("Last name").fill("Rivera");
+    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel(/I agree to the/).check();
+    await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
+
+    const select = card.getByLabel("Town", { exact: true });
+    await expect(card.getByRole("alert")).toHaveText("Choose a town");
+    await expect(select).toHaveAttribute("aria-invalid", "true");
+    const errorId = await card.getByRole("alert").getAttribute("id");
+    await expect(select).toHaveAttribute("aria-describedby", errorId!);
+    await expect(card.getByRole("status")).toBeEmpty();
+    expect(sent.leads).toHaveLength(0);
+    expect(sent("listing_alert_lead")).toEqual([]);
   });
 });
