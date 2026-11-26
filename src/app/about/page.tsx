@@ -5,6 +5,15 @@ import { Footer } from "@/components/Footer";
 import { OG_IMAGES } from "@/lib/og";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
+import {
+  BROKERAGE_ID,
+  SITE_URL,
+  WEBSITE_ID,
+  agentCredential,
+  agentJsonLd,
+  agentSameAs,
+  brokerageJsonLd,
+} from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "About · Ozaukee County Realtor",
@@ -20,12 +29,64 @@ export const metadata: Metadata = {
   },
 };
 
+const PAGE_URL = `${SITE_URL}/about`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    agentJsonLd,
+    brokerageJsonLd,
+    {
+      "@type": "ProfilePage",
+      "@id": `${PAGE_URL}#webpage`,
+      name: "About Anthony Stolp",
+      isPartOf: { "@id": WEBSITE_ID },
+      mainEntity: { "@id": `${PAGE_URL}#person` },
+      breadcrumb: { "@id": `${PAGE_URL}#breadcrumb` },
+    },
+    {
+      "@type": "Person",
+      "@id": `${PAGE_URL}#person`,
+      name: agentJsonLd.name,
+      jobTitle: "Realtor",
+      url: PAGE_URL,
+      image: agentJsonLd.image,
+      telephone: agentJsonLd.telephone,
+      email: agentJsonLd.email,
+      worksFor: { "@id": BROKERAGE_ID },
+      hasCredential: agentCredential,
+      knowsAbout: [
+        "Cedarburg real estate",
+        "Ozaukee County real estate",
+        "Home pricing",
+        "Buyer representation",
+      ],
+      // TODO: add the Google Business Profile URL to sameAs once it's verified (ContentEngine will send it)
+      sameAs: agentSameAs,
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${PAGE_URL}#breadcrumb`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "About", item: PAGE_URL },
+      ],
+    },
+  ],
+};
+
 export default function AboutPage() {
   const cell = getAgentProfile().mobilePhone;
   return (
     <>
       <Nav />
       <main className="min-h-dvh bg-white pt-28 pb-24 text-ink md:pt-36">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <div className="mx-auto max-w-5xl px-6 md:px-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.38em] text-ink-soft/70">
             About

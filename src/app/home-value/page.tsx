@@ -5,6 +5,13 @@ import { Footer } from "@/components/Footer";
 import { HomeValueFunnel } from "@/components/HomeValueFunnel";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { BNDRYIQ_LIVE } from "@/lib/home-value";
+import {
+  AGENT_ID,
+  SITE_URL,
+  WEBSITE_ID,
+  agentJsonLd,
+  brokerageJsonLd,
+} from "@/lib/json-ld";
 import { OG_IMAGES } from "@/lib/og";
 import { telHref } from "@/lib/phone";
 
@@ -23,6 +30,57 @@ export const metadata: Metadata = {
   },
 };
 
+const PAGE_URL = `${SITE_URL}/home-value`;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    agentJsonLd,
+    brokerageJsonLd,
+    {
+      "@type": "WebPage",
+      "@id": `${PAGE_URL}#webpage`,
+      name: "What's your home worth?",
+      description: DESCRIPTION,
+      isPartOf: { "@id": WEBSITE_ID },
+      mainEntity: { "@id": `${PAGE_URL}#service` },
+      breadcrumb: { "@id": `${PAGE_URL}#breadcrumb` },
+    },
+    {
+      "@type": "Service",
+      "@id": `${PAGE_URL}#service`,
+      name: "Free home value estimate",
+      serviceType: "Home valuation",
+      description:
+        "An honest price range for your home based on what is actually selling nearby, emailed within 24 hours. No algorithm guess, no pressure.",
+      provider: { "@id": AGENT_ID },
+      areaServed: [
+        "Cedarburg, WI",
+        "Mequon, WI",
+        "Thiensville, WI",
+        "Grafton, WI",
+        "Port Washington, WI",
+        "Saukville, WI",
+        "Ozaukee County, WI",
+        "West Bend, WI",
+        "Hartford, WI",
+        "Germantown, WI",
+        "Jackson, WI",
+        "Slinger, WI",
+      ],
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${PAGE_URL}#breadcrumb`,
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "Home value", item: PAGE_URL },
+      ],
+    },
+  ],
+};
+
 // The heading and intro are rendered here, on the server, so they are in the
 // HTML Google fetches. Only the form waits on the browser: it reads an address
 // typed elsewhere through useSearchParams, which needs a Suspense boundary.
@@ -34,6 +92,12 @@ export default function HomeValuePage() {
         Skip to content
       </a>
       <main id="main" className="relative w-full overflow-x-hidden">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+          }}
+        />
         <Nav />
         <section className="relative w-full bg-white pb-32 pt-32 md:pt-40">
           <div className="mx-auto w-full max-w-3xl px-6 md:px-12">
