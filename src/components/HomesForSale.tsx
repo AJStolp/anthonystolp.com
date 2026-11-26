@@ -5,6 +5,17 @@ import { ListingAlertCard } from "@/components/ListingAlertCard";
 import { TownTiles } from "@/components/TownTiles";
 import { track } from "@/lib/track";
 
+// The towns the homepage alert offers, in the tiles' order (T-095).
+const ALERT_TOWNS = [
+  "Cedarburg",
+  "Mequon",
+  "Thiensville",
+  "Grafton",
+  "Port Washington",
+  "Saukville",
+  "Ozaukee County",
+] as const;
+
 // "Homes for sale now", right under the homepage hero (T-089). The hero's
 // "See homes for sale" button is a plain href="#homes" that lands here.
 export function HomesForSale() {
@@ -52,10 +63,10 @@ export function HomesForSale() {
         <p className="mt-14 font-display text-xl font-semibold tracking-[-0.01em] text-ink">
           Want new listings in your town sent to you first?
         </p>
-        {/* Today's card, unchanged (T-095 adds the town dropdown). Its own
-            top margin is pulled in so it sits under the line above. */}
+        {/* The alert card with a town dropdown (T-095). Its own top margin
+            is pulled in so it sits under the line above. */}
         <div className="[&>section]:mt-5">
-          <ListingAlertCard town="Ozaukee County" />
+          <ListingAlertCard town="Ozaukee County" towns={ALERT_TOWNS} />
         </div>
       </div>
     </section>
