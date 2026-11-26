@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { NicheCTA } from "@/components/NicheCTA";
+import { GetAlertsLine } from "@/components/GetAlertsLine";
+import { ListingSearchLink } from "@/components/ListingSearchLink";
 import { agentJsonLd, brokerageJsonLd } from "@/lib/json-ld";
 import { COMMUNITIES } from "@/lib/communities";
 import { getActiveDirectory } from "@/lib/niche-pages";
@@ -142,7 +143,16 @@ export default async function BuyPage() {
             with each before you tour, and negotiate hard when it counts.
           </p>
           <div className="mt-10">
-            <NicheCTA intent="buy" slug="buy-hub" />
+            <ListingSearchLink
+              search="ozaukee-county"
+              placement="buy"
+              className="inline-flex items-center justify-center border border-ink bg-ink px-8 py-4 text-center text-[12px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            >
+              See Ozaukee County homes for sale
+            </ListingSearchLink>
+            {/* /buy has no alerts card of its own, so the line goes to the
+                Ozaukee County page's, the same search the button opens. */}
+            <GetAlertsLine href="/search/ozaukee-county-homes-for-sale#alerts" />
           </div>
         </section>
 

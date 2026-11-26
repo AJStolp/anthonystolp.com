@@ -13,7 +13,9 @@ export function Communities() {
       aria-labelledby="communities-heading"
       className="border-b border-ink/10 bg-white"
     >
-      <div className="mx-auto max-w-6xl px-6 py-16 md:px-12 md:py-20">
+      {/* id="homes" is where the hero's "See homes for sale" lands (T-088).
+          The section keeps id="communities". */}
+      <div id="homes" className="mx-auto max-w-6xl scroll-mt-20 px-6 py-16 md:px-12 md:py-20">
         <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-ink-soft/70">
           Communities I serve
         </p>

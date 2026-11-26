@@ -20,6 +20,9 @@ export function TrackingInit() {
     // Runs before the page_view below, so an ad click is banked even if the
     // visitor navigates away from the landing page before converting.
     persistAttribution();
+    // The listings email gate is gone (T-088); clear the key it left behind.
+    // Remove this line after 2027-01-01.
+    try { localStorage.removeItem("as_gate_seen") } catch {}
   }, []);
 
   useEffect(() => {

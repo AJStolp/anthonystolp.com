@@ -38,9 +38,17 @@ describe("which search a page opens", () => {
 
 describe("the search URL", () => {
   test("adds the town-search tags with & to AgentFire's own query", () => {
-    expect(listingSearchUrl("cedarburg")).toBe(
-      "https://exsellexperts.com/properties/city-Cedarburg,%20WI/?listingType=Residential&status=Active&utm_source=anthonystolp&utm_medium=referral&utm_campaign=town-search&utm_content=cedarburg",
+    expect(listingSearchUrl("cedarburg", "town_page")).toBe(
+      "https://exsellexperts.com/properties/city-Cedarburg,%20WI/?listingType=Residential&status=Active&utm_source=anthonystolp&utm_medium=referral&utm_campaign=town-search&utm_content=cedarburg&utm_term=town_page",
     );
+  });
+
+  test("names where the link sits in utm_term", () => {
+    const url = new URL(listingSearchUrl("marinette-land", "northwoods"));
+    expect(url.searchParams.get("utm_term")).toBe("northwoods");
+    expect(url.searchParams.get("utm_content")).toBe("marinette-land");
+    expect(url.searchParams.get("listingType")).toBe("Land");
+    expect(new URL(listingSearchUrl("ozaukee-county", "buy")).searchParams.get("utm_term")).toBe("buy");
   });
 
   test("never points at the bio page", () => {

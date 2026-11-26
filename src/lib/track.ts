@@ -2,6 +2,7 @@
 // Always include the visitor id so anonymous activity can be joined to a
 // lead later when the same visitor identifies via a form.
 
+import type { ListingPlacement } from "./listing-search";
 import { getOrCreateVisitorId } from "./visitor";
 
 type BaseFields = {
@@ -62,13 +63,15 @@ export type TrackEvent =
       };
     })
   | (BaseFields & {
-      // Any click out to an AgentFire listing search. `source` says how the
-      // visitor got there: by skipping the gate, by submitting it, or straight
-      // through because they had already seen it.
+      // Any click out to an AgentFire listing search. Every listings link goes
+      // straight there since T-088 removed the email gate, so `source` is
+      // always "direct"; older rows also carry "gate_skip" and "gate_submit".
+      // `placement` is the link's utm_term.
       event: "search_outbound";
       properties: {
         town: string;
-        source: "gate_skip" | "gate_submit" | "direct";
+        source: "direct";
+        placement: ListingPlacement;
       };
     })
   | (BaseFields & {
