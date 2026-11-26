@@ -4,7 +4,41 @@ import {
   LISTING_SEARCH,
   listingSearchForSlug,
   listingSearchUrl,
+  townSearchForSlug,
 } from "./listing-search";
+
+describe("which pages get the town tiles", () => {
+  test("each of the seven homes for sale pages names its town", () => {
+    expect(townSearchForSlug("cedarburg-homes-for-sale")).toBe("cedarburg");
+    expect(townSearchForSlug("mequon-homes-for-sale")).toBe("mequon");
+    expect(townSearchForSlug("thiensville-homes-for-sale")).toBe("thiensville");
+    expect(townSearchForSlug("grafton-homes-for-sale")).toBe("grafton");
+    expect(townSearchForSlug("port-washington-homes-for-sale")).toBe(
+      "port-washington",
+    );
+    expect(townSearchForSlug("saukville-homes-for-sale")).toBe("saukville");
+    expect(townSearchForSlug("ozaukee-county-homes-for-sale")).toBe(
+      "ozaukee-county",
+    );
+  });
+
+  test("home value pages and guides get none, with no fallback", () => {
+    expect(townSearchForSlug("cedarburg-home-value")).toBeNull();
+    expect(townSearchForSlug("ozaukee-county-home-value")).toBeNull();
+    expect(townSearchForSlug("downsizing-in-wisconsin")).toBeNull();
+    expect(townSearchForSlug("selling-a-house-during-divorce-wisconsin")).toBeNull();
+  });
+
+  test("a town with no search, a bare town, or a Northwoods search gets none", () => {
+    expect(townSearchForSlug("west-bend-homes-for-sale")).toBeNull();
+    expect(townSearchForSlug("cedarburg")).toBeNull();
+    expect(townSearchForSlug("-homes-for-sale")).toBeNull();
+    expect(townSearchForSlug("cedarburg-homes-for-sale-old")).toBeNull();
+    expect(townSearchForSlug("marinette-homes-homes-for-sale")).toBeNull();
+    expect(townSearchForSlug("marinette-land-homes-for-sale")).toBeNull();
+    expect(townSearchForSlug("constructor-homes-for-sale")).toBeNull();
+  });
+});
 
 describe("which search a page opens", () => {
   test("each town page opens its own town", () => {

@@ -246,16 +246,26 @@ test.describe("Homes for sale now, with JavaScript on", () => {
 });
 
 test.describe("The hero's See homes for sale button", () => {
-  // Samples the scroll position on every frame after the click.
+  // Samples the scroll position on every frame after the click, until it has
+  // held still for 60 frames. A fixed frame count is not a fixed time:
+  // headless Chromium draws 120 frames a second, so 120 frames was one second
+  // and the glide takes nearly two, and whether the test read the end or the
+  // middle came down to when expect.poll looked. The cap stops a glide that
+  // never settles from sampling forever.
   async function scrollPath(page: Page) {
     await stubWrites(page);
     await gotoHydrated(page, "/");
     await page.evaluate(() => {
-      const w = window as unknown as { __ys: number[] };
+      const w = window as unknown as { __ys: number[]; __done: boolean };
       w.__ys = [];
+      w.__done = false;
+      let still = 0;
       const tick = () => {
-        w.__ys.push(window.scrollY);
-        if (w.__ys.length < 120) requestAnimationFrame(tick);
+        const y = window.scrollY;
+        still = w.__ys.length > 0 && y === w.__ys[w.__ys.length - 1] ? still + 1 : 0;
+        w.__ys.push(y);
+        if (still >= 60 || w.__ys.length >= 900) w.__done = true;
+        else requestAnimationFrame(tick);
       };
       document
         .querySelector('a[href="#homes"]')!
@@ -267,8 +277,8 @@ test.describe("The hero's See homes for sale button", () => {
       .getByRole("link", { name: "See homes for sale", exact: true })
       .click();
     await expect
-      .poll(() => page.evaluate(() => (window as unknown as { __ys: number[] }).__ys.length))
-      .toBe(120);
+      .poll(() => page.evaluate(() => (window as unknown as { __done: boolean }).__done))
+      .toBe(true);
     const ys = await page.evaluate(() => (window as unknown as { __ys: number[] }).__ys);
     const top = await page.locator("section#homes").evaluate((el) => el.getBoundingClientRect().top);
     return { ys, top };

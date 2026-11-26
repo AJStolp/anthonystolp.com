@@ -5,6 +5,8 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { NicheCTA } from "@/components/NicheCTA";
 import { ListingAlertCard } from "@/components/ListingAlertCard";
+import { TownPageTiles } from "@/components/TownTiles";
+import { townSearchForSlug } from "@/lib/listing-search";
 import {
   getActiveBySlug,
   getActiveDirectory,
@@ -235,6 +237,7 @@ export default async function NichePage({ params }: { params: RouteParams }) {
   // Buy pages for one town get the listing alert sign up (T-078); guides,
   // seller pages and pages with no town do not.
   const listingAlerts = page.intent === "buy" && Boolean(page.geo) && !isGuide;
+  const tileTown = townSearchForSlug(page.slug);
   const area = page.geo ?? (page.intent === "sell" ? "Sellers" : "Buyers");
   const eyebrow = isGuide ? `Seller guide · ${area}` : area;
   // The guides share one geo, so "nearby" never reaches them. A reader in one
@@ -345,6 +348,10 @@ export default async function NichePage({ params }: { params: RouteParams }) {
           />
           {page.geo && !isGuide ? <CityPhoneLine /> : null}
         </div>
+
+        {/* The seven homes for sale pages show their town and its neighbors
+            as tiles, above the rest of the page (T-094). */}
+        {tileTown ? <TownPageTiles town={tileTown} /> : null}
 
         {/* Long-form body content, on guides and city pages alike */}
         {page.body ? (
