@@ -19,7 +19,7 @@ const PAGE_URL = `${SITE_URL}/northwoods`;
 
 const TITLE = "Marinette County Land and Cabins · Jay and Anthony Stolp";
 const DESCRIPTION =
-  "Rural land with no address, just coordinates? We will get back there, walk it, fly it, and market it right. Land, cabins, and lake homes across Marinette County, WI.";
+  "Rural land with no address, just coordinates? We'll get out there, walk it, fly it, and market it right. Land, cabins, and lake homes in Marinette County, WI.";
 const OG_IMAGE = {
   url: "/images/northwoods/og-pembine.jpg",
   width: 1200,
