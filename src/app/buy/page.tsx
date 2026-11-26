@@ -13,15 +13,16 @@ export const revalidate = 3600;
 
 const SITE_URL = "https://anthonystolp.com";
 
+const DESCRIPTION =
+  "Buying in Cedarburg, Mequon, Grafton or anywhere in Ozaukee County? Get local advice, new listings first, and a straight answer. Call or text (262) 483-7932.";
+
 export const metadata: Metadata = {
   title: "Buy a Home in Cedarburg and Ozaukee County",
-  description:
-    "Buying in Cedarburg, Ozaukee County, or nearby Washington County? New listings sent to you as they hit the MLS, a local read on each town, and honest negotiation from Anthony Stolp.",
+  description: DESCRIPTION,
   alternates: { canonical: "/buy" },
   openGraph: {
     title: "Buy a Home in Cedarburg and Ozaukee County · Anthony Stolp",
-    description:
-      "New listings sent to you, local knowledge, and honest negotiation. Start your home search with Anthony Stolp.",
+    description: DESCRIPTION,
     url: "/buy",
     type: "website",
     images: OG_IMAGES,
@@ -29,8 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Buy a Home in Cedarburg and Ozaukee County · Anthony Stolp",
-    description:
-      "New listings sent to you, local knowledge, and honest negotiation. Start your home search.",
+    description: DESCRIPTION,
   },
 };
 
