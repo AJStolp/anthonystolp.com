@@ -106,6 +106,12 @@ export type TrackEvent =
       properties: { town: string; page_path: string };
     })
   | (BaseFields & {
+      // The homepage's "Homes for sale now" town tiles scrolled into view,
+      // once a page view (T-089).
+      event: "home_tiles_view";
+      properties: { page_path: string };
+    })
+  | (BaseFields & {
       event: "listing_alert_lead";
       properties: {
         town: string;
@@ -164,6 +170,7 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "search_gate_view":
     case "search_gate_skip":
     case "listing_alert_view":
+    case "home_tiles_view":
     case "save_home_click":
     case "similar_homes_lead":
     case "market_report_view":
