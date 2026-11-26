@@ -294,14 +294,15 @@ test.describe("Listings links work with JavaScript off", () => {
     });
   }
 
-  test("the homepage hero button goes to the town links on the same page", async ({ page }) => {
+  test("the homepage hero button goes to the town tiles on the same page", async ({ page }) => {
     await page.goto("/");
     const hero = page.locator("section").filter({ has: page.locator("h1") });
     const link = hero.getByRole("link", { name: "See homes for sale", exact: true });
     await expect(link).toHaveAttribute("href", "#homes");
     const target = page.locator("#homes");
     await expect(target).toHaveCount(1);
-    await expect(target.getByRole("link", { name: "Cedarburg homes for sale" })).toHaveCount(1);
+    await expect(target.getByRole("heading", { name: "Homes for sale now", level: 2 })).toHaveCount(1);
+    await expect(target.getByRole("heading", { name: "Cedarburg", level: 3 })).toHaveCount(1);
   });
 
   for (const [path, line] of [

@@ -1,5 +1,6 @@
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
+import { HomesForSale } from "@/components/HomesForSale";
 import { TrustStrip } from "@/components/TrustStrip";
 import { Reviews } from "@/components/Reviews";
 import { RecentResults } from "@/components/RecentResults";
@@ -63,6 +64,7 @@ export default async function Home() {
           cell={getAgentProfile().mobilePhone}
           seasonal={seasonalLine()}
         />
+        <HomesForSale />
         <TrustStrip />
         <Reviews />
         <RecentResults results={rest} />
