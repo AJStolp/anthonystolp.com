@@ -1,10 +1,18 @@
+import { createHash } from "node:crypto";
 import { defineConfig, devices } from "@playwright/test";
 
-// The suite starts its own dev server when one is not already up, so
-// `bun run test:e2e` works from nothing. If you already have `bun dev` running
-// it reuses that rather than fighting it for port 3000.
+// The suite always starts its own dev server, on a port worked out from this
+// worktree's absolute path: 3100 plus a hash of the path. Two worktrees get two
+// ports, so a run in one can never land on the other's `bun dev` on 3000 and
+// grade that worktree's pages against this branch. It never reuses a
+// server it finds: if the port is already taken, Playwright stops with
+// "already used" instead of testing whatever answers there. That includes your
+// own `bun dev`; stop it, or point PLAYWRIGHT_BASE_URL at it on purpose.
 //
-// It deliberately starts nothing when pointed at another server: a run against
+// The port is put in process.env so Playwright's worker processes, which load
+// this file again, read the same number rather than working it out afresh.
+//
+// It deliberately starts nothing when PLAYWRIGHT_BASE_URL is set: a run against
 // production must talk to production, and quietly booting a local Next beside
 // it would be the worst of both.
 //
@@ -19,8 +27,14 @@ import { defineConfig, devices } from "@playwright/test";
 // that one test fails with "Too many requests" — brute-force protection
 // working, not a regression. Wait out the window, or use
 // `--grep-invert "admin redirects"` while iterating on other tests.
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
-const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(baseURL);
+function worktreePort(dir: string): number {
+  return 3100 + (createHash("sha256").update(dir).digest().readUInt32BE(0) % 900);
+}
+
+process.env.PLAYWRIGHT_E2E_PORT ??= String(worktreePort(__dirname));
+const port = Number(process.env.PLAYWRIGHT_E2E_PORT);
+const ownServer = process.env.PLAYWRIGHT_BASE_URL === undefined;
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -32,12 +46,13 @@ export default defineConfig({
   fullyParallel: false,             // dev server is shared; serialize
   workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
-  // Only for a local target. See the note at the top.
-  webServer: isLocal
+  // Only when PLAYWRIGHT_BASE_URL is unset. See the note at the top.
+  webServer: ownServer
     ? {
         command: "bun run dev",
         url: baseURL,
-        reuseExistingServer: true,
+        env: { PORT: String(port) },
+        reuseExistingServer: false,
         // A cold Next dev server compiles on first request, and this suite's
         // first request is its slowest.
         timeout: 180_000,
