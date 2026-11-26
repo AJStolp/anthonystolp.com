@@ -3,11 +3,10 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { NicheCTA } from "@/components/NicheCTA";
-import { getAgentProfile } from "@/lib/agent-profile";
+import { agentJsonLd, brokerageJsonLd } from "@/lib/json-ld";
 import { COMMUNITIES } from "@/lib/communities";
 import { getActiveDirectory } from "@/lib/niche-pages";
 import { OG_IMAGES } from "@/lib/og";
-import { telHref } from "@/lib/phone";
 
 export const revalidate = 3600;
 
@@ -103,23 +102,8 @@ export default async function BuyPage() {
           },
         ],
       },
-      {
-        "@type": "RealEstateAgent",
-        name: "Anthony Stolp",
-        url: SITE_URL,
-        telephone: telHref(getAgentProfile().mobilePhone).replace("tel:", ""),
-        areaServed: [
-          ...["Cedarburg", "Mequon", "Thiensville", "Grafton", "Port Washington", "Saukville"].map(
-            (name) => ({ "@type": "City", name: `${name}, Wisconsin` }),
-          ),
-          { "@type": "AdministrativeArea", name: "Ozaukee County, Wisconsin" },
-          { "@type": "AdministrativeArea", name: "Washington County, Wisconsin" },
-        ],
-        parentOrganization: {
-          "@type": "RealEstateOrganization",
-          name: "ExSell Experts | Epique Realty",
-        },
-      },
+      agentJsonLd,
+      brokerageJsonLd,
       {
         "@type": "FAQPage",
         mainEntity: FAQS.map((f) => ({
