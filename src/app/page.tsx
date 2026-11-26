@@ -10,7 +10,7 @@ import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { getRecentResults } from "@/lib/properties";
 import { getAgentProfile } from "@/lib/agent-profile";
-import { telHref } from "@/lib/phone";
+import { agentJsonLd, brokerageJsonLd } from "@/lib/json-ld";
 import { seasonalLine } from "@/lib/seasonal";
 
 // The hero card reads properties from Supabase, so the home page is ISR rather
@@ -22,59 +22,8 @@ const SITE_URL = "https://anthonystolp.com";
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": "RealEstateAgent",
-      "@id": `${SITE_URL}/#agent`,
-      name: "Anthony Stolp",
-      url: SITE_URL,
-      image: `${SITE_URL}/opengraph-image`,
-      // The cell, the number every page asks visitors to call or text.
-      telephone: telHref(getAgentProfile().mobilePhone).replace("tel:", ""),
-      email: "anthony@exsellexperts.com",
-      jobTitle: "Realtor",
-      worksFor: {
-        "@type": "RealEstateOrganization",
-        name: "ExSell Experts | Epique Realty",
-      },
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Cedarburg",
-        addressRegion: "WI",
-        addressCountry: "US",
-      },
-      // The six towns lead, so the entity matches the Cedarburg and Ozaukee
-      // targeting; the counties stay as the wider service area.
-      areaServed: [
-        { "@type": "City", name: "Cedarburg, Wisconsin" },
-        { "@type": "City", name: "Mequon, Wisconsin" },
-        { "@type": "City", name: "Thiensville, Wisconsin" },
-        { "@type": "City", name: "Grafton, Wisconsin" },
-        { "@type": "City", name: "Port Washington, Wisconsin" },
-        { "@type": "City", name: "Saukville, Wisconsin" },
-        { "@type": "AdministrativeArea", name: "Ozaukee County, Wisconsin" },
-        { "@type": "AdministrativeArea", name: "Washington County, Wisconsin" },
-        { "@type": "AdministrativeArea", name: "Waukesha County, Wisconsin" },
-        { "@type": "AdministrativeArea", name: "Sheboygan County, Wisconsin" },
-        { "@type": "AdministrativeArea", name: "Milwaukee County, Wisconsin" },
-      ],
-      hasCredential: {
-        "@type": "EducationalOccupationalCredential",
-        credentialCategory: "license",
-        recognizedBy: {
-          "@type": "GovernmentOrganization",
-          name: "State of Wisconsin",
-        },
-        identifier: "114204-94",
-      },
-      knowsLanguage: "en",
-      // Entity corroboration only: these must be real-estate identities for the
-      // same person, or they tell the knowledge graph AJ is a different business.
-      // Add the Google Business Profile and Zillow/Realtor.com URLs as claimed.
-      sameAs: [
-        "https://exsellexperts.com/anthony-stolp/",
-        "https://www.homes.com/real-estate-agents/anthony-stolp/kq5sqyc/",
-      ],
-    },
+    agentJsonLd,
+    brokerageJsonLd,
     {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
