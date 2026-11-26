@@ -45,6 +45,23 @@ export function listingSearchForSlug(slug: string): ListingSearch {
   return isListingSearch(town) ? town : FALLBACK_SEARCH;
 }
 
+// The seven towns with a /search/{town}-homes-for-sale page: every search but
+// the two Northwoods ones.
+export type TownSearch = Exclude<ListingSearch, "marinette-homes" | "marinette-land">;
+
+// "cedarburg-homes-for-sale" -> "cedarburg", and null for every other page:
+// home value pages, guides, and a town with no search. Unlike
+// listingSearchForSlug there is no fallback, so only the seven town pages
+// get the town tiles (T-094).
+export function townSearchForSlug(slug: string): TownSearch | null {
+  const match = /^(.+)-homes-for-sale$/.exec(slug);
+  if (!match) return null;
+  const town = match[1];
+  if (!isListingSearch(town)) return null;
+  if (town === "marinette-homes" || town === "marinette-land") return null;
+  return town;
+}
+
 // Where on the site a listings link sits. It becomes the link's utm_term and
 // the search_outbound event's placement, so the two always agree.
 export type ListingPlacement =
@@ -52,7 +69,8 @@ export type ListingPlacement =
   | "buy"
   | "town_page"
   | "northwoods"
-  | "home_tiles";
+  | "home_tiles"
+  | "town_tiles";
 
 // Every AgentFire URL above already carries a query string, so the UTM
 // parameters join it with "&".
