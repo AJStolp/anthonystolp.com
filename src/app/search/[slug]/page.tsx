@@ -371,6 +371,9 @@ export default async function NichePage({ params }: { params: RouteParams }) {
                     {p}
                   </p>
                 ))}
+                {/* A guide reader is a likely seller, so the first section
+                    ends on the home value page (T-092). */}
+                {isGuide && i === 0 ? <GuideHomeValueLine /> : null}
               </div>
             ))}
           </section>
@@ -385,6 +388,8 @@ export default async function NichePage({ params }: { params: RouteParams }) {
             <ListingAlertCard town={geoShort} />
           </div>
         ) : null}
+        {/* Many town buyers have a home to sell first (T-092). */}
+        {listingAlerts ? <TownHomeValueLine town={geoShort} /> : null}
 
         {/* FAQ */}
         <section className="mt-16 w-full">
@@ -494,6 +499,33 @@ function CityPhoneLine() {
         {cell}
       </a>
       . You&apos;ll get me, not a call center.
+    </p>
+  );
+}
+
+const HOME_VALUE_LINK = "underline underline-offset-4 hover:text-ink";
+
+function TownHomeValueLine({ town }: { town: string }) {
+  const article = /^[aeiou]/i.test(town) ? "an" : "a";
+  return (
+    <p className="mt-8 text-[15px] leading-[1.7] text-ink-soft/80">
+      Selling {article} {town} home before you buy?{" "}
+      <Link href="/home-value" className={HOME_VALUE_LINK}>
+        See what your home is worth
+      </Link>
+      .
+    </p>
+  );
+}
+
+function GuideHomeValueLine() {
+  return (
+    <p className="mt-4 text-[15px] leading-[1.7] text-ink-soft/80">
+      Want a straight number before you decide anything?{" "}
+      <Link href="/home-value" className={HOME_VALUE_LINK}>
+        Get my free home value
+      </Link>
+      , personally prepared within 24 hours.
     </p>
   );
 }

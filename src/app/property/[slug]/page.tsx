@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPublicBySlug, getPublicSlugs, SOLD_STATUSES } from "@/lib/properties";
+import { getPublicBySlug, getPublicPages, SOLD_STATUSES } from "@/lib/properties";
 import { PropertySignInForm } from "@/components/PropertySignInForm";
 import { SaveHomeForm } from "@/components/SaveHomeForm";
 import { getAgentProfile } from "@/lib/agent-profile";
@@ -28,8 +28,8 @@ function metaDescription(s: string, max: number): string {
 }
 
 export async function generateStaticParams() {
-  const slugs = await getPublicSlugs();
-  return slugs.map((slug) => ({ slug }));
+  const pages = await getPublicPages();
+  return pages.map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({
