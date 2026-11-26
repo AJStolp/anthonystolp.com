@@ -146,22 +146,84 @@ test.describe("Homepage", () => {
   });
 });
 
-test.describe("Northwoods has one contact, Anthony", () => {
-  test("no trace of Jay's email or phone, and every link reaches Anthony", async ({ page }) => {
-    const res = await page.request.get("/northwoods");
-    const html = await res.text();
-    expect(html).not.toContain("jaystolp@exsellexperts.com");
-    expect(html).not.toMatch(/807[^0-9]*2478/);
+// The printed Marinette County flyers name Jay and Anthony, and point at
+// /northwoods, so that page lists both of them (T-087). Every other page has
+// one contact, Anthony.
+const JAY_EMAIL = "jaystolp@exsellexperts.com";
+const JAY_TEL = "tel:+14148072478";
+const OFFICE_TEL = "tel:+12628853310";
 
+test.describe("Northwoods lists Jay and Anthony", () => {
+  test("both cards, both in the footer, and the we wording", async ({ page }) => {
     await page.goto("/northwoods");
-    await expect(page.getByRole("link", { name: "Tell me about your land" })).toBeVisible();
-    const tels = await page.locator("a[href^='tel:']").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-    const office = "tel:+12628853310";
-    expect(tels.length).toBeGreaterThan(0);
-    for (const href of tels) expect([CELL_TEL, office]).toContain(href);
-    const mails = await page.locator("a[href^='mailto:']").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-    expect(mails.length).toBeGreaterThan(0);
-    for (const href of mails) expect(href).toBe("mailto:anthony@exsellexperts.com");
-    await expect(page.getByText(/\bJay and Anthony both read\b|Anthony and Jay\./)).toHaveCount(0);
+    const team = page.locator("#team");
+    await expect(team.getByRole("heading", { name: "Anthony and Jay." })).toBeVisible();
+    await expect(team.getByRole("img", { name: "Jay Stolp" })).toHaveAttribute("src", "/images/northwoods/jay-headshot.png");
+    await expect(team.getByRole("img", { name: "Anthony Stolp" })).toBeVisible();
+    await expect(team.getByRole("link", { name: "(414) 807-2478" })).toHaveAttribute("href", JAY_TEL);
+    await expect(team.getByRole("link", { name: JAY_EMAIL })).toHaveAttribute("href", `mailto:${JAY_EMAIL}`);
+    await expect(team.getByRole("link", { name: "(262) 483-7932" })).toHaveAttribute("href", CELL_TEL);
+
+    const footer = page.locator("footer");
+    await expect(footer.getByText("Email Us", { exact: true })).toBeVisible();
+    await expect(footer.getByText("Call Us", { exact: true })).toBeVisible();
+    await expect(footer.getByRole("link", { name: JAY_EMAIL })).toHaveAttribute("href", `mailto:${JAY_EMAIL}`);
+    await expect(footer.getByRole("link", { name: "anthony@exsellexperts.com" })).toBeVisible();
+    await expect(footer.getByRole("link", { name: "Call or text Jay: (414) 807-2478" })).toHaveAttribute("href", JAY_TEL);
+    await expect(footer.getByRole("link", { name: "Call or text Anthony: (262) 483-7932" })).toHaveAttribute("href", CELL_TEL);
+
+    await expect(page.getByRole("link", { name: /Call or Text Us/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Tell us about your land/ })).toBeVisible();
+    await expect(page.getByText(/Jay and Anthony both read every message/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Questions land owners ask us." })).toBeVisible();
+    await expect(page.getByText(/Send us the coordinates or the parcel number/)).toBeVisible();
+    await expect(page.getByText(/Tell us what you're after and we'll send listings/)).toBeVisible();
+    await expect(page).toHaveTitle("Marinette County Land and Cabins · Jay and Anthony Stolp");
   });
+
+  test("every call, text and email link goes to Jay or Anthony", async ({ page }) => {
+    await page.goto("/northwoods");
+    const hrefs = (sel: string) => page.locator(sel).evaluateAll((as) => as.map((a) => a.getAttribute("href")!));
+    const tels = await hrefs("a[href^='tel:']");
+    for (const href of tels) expect([CELL_TEL, JAY_TEL, OFFICE_TEL]).toContain(href);
+    expect(tels).toContain(JAY_TEL);
+    expect(tels).toContain(CELL_TEL);
+    const mails = await hrefs("a[href^='mailto:']");
+    for (const href of mails) expect(["mailto:anthony@exsellexperts.com", `mailto:${JAY_EMAIL}`]).toContain(href);
+    expect(mails).toContain(`mailto:${JAY_EMAIL}`);
+    expect(mails).toContain("mailto:anthony@exsellexperts.com");
+  });
+
+  test("the structured data names both, with Anthony on the home page's id", async ({ page }) => {
+    const html = await (await page.request.get("/northwoods")).text();
+    const ld = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/)![1]);
+    const graph = ld["@graph"] as { "@type": string; "@id": string; email?: string; provider?: unknown }[];
+    const agents = graph.filter((n) => n["@type"] === "RealEstateAgent");
+    expect(agents.map((a) => [a["@id"], a.email])).toEqual([
+      ["https://anthonystolp.com/#agent", "anthony@exsellexperts.com"],
+      ["https://anthonystolp.com/northwoods#jay", JAY_EMAIL],
+    ]);
+    const service = graph.find((n) => n["@type"] === "Service")!;
+    expect(service.provider).toEqual([
+      { "@id": "https://anthonystolp.com/#agent" },
+      { "@id": "https://anthonystolp.com/northwoods#jay" },
+    ]);
+  });
+});
+
+test.describe("Every other page has one contact, Anthony", () => {
+  for (const path of ["/", "/buy", "/home-value", "/about", "/search/cedarburg-homes-for-sale"]) {
+    test(`${path} has no trace of Jay, and says Email Me`, async ({ page }) => {
+      const html = await (await page.request.get(path)).text();
+      expect(html).not.toContain("jaystolp@");
+      expect(html).not.toMatch(/807[^0-9]*2478/);
+      expect(html).not.toContain("jay-headshot");
+
+      await page.goto(path);
+      const footer = page.locator("footer");
+      await expect(footer.getByText("Email Me", { exact: true })).toBeVisible();
+      await expect(footer.getByText("Call Me", { exact: true })).toBeVisible();
+      await expect(footer.getByText("Email Us", { exact: true })).toHaveCount(0);
+    });
+  }
 });
