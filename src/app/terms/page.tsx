@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { OG_IMAGES } from "@/lib/og";
+import { CONTENT_DATE } from "./content-date";
+
+// The same date the sitemap gives as lastmod, so the two cannot disagree.
+const LAST_UPDATED = new Date(`${CONTENT_DATE}T00:00:00Z`).toLocaleDateString(
+  "en-US",
+  { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" },
+);
 
 export const metadata: Metadata = {
   title: "Terms of Service",
@@ -26,7 +33,7 @@ export default function TermsPage() {
           Terms of Service
         </h1>
         <p className="mt-4 text-[11px] font-medium uppercase tracking-[0.38em] text-ink/65">
-          Last updated: November 20, 2026
+          Last updated: {LAST_UPDATED}
         </p>
 
         <div className="mt-12 space-y-10 text-[15px] leading-[1.75] text-ink/80">

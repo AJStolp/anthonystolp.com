@@ -216,6 +216,17 @@ export default async function BuyPage() {
               </div>
             ))}
           </dl>
+          {/* Many buyers have a home to sell first (T-092). */}
+          <p className="mt-10 max-w-xl text-[15px] leading-[1.7] text-ink-soft/80">
+            Need to sell first?{" "}
+            <Link
+              href="/home-value"
+              className="underline underline-offset-4 hover:text-ink"
+            >
+              Find out what your home is worth
+            </Link>
+            .
+          </p>
         </section>
 
         <Footer />

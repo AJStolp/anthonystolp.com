@@ -1,6 +1,14 @@
 import type { MetadataRoute } from "next";
 import { listAll } from "@/lib/niche-pages";
-import { getPublicSlugs } from "@/lib/properties";
+import { getPublicPages } from "@/lib/properties";
+import { CONTENT_DATE as HOME_DATE } from "./content-date";
+import { CONTENT_DATE as BUY_DATE } from "./buy/content-date";
+import { CONTENT_DATE as HOME_VALUE_DATE } from "./home-value/content-date";
+import { CONTENT_DATE as ABOUT_DATE } from "./about/content-date";
+import { CONTENT_DATE as NORTHWOODS_DATE } from "./northwoods/content-date";
+import { CONTENT_DATE as PRIVACY_DATE } from "./privacy/content-date";
+import { CONTENT_DATE as TERMS_DATE } from "./terms/content-date";
+import { CONTENT_DATE as FAIR_HOUSING_DATE } from "./fair-housing/content-date";
 
 const SITE_URL = "https://anthonystolp.com";
 
@@ -8,9 +16,15 @@ const SITE_URL = "https://anthonystolp.com";
 // without waiting for a redeploy (sitemap routes are statically cached otherwise).
 export const revalidate = 3600;
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
+// A listing's own edit time, or no lastmod at all. Never the build time: a
+// date every page shares tells a crawler nothing about which one changed.
+function listingModified(updatedAt: string | null | undefined): Date | undefined {
+  const t = updatedAt ? Date.parse(updatedAt) : NaN;
+  return Number.isNaN(t) ? undefined : new Date(t);
+}
 
+// Each fixed page's lastmod is the content date kept beside that page.
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const niche = await listAll().catch(() => []);
   const nicheEntries: MetadataRoute.Sitemap = niche
     .filter((p) => p.active)
@@ -21,10 +35,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-  const propertySlugs = await getPublicSlugs().catch(() => []);
-  const propertyEntries: MetadataRoute.Sitemap = propertySlugs.map((slug) => ({
-    url: `${SITE_URL}/property/${slug}`,
-    lastModified: now,
+  const properties = await getPublicPages().catch(() => []);
+  const propertyEntries: MetadataRoute.Sitemap = properties.map((p) => ({
+    url: `${SITE_URL}/property/${p.slug}`,
+    lastModified: listingModified(p.updated_at),
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
@@ -32,7 +46,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const homeValueEntry: MetadataRoute.Sitemap = [
     {
       url: `${SITE_URL}/home-value`,
-      lastModified: now,
+      lastModified: HOME_VALUE_DATE,
       changeFrequency: "monthly",
       priority: 0.9,
     },
@@ -41,26 +55,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     {
       url: `${SITE_URL}/`,
-      lastModified: now,
+      lastModified: HOME_DATE,
       changeFrequency: "monthly",
       priority: 1,
     },
     {
       url: `${SITE_URL}/buy`,
-      lastModified: now,
+      lastModified: BUY_DATE,
       changeFrequency: "monthly",
       priority: 0.9,
     },
     ...homeValueEntry,
     {
       url: `${SITE_URL}/about`,
-      lastModified: now,
+      lastModified: ABOUT_DATE,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${SITE_URL}/northwoods`,
-      lastModified: now,
+      lastModified: NORTHWOODS_DATE,
       changeFrequency: "monthly",
       priority: 0.8,
     },
@@ -68,19 +82,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...propertyEntries,
     {
       url: `${SITE_URL}/privacy`,
-      lastModified: now,
+      lastModified: PRIVACY_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${SITE_URL}/terms`,
-      lastModified: now,
+      lastModified: TERMS_DATE,
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
       url: `${SITE_URL}/fair-housing`,
-      lastModified: now,
+      lastModified: FAIR_HOUSING_DATE,
       changeFrequency: "yearly",
       priority: 0.4,
     },
