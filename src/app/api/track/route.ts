@@ -15,6 +15,14 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
+  // Only the production deployment records events. A local dev server reads
+  // .env.local, which points at the live Supabase, so without this every test
+  // page view lands in production tracking_events; preview deploys are left
+  // out too. Checked before the rate limiter, which calls Supabase as well.
+  if (process.env.VERCEL_ENV !== "production") {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
   // Track is high-volume legit usage (every page view), so we only gate on
   // origin. Rate limit and honeypot don't apply here.
   const originFailure = checkOrigin(req);
