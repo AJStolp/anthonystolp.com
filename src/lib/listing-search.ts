@@ -47,7 +47,12 @@ export function listingSearchForSlug(slug: string): ListingSearch {
 
 // Where on the site a listings link sits. It becomes the link's utm_term and
 // the search_outbound event's placement, so the two always agree.
-export type ListingPlacement = "hero" | "buy" | "town_page" | "northwoods";
+export type ListingPlacement =
+  | "hero"
+  | "buy"
+  | "town_page"
+  | "northwoods"
+  | "home_tiles";
 
 // Every AgentFire URL above already carries a query string, so the UTM
 // parameters join it with "&".
