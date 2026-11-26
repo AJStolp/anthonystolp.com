@@ -64,31 +64,6 @@ test.describe("Anonymous visitor — home page", () => {
     await page.getByRole("link", { name: /what's my home worth/i }).click();
     await page.waitForURL(/\/home-value$/);
   });
-
-  test("Approach Search card opens SearchGate modal", async ({ page }) => {
-    await page.goto("/");
-    // The Approach section's Search card. Scope to the section, then click
-    // the link that contains the big "Search" word but not the others.
-    const approach = page.locator("section#approach");
-    await approach.scrollIntoViewIfNeeded();
-    // Each card is an <a> with eyebrow ("03"), word ("Search"). We disambiguate
-    // by the "03" eyebrow + the word — only the search card has this combo.
-    const searchCard = approach.locator("a").filter({ hasText: "03" });
-    await expect(searchCard).toHaveCount(1);
-    await searchCard.click();
-    const modal = page.getByRole("dialog");
-    await expect(modal).toBeVisible();
-    await expect(modal.getByRole("heading", { name: /want new listings sent to you first/i })).toBeVisible();
-    await modal.getByRole("button", { name: /close/i }).click();
-    await expect(modal).not.toBeVisible();
-  });
-
-  test("Hero browse-listings link opens SearchGate modal", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: /browse active listings/i }).click();
-    const modal = page.getByRole("dialog");
-    await expect(modal).toBeVisible();
-  });
 });
 
 // Anthony's cell has to be in the HTML the server sends, not added later by
@@ -218,32 +193,6 @@ test.describe("Funnel submissions (real DB writes)", () => {
     await contact.getByRole("button", { name: /^send$/i }).click();
     await expect(contact.getByRole("heading", { name: /got it/i })).toBeVisible({ timeout: 15_000 });
   });
-
-  test("SearchGate modal submits + posts to /api/lead", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: /browse active listings/i }).click();
-    const modal = page.getByRole("dialog");
-    await expect(modal).toBeVisible();
-    await modal.getByLabel(/^email$/i).fill(email("searchgate"));
-    await modal.getByLabel(/^timeframe$/i).selectOption("1-3mo");
-    await modal.getByLabel(/i agree to the/i).check();
-
-    // The submit triggers a POST then an external navigation. Capture the
-    // network event itself (not the body) since the page unloads before
-    // we can read the body. Verify the POST was made + status was 2xx.
-    const leadPostPromise = page.waitForRequest(
-      (r) => r.url().endsWith("/api/lead") && r.method() === "POST",
-      { timeout: 10_000 },
-    );
-    // Stop the external navigation so the test doesn't try to visit exsell.com
-    await page.route("https://exsellexperts.com/**", (route) => route.abort());
-
-    await modal.getByRole("button", { name: /see active listings/i }).click();
-    const req = await leadPostPromise;
-    const postBody = JSON.parse(req.postData() ?? "{}");
-    expect(postBody.source).toBe("search-redirect");
-    expect(postBody.email).toContain(STAMP);
-  });
 });
 
 test.describe("Niche landing pages", () => {
@@ -261,44 +210,159 @@ test.describe("Niche landing pages", () => {
     expect(url.searchParams.get("utm_campaign")).toBe("cedarburg-home-value");
   });
 
-  test("buy-intent niche CTA opens SearchGate", async ({ page }) => {
-    await page.goto("/search/cedarburg-homes-for-sale");
-    await expect(page.getByRole("heading", { name: /homes for sale in cedarburg/i })).toBeVisible();
-    await page.getByRole("button", { name: /see active listings/i }).click();
-    const modal = page.getByRole("dialog");
-    await expect(modal).toBeVisible();
-  });
-
-  test("buy-intent niche gate names the town", async ({ page }) => {
-    await page.goto("/search/cedarburg-homes-for-sale");
-    await page.getByRole("button", { name: /see active listings/i }).click();
-    await expect(
-      page.getByRole("dialog").getByRole("heading", { name: /want new cedarburg listings sent to you first/i }),
-    ).toBeVisible();
-  });
-
   test("unknown niche slug → 404", async ({ page }) => {
     const r = await page.goto("/search/this-slug-does-not-exist-9876");
     expect(r?.status()).toBe(404);
   });
 });
 
-// The listings gate offers a way past it with no email. Each test clicks skip
-// and checks where the visitor went, that no lead was posted, and that the skip
-// reached dataLayer, which is how it gets compared against search_gate_lead.
-test.describe("Listings gate skip", () => {
+// T-088: every listings button is a plain link straight to the AgentFire
+// search, with no email gate in front of it. Each row is one button: the page,
+// its text, the search it opens and the utm_term that names where it sits.
+const LISTING_LINKS: {
+  path: string;
+  text: string;
+  pathname: string;
+  listingType: "Residential" | "Land";
+  key: string;
+  term: string;
+}[] = [
+  { path: "/", text: "Browse listings", pathname: "/properties/county-Ozaukee,%20WI/", listingType: "Residential", key: "ozaukee-county", term: "hero" },
+  { path: "/buy", text: "See Ozaukee County homes for sale", pathname: "/properties/county-Ozaukee,%20WI/", listingType: "Residential", key: "ozaukee-county", term: "buy" },
+  ...(
+    [
+      ["cedarburg", "Cedarburg", "city-Cedarburg"],
+      ["mequon", "Mequon", "city-Mequon"],
+      ["thiensville", "Thiensville", "place-Thiensville"],
+      ["grafton", "Grafton", "city-Grafton"],
+      ["port-washington", "Port Washington", "city-Port%20Washington"],
+      ["saukville", "Saukville", "city-Saukville"],
+      ["ozaukee-county", "Ozaukee County", "county-Ozaukee"],
+    ] as const
+  ).map(([key, town, place]) => ({
+    path: `/search/${key}-homes-for-sale`,
+    text: `See all ${town} homes for sale`,
+    pathname: `/properties/${place},%20WI/`,
+    listingType: "Residential" as const,
+    key,
+    term: "town_page",
+  })),
+  { path: "/northwoods", text: "Search Northwoods land", pathname: "/properties/county-Marinette,%20WI/", listingType: "Land", key: "marinette-land", term: "northwoods" },
+  { path: "/northwoods", text: "See Northwoods homes and cabins", pathname: "/properties/county-Marinette,%20WI/", listingType: "Residential", key: "marinette-homes", term: "northwoods" },
+  { path: "/northwoods", text: "See Northwoods land", pathname: "/properties/county-Marinette,%20WI/", listingType: "Land", key: "marinette-land", term: "northwoods" },
+];
+
+// The homepage's "03 Search" card is one link around the whole card, so its
+// name is all of the card's text; it is found by its call to action instead.
+function listingLink(page: import("@playwright/test").Page, row: (typeof LISTING_LINKS)[number]) {
+  return row.text === "Browse listings"
+    ? page.locator("section#approach a").filter({ hasText: row.text })
+    : page.getByRole("link", { name: row.text, exact: true });
+}
+
+function expectListingSearch(href: string | null, row: (typeof LISTING_LINKS)[number]) {
+  const url = new URL(href ?? "");
+  expect(url.origin).toBe("https://exsellexperts.com");
+  expect(url.pathname).toBe(row.pathname);
+  expect(url.searchParams.get("listingType")).toBe(row.listingType);
+  expect(url.searchParams.get("status")).toBe("Active");
+  expect(url.searchParams.get("utm_source")).toBe("anthonystolp");
+  expect(url.searchParams.get("utm_medium")).toBe("referral");
+  expect(url.searchParams.get("utm_campaign")).toBe("town-search");
+  expect(url.searchParams.get("utm_content")).toBe(row.key);
+  expect(url.searchParams.get("utm_term")).toBe(row.term);
+}
+
+// With JavaScript off, what is on the page is the server HTML: the link has to
+// be there, point at the search, and work.
+test.describe("Listings links work with JavaScript off", () => {
+  test.use({ javaScriptEnabled: false });
+
+  for (const row of LISTING_LINKS) {
+    test(`${row.path} "${row.text}" goes straight to the ${row.key} search`, async ({ page }) => {
+      await page.route("https://exsellexperts.com/**", (r) => r.abort());
+      await page.goto(row.path);
+      const link = listingLink(page, row);
+      await expect(link).toHaveCount(1);
+      expectListingSearch(await link.getAttribute("href"), row);
+      // Same tab.
+      expect(await link.getAttribute("target")).toBeNull();
+
+      const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"));
+      await link.click();
+      expectListingSearch((await outbound).url(), row);
+    });
+  }
+
+  test("the homepage hero button goes to the town tiles on the same page", async ({ page }) => {
+    await page.goto("/");
+    const hero = page.locator("section").filter({ has: page.locator("h1") });
+    const link = hero.getByRole("link", { name: "See homes for sale", exact: true });
+    await expect(link).toHaveAttribute("href", "#homes");
+    const target = page.locator("#homes");
+    await expect(target).toHaveCount(1);
+    await expect(target.getByRole("heading", { name: "Homes for sale now", level: 2 })).toHaveCount(1);
+    await expect(target.getByRole("heading", { name: "Cedarburg", level: 3 })).toHaveCount(1);
+  });
+
+  for (const [path, line] of [
+    ["/search/cedarburg-homes-for-sale", "Want new Cedarburg listings sent to you first? Get alerts"],
+    ["/search/thiensville-homes-for-sale", "Want new Thiensville listings sent to you first? Get alerts"],
+    ["/northwoods", "Want new listings sent to you first? Get alerts"],
+  ] as const) {
+    test(`${path} offers alerts under the button, pointing at its one alerts block`, async ({ page }) => {
+      await page.goto(path);
+      const lines = page.getByText(line, { exact: true });
+      await expect(lines.first()).toBeVisible();
+      for (const get of await lines.getByRole("link", { name: "Get alerts" }).all()) {
+        await expect(get).toHaveAttribute("href", "#alerts");
+      }
+      await expect(page.locator('[id="alerts"]')).toHaveCount(1);
+    });
+  }
+
+  test("a town page's alerts target is its listing alert card", async ({ page }) => {
+    await page.goto("/search/cedarburg-homes-for-sale");
+    await expect(
+      page.locator("#alerts").getByRole("heading", { name: "Get new Cedarburg listings first" }),
+    ).toHaveCount(1);
+    // The second card stays, without the id.
+    await expect(page.getByRole("heading", { name: "Get new Cedarburg listings first" })).toHaveCount(2);
+  });
+
+  test("/northwoods offers alerts under both sets of listing buttons", async ({ page }) => {
+    await page.goto("/northwoods");
+    await expect(page.getByText("Want new listings sent to you first? Get alerts", { exact: true })).toHaveCount(2);
+    await expect(page.locator("#alerts").getByRole("heading", { name: /Find your place\s*up north\./ })).toHaveCount(1);
+  });
+
+  test("/buy has no alerts card, so its line goes to the Ozaukee County page's", async ({ page }) => {
+    await page.goto("/buy");
+    const line = page.getByText("Want new listings sent to you first? Get alerts", { exact: true });
+    await expect(line).toHaveCount(1);
+    await line.getByRole("link", { name: "Get alerts" }).click();
+    await page.waitForURL(/\/search\/ozaukee-county-homes-for-sale#alerts$/);
+    await expect(
+      page.locator("#alerts").getByRole("heading", { name: "Get new Ozaukee County listings first" }),
+    ).toHaveCount(1);
+  });
+});
+
+// With JavaScript on, the click goes straight through, no dialog ever opens,
+// and search_outbound reaches dataLayer with where the link sits.
+test.describe("Listings links record the click and never gate it", () => {
   type Pushed = { name: unknown; props: Record<string, unknown> | undefined };
 
   // Runs without the live tags: gtag.js and the Meta pixel are blocked, and a
   // stand-in gtag pushes onto dataLayer exactly as the snippet in Pixels.tsx
-  // does. Each push is also reported to the test, because the skip navigates
+  // does. Each push is also reported to the test, because the click navigates
   // away and the page's own dataLayer goes with it.
-  async function openGate(page: import("@playwright/test").Page, path: string, opener: RegExp) {
+  async function watchClicks(page: import("@playwright/test").Page, opts: { gtagThrows?: boolean } = {}) {
     const pushed: Pushed[] = [];
     await page.exposeFunction("__pwDataLayerPush", (entry: Pushed) => {
       pushed.push(entry);
     });
-    await page.addInitScript(() => {
+    await page.addInitScript((gtagThrows: boolean) => {
       const w = window as unknown as {
         dataLayer: unknown[];
         gtag: (...args: unknown[]) => void;
@@ -316,118 +380,70 @@ test.describe("Listings gate skip", () => {
       w.gtag = function gtag() {
         // eslint-disable-next-line prefer-rest-params
         w.dataLayer.push(arguments);
+        if (gtagThrows) throw new Error("tag manager broke");
       };
-    });
+    }, opts.gtagThrows ?? false);
     await page.route("https://www.googletagmanager.com/**", (r) => r.abort());
     await page.route("https://connect.facebook.net/**", (r) => r.abort());
     await page.route("**/api/track", (r) => r.fulfill({ status: 204 }));
-
     let leadPosted = false;
     await page.route("**/api/lead", (r) => {
       leadPosted = true;
       return r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' });
     });
     await page.route("https://exsellexperts.com/**", (r) => r.abort());
-
-    await page.goto(path);
-    await page.getByRole("button", { name: opener }).click();
-    const modal = page.getByRole("dialog");
-    await expect(modal).toBeVisible();
-    return { modal, pushed, leadPosted: () => leadPosted };
+    return { pushed, leadPosted: () => leadPosted };
   }
 
-  async function skip(page: import("@playwright/test").Page, modal: import("@playwright/test").Locator) {
+  // TrackingInit's page_view goes out from an effect, which runs only once the
+  // page has hydrated, so after it the links' click handlers are attached.
+  async function gotoHydrated(page: import("@playwright/test").Page, path: string) {
+    const pageView = page.waitForRequest((r) => r.url().endsWith("/api/track"));
+    await page.goto(path);
+    await pageView;
+  }
+
+  for (const row of LISTING_LINKS) {
+    test(`${row.path} "${row.text}" fires search_outbound and opens no dialog`, async ({ page }) => {
+      const watch = await watchClicks(page);
+      await gotoHydrated(page, row.path);
+      const link = listingLink(page, row);
+      await link.scrollIntoViewIfNeeded();
+
+      const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"), {
+        timeout: 10_000,
+      });
+      await link.click();
+      expectListingSearch((await outbound).url(), row);
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      expect(watch.leadPosted()).toBe(false);
+      await expect
+        .poll(() => watch.pushed.filter((e) => e.name === "search_outbound").map((e) => e.props))
+        .toEqual([{ town: row.key, source: "direct", placement: row.term }]);
+      const gateEvents = watch.pushed.filter((e) => String(e.name).startsWith("search_gate_"));
+      expect(gateEvents).toEqual([]);
+    });
+  }
+
+  test("a tracking error does not stop the link", async ({ page }) => {
+    const watch = await watchClicks(page, { gtagThrows: true });
+    await gotoHydrated(page, "/search/grafton-homes-for-sale");
+    const link = page.getByRole("link", { name: "See all Grafton homes for sale", exact: true });
     const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"), {
       timeout: 10_000,
     });
-    await modal.getByRole("button", { name: /skip, just show me listings/i }).click();
-    return new URL((await outbound).url());
-  }
+    await link.click();
+    expect(new URL((await outbound).url()).pathname).toBe("/properties/city-Grafton,%20WI/");
+    await expect.poll(() => watch.pushed.some((e) => e.name === "search_outbound")).toBe(true);
+  });
 
-  test("from a city page, skip goes to that town's search with no email", async ({ page }) => {
-    const gate = await openGate(page, "/search/cedarburg-homes-for-sale", /see active listings/i);
-    await expect(
-      gate.modal.getByRole("heading", { name: /want new cedarburg listings sent to you first/i }),
-    ).toBeVisible();
-
-    const landed = await skip(page, gate.modal);
-    expect(landed.pathname).toBe("/properties/city-Cedarburg,%20WI/");
-    expect(landed.searchParams.get("status")).toBe("Active");
-    expect(landed.searchParams.get("utm_campaign")).toBe("town-search");
-    expect(landed.searchParams.get("utm_content")).toBe("cedarburg");
-    expect(gate.leadPosted()).toBe(false);
+  test("the key the old gate left in localStorage is cleared", async ({ page }) => {
+    await page.goto("/about");
+    await page.evaluate(() => localStorage.setItem("as_gate_seen", String(Date.now() + 1e9)));
+    await page.goto("/");
     await expect
-      .poll(() => gate.pushed.find((e) => e.name === "search_gate_skip")?.props)
-      .toMatchObject({
-        niche_slug: "cedarburg-homes-for-sale",
-        town: "cedarburg",
-        destination: "town_search",
-      });
-    await expect
-      .poll(() => gate.pushed.find((e) => e.name === "search_outbound")?.props)
-      .toMatchObject({ town: "cedarburg", source: "gate_skip" });
-  });
-
-  test("after a skip, the button goes straight to the listings", async ({ page }) => {
-    const gate = await openGate(page, "/search/mequon-homes-for-sale", /see active listings/i);
-    await skip(page, gate.modal);
-
-    await page.goto("/search/grafton-homes-for-sale");
-    const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"));
-    await page.getByRole("button", { name: /see active listings/i }).click();
-    const landed = new URL((await outbound).url());
-    expect(landed.pathname).toBe("/properties/city-Grafton,%20WI/");
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-    await expect
-      .poll(() => gate.pushed.filter((e) => e.name === "search_outbound").at(-1)?.props)
-      .toMatchObject({ town: "grafton", source: "direct" });
-  });
-
-  test("closing the gate is remembered too", async ({ page }) => {
-    const gate = await openGate(page, "/search/saukville-homes-for-sale", /see active listings/i);
-    await gate.modal.getByRole("button", { name: "Close" }).click();
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-
-    const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"));
-    await page.getByRole("button", { name: /see active listings/i }).click();
-    expect(new URL((await outbound).url()).pathname).toBe("/properties/city-Saukville,%20WI/");
-  });
-
-  test("from the homepage hero, skip goes to the Ozaukee County search", async ({ page }) => {
-    const gate = await openGate(page, "/", /browse active listings/i);
-    await expect(gate.modal.getByRole("heading", { name: /want new listings sent to you first/i })).toBeVisible();
-
-    const landed = await skip(page, gate.modal);
-    expect(landed.pathname).toBe("/properties/county-Ozaukee,%20WI/");
-    expect(landed.searchParams.get("utm_campaign")).toBe("town-search");
-    expect(landed.searchParams.get("utm_content")).toBe("ozaukee-county");
-    expect(gate.leadPosted()).toBe(false);
-    await expect
-      .poll(() => gate.pushed.find((e) => e.name === "search_gate_skip")?.props)
-      .toMatchObject({ town: "ozaukee-county", destination: "town_search" });
-  });
-
-  test("/buy has no one town, so it opens the Ozaukee County search", async ({ page }) => {
-    const gate = await openGate(page, "/buy", /see active listings/i);
-    const landed = await skip(page, gate.modal);
-    expect(landed.pathname).toBe("/properties/county-Ozaukee,%20WI/");
-  });
-
-  test("Northwoods offers Marinette County homes and land as separate searches", async ({ page }) => {
-    const homes = await openGate(page, "/northwoods", /see homes and cabins/i);
-    const toHomes = await skip(page, homes.modal);
-    expect(toHomes.pathname).toBe("/properties/county-Marinette,%20WI/");
-    expect(toHomes.searchParams.get("listingType")).toBe("Residential");
-    expect(toHomes.searchParams.get("utm_content")).toBe("marinette-homes");
-
-    // The skip is remembered, so the land button goes straight through.
-    await page.goto("/northwoods");
-    const outbound = page.waitForRequest((r) => r.url().startsWith("https://exsellexperts.com/"));
-    await page.getByRole("button", { name: /^see land/i }).click();
-    const toLand = new URL((await outbound).url());
-    expect(toLand.pathname).toBe("/properties/county-Marinette,%20WI/");
-    expect(toLand.searchParams.get("listingType")).toBe("Land");
-    expect(toLand.searchParams.get("utm_content")).toBe("marinette-land");
+      .poll(() => page.evaluate(() => localStorage.getItem("as_gate_seen")))
+      .toBeNull();
   });
 });
 
@@ -658,33 +674,6 @@ test.describe("Paid-click attribution", () => {
       ).toBeVisible({ timeout: 15_000 });
     });
     expect(body.click).toMatchObject({ gclid: "pw-surface-mr" });
-    expect(body.visitorId).toBeTruthy();
-  });
-
-  test("SearchGate carries click id + visitorId", async ({ page }) => {
-    await landOnAd(page, "/?gclid=pw-surface-sg");
-    await page.goto("/about");
-    await page.goto("/");
-    // Submitting navigates off-site; stop that so the test stays local.
-    await page.route("https://exsellexperts.com/**", (route) => route.abort());
-
-    const body = await captureLeadPost(page, async () => {
-      await page.getByRole("button", { name: /browse active listings/i }).click();
-      const modal = page.getByRole("dialog");
-      await expect(modal).toBeVisible();
-      await modal.getByLabel(/^email$/i).fill(email("surface-sg"));
-      await modal.getByLabel(/^timeframe$/i).selectOption("1-3mo");
-      await modal.getByLabel(/i agree to the/i).check();
-      // The page unloads on success, so wait for the request rather than a
-      // success state that may never paint.
-      const posted = page.waitForRequest(
-        (r) => r.url().endsWith("/api/lead") && r.method() === "POST",
-        { timeout: 10_000 },
-      );
-      await modal.getByRole("button", { name: /see active listings/i }).click();
-      await posted;
-    });
-    expect(body.click).toMatchObject({ gclid: "pw-surface-sg" });
     expect(body.visitorId).toBeTruthy();
   });
 

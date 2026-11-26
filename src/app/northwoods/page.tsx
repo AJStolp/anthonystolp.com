@@ -4,6 +4,7 @@ import { Phone, MessageSquare, Mail } from "lucide-react";
 import { Nav } from "@/components/Nav";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
+import { GetAlertsLine } from "@/components/GetAlertsLine";
 import { NorthwoodsSearch } from "@/components/NorthwoodsSearch";
 import { NORTHWOODS_SOURCES, NORTHWOODS_TEAM, type TeamMember } from "@/lib/northwoods";
 import { getAgentProfile } from "@/lib/agent-profile";
@@ -18,7 +19,7 @@ const PAGE_URL = `${SITE_URL}/northwoods`;
 
 const TITLE = "Marinette County Land and Cabins · Jay and Anthony Stolp";
 const DESCRIPTION =
-  "Rural land with no address, just coordinates? We will get back there, walk it, fly it, and market it right. Land, cabins, and lake homes across Marinette County, WI.";
+  "Rural land with no address, just coordinates? We'll get out there, walk it, fly it, and market it right. Land, cabins, and lake homes in Marinette County, WI.";
 const OG_IMAGE = {
   url: "/images/northwoods/og-pembine.jpg",
   width: 1200,
@@ -249,6 +250,7 @@ export default function NorthwoodsPage() {
                 Call or Text Us
               </a>
             </div>
+            <GetAlertsLine className="mt-4 text-[14px] leading-[1.6] text-white" />
           </div>
         </section>
 
@@ -287,9 +289,10 @@ export default function NorthwoodsPage() {
               hit the MLS.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <NorthwoodsSearch kind="homes" label="See homes and cabins" />
-              <NorthwoodsSearch kind="land" label="See land" />
+              <NorthwoodsSearch kind="homes" label="See Northwoods homes and cabins" />
+              <NorthwoodsSearch kind="land" label="See Northwoods land" />
             </div>
+            <GetAlertsLine />
           </div>
         </section>
 
@@ -406,20 +409,23 @@ export default function NorthwoodsPage() {
           </div>
         </section>
 
-        {/* 7. Contact form */}
-        <LeadForm
-          source={NORTHWOODS_SOURCES.contact}
-          heading={
-            <>
-              Find your place
-              <br />
-              up north.
-            </>
-          }
-          intro="Tell us what you're after: a cabin, a lake lot, acreage, or selling what you have. Jay and Anthony both read every message and reply within the day."
-          cell={getAgentProfile().mobilePhone}
-          messagePlaceholder="Township, lake, acreage, timing, anything on your mind."
-        />
+        {/* 7. Contact form. Also the target of "Get alerts" (T-088); the form
+            keeps its own id="contact" for the links that already use it. */}
+        <div id="alerts" className="scroll-mt-20">
+          <LeadForm
+            source={NORTHWOODS_SOURCES.contact}
+            heading={
+              <>
+                Find your place
+                <br />
+                up north.
+              </>
+            }
+            intro="Tell us what you're after: a cabin, a lake lot, acreage, or selling what you have. Jay and Anthony both read every message and reply within the day."
+            cell={getAgentProfile().mobilePhone}
+            messagePlaceholder="Township, lake, acreage, timing, anything on your mind."
+          />
+        </div>
         <Footer
           wordmark="NORTHWOODS"
           contacts={NORTHWOODS_TEAM}

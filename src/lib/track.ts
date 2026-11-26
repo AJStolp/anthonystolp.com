@@ -2,6 +2,7 @@
 // Always include the visitor id so anonymous activity can be joined to a
 // lead later when the same visitor identifies via a form.
 
+import type { ListingPlacement } from "./listing-search";
 import { getOrCreateVisitorId } from "./visitor";
 
 type BaseFields = {
@@ -62,13 +63,15 @@ export type TrackEvent =
       };
     })
   | (BaseFields & {
-      // Any click out to an AgentFire listing search. `source` says how the
-      // visitor got there: by skipping the gate, by submitting it, or straight
-      // through because they had already seen it.
+      // Any click out to an AgentFire listing search. Every listings link goes
+      // straight there since T-088 removed the email gate, so `source` is
+      // always "direct"; older rows also carry "gate_skip" and "gate_submit".
+      // `placement` is the link's utm_term.
       event: "search_outbound";
       properties: {
         town: string;
-        source: "gate_skip" | "gate_submit" | "direct";
+        source: "direct";
+        placement: ListingPlacement;
       };
     })
   | (BaseFields & {
@@ -101,6 +104,12 @@ export type TrackEvent =
       // The listing alert card on a town page scrolled into view, once a page.
       event: "listing_alert_view";
       properties: { town: string; page_path: string };
+    })
+  | (BaseFields & {
+      // The homepage's "Homes for sale now" town tiles scrolled into view,
+      // once a page view (T-089).
+      event: "home_tiles_view";
+      properties: { page_path: string };
     })
   | (BaseFields & {
       event: "listing_alert_lead";
@@ -161,6 +170,7 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "search_gate_view":
     case "search_gate_skip":
     case "listing_alert_view":
+    case "home_tiles_view":
     case "save_home_click":
     case "similar_homes_lead":
     case "market_report_view":

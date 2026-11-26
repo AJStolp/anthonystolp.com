@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
-import { NicheCTA } from "@/components/NicheCTA";
+import { GetAlertsLine } from "@/components/GetAlertsLine";
+import { ListingSearchLink } from "@/components/ListingSearchLink";
 import { agentJsonLd, brokerageJsonLd } from "@/lib/json-ld";
 import { COMMUNITIES } from "@/lib/communities";
 import { getActiveDirectory } from "@/lib/niche-pages";
@@ -12,15 +13,16 @@ export const revalidate = 3600;
 
 const SITE_URL = "https://anthonystolp.com";
 
+const DESCRIPTION =
+  "Buying in Cedarburg, Mequon, Grafton or anywhere in Ozaukee County? Get local advice, new listings first, and a straight answer. Call or text (262) 483-7932.";
+
 export const metadata: Metadata = {
   title: "Buy a Home in Cedarburg and Ozaukee County",
-  description:
-    "Buying in Cedarburg, Ozaukee County, or nearby Washington County? New listings sent to you as they hit the MLS, a local read on each town, and honest negotiation from Anthony Stolp.",
+  description: DESCRIPTION,
   alternates: { canonical: "/buy" },
   openGraph: {
     title: "Buy a Home in Cedarburg and Ozaukee County · Anthony Stolp",
-    description:
-      "New listings sent to you, local knowledge, and honest negotiation. Start your home search with Anthony Stolp.",
+    description: DESCRIPTION,
     url: "/buy",
     type: "website",
     images: OG_IMAGES,
@@ -28,8 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Buy a Home in Cedarburg and Ozaukee County · Anthony Stolp",
-    description:
-      "New listings sent to you, local knowledge, and honest negotiation. Start your home search.",
+    description: DESCRIPTION,
   },
 };
 
@@ -142,7 +143,16 @@ export default async function BuyPage() {
             with each before you tour, and negotiate hard when it counts.
           </p>
           <div className="mt-10">
-            <NicheCTA intent="buy" slug="buy-hub" />
+            <ListingSearchLink
+              search="ozaukee-county"
+              placement="buy"
+              className="inline-flex items-center justify-center border border-ink bg-ink px-8 py-4 text-center text-[12px] uppercase tracking-[0.32em] text-white transition-all hover:bg-transparent hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            >
+              See Ozaukee County homes for sale
+            </ListingSearchLink>
+            {/* /buy has no alerts card of its own, so the line goes to the
+                Ozaukee County page's, the same search the button opens. */}
+            <GetAlertsLine href="/search/ozaukee-county-homes-for-sale#alerts" />
           </div>
         </section>
 

@@ -182,7 +182,7 @@ export function NichePageForm({ mode, initial, slug: editSlug }: Props) {
           onChange={(e) => update("intent", e.target.value as "buy" | "sell")}
           className="field"
         >
-          <option value="buy">Buy (CTA opens SearchGate → exsell)</option>
+          <option value="buy">Buy (CTA links straight to the exsell search)</option>
           <option value="sell">Sell (CTA goes to /home-value)</option>
         </select>
       </Row>

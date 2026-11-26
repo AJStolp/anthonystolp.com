@@ -2,10 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { SearchGate, useSearchGate } from "./SearchGate";
 import { STATUS_LABEL, type PropertyRow } from "@/lib/properties";
 import { telHref } from "@/lib/phone";
-import { FALLBACK_SEARCH } from "@/lib/listing-search";
 
 type Props = {
   // Newest pending/sold listing, or null when there are none — also the
@@ -19,8 +17,6 @@ type Props = {
 };
 
 export function Hero({ featured, cell, seasonal }: Props) {
-  const gate = useSearchGate(FALLBACK_SEARCH);
-
   return (
     <section className="w-full bg-white">
       <div className="mx-auto max-w-7xl px-6 pt-28 pb-14 md:px-12 md:pt-36 md:pb-20">
@@ -44,16 +40,13 @@ export function Hero({ featured, cell, seasonal }: Props) {
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <button
-                type="button"
-                onClick={gate.request}
-                className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink bg-ink px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-white transition-all hover:bg-transparent hover:text-ink"
+              {/* To the town tiles further down the page, no gate (T-088). */}
+              <a
+                href="#homes"
+                className="inline-flex items-center justify-center whitespace-nowrap border border-ink bg-ink px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-white transition-all hover:bg-transparent hover:text-ink"
               >
-                Browse active listings
-                <span aria-hidden className="transition-transform group-hover:translate-x-1">
-                  →
-                </span>
-              </button>
+                See homes for sale
+              </a>
               <Link
                 href="/home-value"
                 className="group inline-flex items-center justify-center gap-3 whitespace-nowrap border border-ink/20 px-6 py-4 text-[11px] uppercase tracking-[0.2em] text-ink transition-all hover:border-ink"
@@ -104,12 +97,6 @@ export function Hero({ featured, cell, seasonal }: Props) {
           </div>
         </div>
       </div>
-
-      <SearchGate
-        open={gate.open}
-        onClose={gate.close}
-        search={FALLBACK_SEARCH}
-      />
     </section>
   );
 }
