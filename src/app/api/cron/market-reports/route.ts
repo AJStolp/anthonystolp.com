@@ -8,19 +8,20 @@ import {
   draftReport,
   factCheckDraft,
   validateDraft,
+  zipHasSubscribers,
 } from "@/lib/market-report";
-import { applyComplianceFooter } from "@/lib/email-compliance";
 import { Resend as ResendClient } from "resend";
 
-// Allow up to 5 minutes for the cron — Redfin stream + Claude calls + sends.
+// Allow up to 5 minutes for the cron: Redfin stream plus Claude calls.
 // Hobby plan caps at 60s; pro/enterprise can go higher.
 export const maxDuration = 300;
 
 // Monthly cron entry. Triggered by Vercel Cron (see vercel.json).
 //
-// Default behavior: generate drafts only, do NOT send. AJ reviews in /admin/reports
-// and clicks send. Once 3 cycles have run cleanly, flip AUTO_SEND=true in env
-// to skip the human gate.
+// Drafts one River Report section per zip and sends nothing to subscribers.
+// AJ reviews and approves the sections in /admin/reports, and the River Report
+// issue send places the approved section for each subscriber's zip. The only
+// email sent here is the summary to AJ.
 //
 // Verified via CRON_SECRET header to prevent random invocations.
 
@@ -112,14 +113,7 @@ export async function GET(req: Request) {
   // ── Step 2: For each zip with stats AND subscribers, draft + self-review ─
   for (const zip of agent.targetZips) {
     try {
-      const { data: subs } = await supabase
-        .from("funnel_leads")
-        .select("id")
-        .eq("source", "market-report-subscribe")
-        .eq("postal_code", zip)
-        .is("unsubscribed_at", null)
-        .limit(1);
-      if (!subs || subs.length === 0) {
+      if (!(await zipHasSubscribers(supabase, zip))) {
         summary.reports.push({ zip, status: "skipped-no-subscribers" });
         continue;
       }
@@ -177,8 +171,8 @@ export async function GET(req: Request) {
       }
 
       // Two-pass safety: deterministic validation, then Claude fact-check
-      // against the source stats. Both must pass to be ready/auto-send.
-      const validation = validateDraft(draft, agent);
+      // against the source stats. Both must pass to be ready for approval.
+      const validation = validateDraft(draft);
       const factCheck = await factCheckDraft(draft, latest, agent);
       const factOk = factCheck?.accurate ?? false;
       const score = factCheck?.confidence ?? 0;
@@ -204,11 +198,8 @@ export async function GET(req: Request) {
         notesParts.push("FACT-CHECK: not run (API key missing or error)");
       }
 
+      // Passed → 'ready' (approved). Failed → 'draft' for AJ to fix and approve.
       const passed = validation.valid && factOk;
-      const autoSend = process.env.AUTO_SEND === "true";
-      // If passed AND auto-send → status starts as 'ready', send below.
-      // If passed AND not auto-send → 'ready' awaiting manual send.
-      // If failed → 'draft' for AJ to inspect.
       const initialStatus = passed ? "ready" : "draft";
 
       const { data: inserted, error: insertErr } = await supabase
@@ -236,18 +227,7 @@ export async function GET(req: Request) {
         continue;
       }
 
-      // Auto-send path: if both checks passed and flag is on, send immediately.
-      if (passed && autoSend) {
-        const sentResult = await sendReport(inserted.id, agent);
-        summary.reports.push({
-          zip,
-          status: sentResult.status,
-          score,
-          ...(sentResult.detail ? { error: sentResult.detail } : {}),
-        });
-      } else {
-        summary.reports.push({ zip, status: initialStatus, score });
-      }
+      summary.reports.push({ zip, status: initialStatus, score });
     } catch (err) {
       summary.reports.push({
         zip,
@@ -258,27 +238,24 @@ export async function GET(req: Request) {
   }
 
   // ── Step 3: Notify the agent ──────────────────────────────────────────
-  // Send a single summary email so AJ knows what happened. Always run, even
-  // on full auto-send, so there is always a paper trail.
+  // A single summary email so AJ knows what happened and has a paper trail.
   const apiKey = process.env.RESEND_API_KEY;
   if (apiKey && summary.reports.length > 0) {
     const resend = new ResendClient(apiKey);
     const lines = summary.reports
       .map(
         (r) =>
-          `- ${r.zip}: ${r.status}${r.score != null ? ` (score ${r.score})` : ""}${r.error ? ` — ${r.error}` : ""}`,
+          `- ${r.zip}: ${r.status}${r.score != null ? ` (score ${r.score})` : ""}${r.error ? `: ${r.error}` : ""}`,
       )
       .join("\n");
-    const autoSendNote =
-      process.env.AUTO_SEND === "true"
-        ? "AUTO_SEND is ON. Reports that passed both validation and fact-check were sent automatically."
-        : "AUTO_SEND is OFF. Reports that passed checks are 'ready' and awaiting your send from /admin/reports.";
+    const note =
+      "These are River Report zip sections, not emails. Nothing was sent to subscribers. Sections that passed both checks are marked 'ready', which counts as approved. Sections marked 'draft' need a read and an Approve in /admin/reports. Approved sections go out inside The River Report.";
     await resend.emails
       .send({
         from: `Anthony Stolp Site <${agent.fromEmail}>`,
         to: agent.replyToEmail,
-        subject: `Market reports — ${month}`,
-        text: `Month: ${month}\n\n${autoSendNote}\n\nResults:\n${lines}\n\nReview: https://${agent.websiteDomain}/admin/reports`,
+        subject: `River Report zip sections, ${month}`,
+        text: `Month: ${month}\n\n${note}\n\nResults:\n${lines}\n\nReview: https://${agent.websiteDomain}/admin/reports`,
       })
       .catch((err) => {
         console.error("[cron/market-reports] notify email failed:", err);
@@ -286,92 +263,4 @@ export async function GET(req: Request) {
   }
 
   return NextResponse.json(summary);
-}
-
-// ── Inline send for AUTO_SEND path ──────────────────────────────────────────
-// Mirrors /api/admin/reports/[id]/send but called directly from the cron so
-// there's no second HTTP hop. Updates the report row to status='sent' on
-// success or 'failed' on error.
-
-async function sendReport(
-  reportId: string,
-  agent: ReturnType<typeof getAgentProfile>,
-): Promise<{ status: string; detail?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return { status: "send-skipped", detail: "no RESEND_API_KEY" };
-  }
-  const supabase = getSupabase();
-  const { data: report } = await supabase
-    .from("market_reports")
-    .select("id,zip,subject,body_text,body_html")
-    .eq("id", reportId)
-    .maybeSingle();
-  if (!report) return { status: "send-failed", detail: "report not found" };
-
-  const { data: subscribers } = await supabase
-    .from("funnel_leads")
-    .select("id,email,name")
-    .eq("source", "market-report-subscribe")
-    .eq("postal_code", report.zip)
-    .is("unsubscribed_at", null);
-  const recipients = (subscribers ?? []).filter((s) => !!s.email);
-  if (recipients.length === 0) {
-    await supabase
-      .from("market_reports")
-      .update({
-        status: "sent",
-        sent_at: new Date().toISOString(),
-        sent_to_count: 0,
-      })
-      .eq("id", reportId);
-    return { status: "sent-0-subscribers" };
-  }
-
-  const resend = new ResendClient(apiKey);
-  let sent = 0;
-  const errors: string[] = [];
-  for (const sub of recipients) {
-    if (!sub.email) continue;
-    const firstName = (sub.name ?? "").split(" ")[0] || "there";
-    const personalizedText = report.body_text.replace(/\{\{first_name\}\}/g, firstName);
-    const personalizedHtml = report.body_html.replace(/\{\{first_name\}\}/g, firstName);
-    const { text, html, headers } = applyComplianceFooter({
-      text: personalizedText,
-      html: personalizedHtml,
-      agent,
-      leadId: sub.id,
-    });
-    try {
-      const res = await resend.emails.send({
-        from: `${agent.shortName} Stolp <${agent.fromEmail}>`,
-        to: sub.email,
-        replyTo: agent.replyToEmail,
-        subject: report.subject,
-        text,
-        html,
-        headers,
-      });
-      if (res.error) errors.push(`${sub.email}: ${res.error.message}`);
-      else sent += 1;
-    } catch (err) {
-      errors.push(
-        `${sub.email}: ${err instanceof Error ? err.message : "unknown"}`,
-      );
-    }
-    await new Promise((r) => setTimeout(r, 80));
-  }
-  const finalStatus = errors.length === 0 ? "sent" : "failed";
-  await supabase
-    .from("market_reports")
-    .update({
-      status: finalStatus,
-      sent_at: new Date().toISOString(),
-      sent_to_count: sent,
-    })
-    .eq("id", reportId);
-  return {
-    status: finalStatus === "sent" ? `sent-${sent}` : `sent-with-errors`,
-    detail: errors.length > 0 ? errors.slice(0, 3).join("; ") : undefined,
-  };
 }
