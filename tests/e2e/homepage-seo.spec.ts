@@ -90,20 +90,30 @@ test.describe("Homepage targets Cedarburg and Ozaukee County", () => {
     expect(text).toBe("Your partner for Cedarburg and Ozaukee County real estate.");
   });
 
-  test("homepage JSON-LD parses and the agent lists the six towns ahead of the counties", async ({ request }) => {
+  test("homepage JSON-LD parses and the agent lists the nine towns ahead of the counties", async ({ request }) => {
     const blocks = jsonLdBlocks(await html(request, "/"));
     expect(blocks.length).toBeGreaterThan(0);
     const graph = graphOf(blocks);
     const agent = graph.find((n) => n["@id"] === AGENT_ID);
     expect(agent?.["@type"]).toBe("RealEstateAgent");
     const areas = (agent?.areaServed ?? []) as Node[];
-    expect(areas.slice(0, 6)).toEqual(
-      ["Cedarburg", "Mequon", "Thiensville", "Grafton", "Port Washington", "Saukville"].map(
+    expect(areas.slice(0, 9)).toEqual(
+      [
+        "Cedarburg",
+        "Mequon",
+        "Thiensville",
+        "Grafton",
+        "Port Washington",
+        "Saukville",
+        "West Bend",
+        "Hartford",
+        "Germantown",
+      ].map(
         (town) => ({ "@type": "City", name: `${town}, Wisconsin` }),
       ),
     );
     // The wider service area stays, led by Ozaukee.
-    expect(areas.slice(6).map((a) => a.name)).toEqual([
+    expect(areas.slice(9).map((a) => a.name)).toEqual([
       "Ozaukee County, Wisconsin",
       "Washington County, Wisconsin",
       "Waukesha County, Wisconsin",

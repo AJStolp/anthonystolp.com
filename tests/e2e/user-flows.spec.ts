@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 
 // Unique stamp per run so test rows are filterable / cleanable.
 const STAMP = `pw-${Date.now()}`;
@@ -309,6 +309,7 @@ test.describe("Listings links work with JavaScript off", () => {
     ["/search/cedarburg-homes-for-sale", "Want new Cedarburg listings sent to you first? Get alerts"],
     ["/search/thiensville-homes-for-sale", "Want new Thiensville listings sent to you first? Get alerts"],
     ["/northwoods", "Want new listings sent to you first? Get alerts"],
+    ["/buy", "Want new listings sent to you first? Get alerts"],
   ] as const) {
     test(`${path} offers alerts under the button, pointing at its one alerts block`, async ({ page }) => {
       await page.goto(path);
@@ -335,16 +336,76 @@ test.describe("Listings links work with JavaScript off", () => {
     await expect(page.getByText("Want new listings sent to you first? Get alerts", { exact: true })).toHaveCount(2);
     await expect(page.locator("#alerts").getByRole("heading", { name: /Find your place\s*up north\./ })).toHaveCount(1);
   });
+});
 
-  test("/buy has no alerts card, so its line goes to the Ozaukee County page's", async ({ page }) => {
+// T-103: /buy has its own alert card, so "Get alerts" no longer leaves the
+// page. JavaScript is on here, as for a real visitor, so the card hydrates.
+test.describe("/buy's own alert card", () => {
+  let leadPosts = 0;
+  let trackEvents: string[] = [];
+  test.beforeEach(async ({ page }) => {
+    leadPosts = 0;
+    trackEvents = [];
+    await page.route("**/api/track", (r) => {
+      trackEvents.push(JSON.parse(r.request().postData() ?? "{}").event);
+      return r.fulfill({ status: 204 });
+    });
+    await page.route("**/api/lead", (r) => {
+      leadPosts += 1;
+      return r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"accepted":true}' });
+    });
+  });
+
+  test("Get alerts scrolls to the card on /buy and the URL stays /buy#alerts", async ({ page }) => {
     await page.goto("/buy");
     const line = page.getByText("Want new listings sent to you first? Get alerts", { exact: true });
     await expect(line).toHaveCount(1);
     await line.getByRole("link", { name: "Get alerts" }).click();
-    await page.waitForURL(/\/search\/ozaukee-county-homes-for-sale#alerts$/);
+    await page.waitForURL(/\/buy#alerts$/);
+    expect(new URL(page.url()).pathname).toBe("/buy");
+    const target = page.locator("#alerts");
+    await expect(target).toHaveCount(1);
     await expect(
-      page.locator("#alerts").getByRole("heading", { name: "Get new Ozaukee County listings first" }),
+      target.getByRole("heading", { name: "Get new Ozaukee County listings first" }),
     ).toHaveCount(1);
+    // scroll-mt-20 puts the card 80px under the top of the window.
+    await expect
+      .poll(() => target.evaluate((el) => Math.round(el.getBoundingClientRect().top)))
+      .toBe(80);
+  });
+
+  test("the card's Town dropdown lists the homepage's ten towns in order", async ({ page }) => {
+    await page.goto("/buy");
+    const select = page.locator("#alerts").getByLabel("Town", { exact: true });
+    await expect(select.locator("option")).toHaveText([
+      "Choose a town",
+      "Cedarburg",
+      "Mequon",
+      "Thiensville",
+      "Grafton",
+      "Port Washington",
+      "Saukville",
+      "Ozaukee County",
+      "West Bend",
+      "Hartford",
+      "Germantown",
+    ]);
+  });
+
+  test("submitting without a town shows Choose a town and posts no lead", async ({ page }) => {
+    await page.goto("/buy");
+    const card = page.locator("#alerts");
+    // The card's own view event means it has hydrated, so the click below
+    // reaches react-hook-form rather than a native form submit.
+    await card.scrollIntoViewIfNeeded();
+    await expect.poll(() => trackEvents).toContain("listing_alert_view");
+    await card.getByLabel("First name").fill("Jamie");
+    await card.getByLabel("Last name").fill("Rivera");
+    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel(/I agree to the/).check();
+    await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
+    await expect(card.getByRole("alert")).toHaveText("Choose a town");
+    expect(leadPosts).toBe(0);
   });
 });
 
@@ -542,6 +603,93 @@ test.describe("Static pages", () => {
     );
     expect(html).not.toMatch(/southeast Wisconsin/i);
     expect(html.match(/<h1[\s>]/g) ?? []).toHaveLength(1);
+  });
+
+  // T-104: Google only allows FAQ markup for questions shown on the page, so
+  // /home-value shows these three, word for word, and its JSON-LD says the same.
+  const HOME_VALUE_FAQS = [
+    {
+      q: "Is the home value really free?",
+      a: "Yes. No cost and no obligation. You get a price range and the nearby sales I based it on.",
+    },
+    {
+      q: "How is this different from an online estimate?",
+      a: "Online estimates are an algorithm guessing from public records. I look at what actually sold near you, plus the condition and updates you tell me about, and I send a range with the reasons behind it.",
+    },
+    {
+      q: "Do I have to list with you?",
+      a: "No. Use the number however you want. If you ever want to talk about selling, call or text me at (262) 483-7932.",
+    },
+  ];
+
+  type GraphNode = {
+    "@type": string;
+    mainEntity?: { name: string; acceptedAnswer: { text: string } }[];
+  };
+
+  async function serverGraph(request: APIRequestContext) {
+    const html = await (await request.get("/home-value")).text();
+    const blocks = [
+      ...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g),
+    ];
+    return blocks.flatMap((b) => (JSON.parse(b[1])["@graph"] ?? []) as GraphNode[]);
+  }
+
+  test("/home-value's server HTML carries FAQPage beside its other schema", async ({ request }) => {
+    const graph = await serverGraph(request);
+    expect(graph.map((n) => n["@type"]).sort()).toEqual([
+      "BreadcrumbList",
+      "FAQPage",
+      "RealEstateAgent",
+      "RealEstateOrganization",
+      "Service",
+      "WebPage",
+    ]);
+    const faq = graph.find((n) => n["@type"] === "FAQPage");
+    expect(
+      faq?.mainEntity?.map((m) => ({ q: m.name, a: m.acceptedAnswer.text })),
+    ).toEqual(HOME_VALUE_FAQS);
+  });
+
+  test("/home-value shows the same three questions above the footer, with the cell linked", async ({
+    page,
+    request,
+  }) => {
+    await page.route("**/api/track", (r) => r.fulfill({ status: 204 }));
+    await page.route("**/api/lead", (r) => r.abort());
+    const graph = await serverGraph(request);
+    const faq = graph.find((n) => n["@type"] === "FAQPage");
+
+    await page.goto("/home-value");
+    const section = page.locator("#faq");
+    await expect(section.getByRole("heading", { level: 2 })).toHaveText("Questions");
+    const questions = section.getByRole("heading", { level: 3 });
+    await expect(questions).toHaveText(HOME_VALUE_FAQS.map((f) => f.q));
+    const answers = section.locator("h3 + p");
+    await expect(answers).toHaveCount(3);
+    for (const [i, f] of HOME_VALUE_FAQS.entries()) {
+      // Each visible pair is exactly what the JSON-LD says.
+      expect(await questions.nth(i).textContent()).toBe(faq?.mainEntity?.[i].name);
+      expect((await answers.nth(i).textContent())?.trim()).toBe(f.a);
+      expect((await answers.nth(i).textContent())?.trim()).toBe(
+        faq?.mainEntity?.[i].acceptedAnswer.text,
+      );
+    }
+
+    const cell = answers.nth(2).locator('a[href="tel:+12624837932"]');
+    await expect(cell).toHaveText("(262) 483-7932");
+
+    // One h1 for the page, and the questions come after it and before the footer.
+    await expect(page.locator("h1")).toHaveCount(1);
+    const order = await section.evaluate((s) => {
+      const h1 = document.querySelector("h1")!;
+      const footer = document.querySelector("footer")!;
+      return {
+        afterH1: Boolean(h1.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING),
+        beforeFooter: Boolean(s.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING),
+      };
+    });
+    expect(order).toEqual({ afterH1: true, beforeFooter: true });
   });
 });
 

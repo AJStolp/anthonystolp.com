@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Locator, type Page } from "@playwright/test";
 
-// T-094: "[Town] homes for sale now" on the seven /search/*-homes-for-sale
+// T-094: "[Town] homes for sale now" on the ten /search/*-homes-for-sale
 // pages. The page's own town is one big tile, its neighbors smaller tiles
 // under it, and every tile is a plain link to that town's live search on
 // exsellexperts.com with utm_term=town_tiles. No tile carries a home count.
@@ -21,6 +21,9 @@ const SEARCH_PATH: Record<string, string> = {
   "port-washington": "/properties/city-Port%20Washington,%20WI/",
   saukville: "/properties/city-Saukville,%20WI/",
   "ozaukee-county": "/properties/county-Ozaukee,%20WI/",
+  "west-bend": "/properties/city-West%20Bend,%20WI/",
+  hartford: "/properties/city-Hartford,%20WI/",
+  germantown: "/properties/place-Germantown,%20WI/",
 };
 
 const NAME: Record<string, string> = {
@@ -31,6 +34,9 @@ const NAME: Record<string, string> = {
   "port-washington": "Port Washington",
   saukville: "Saukville",
   "ozaukee-county": "Ozaukee County",
+  "west-bend": "West Bend",
+  hartford: "Hartford",
+  germantown: "Germantown",
 };
 
 // Each page's own town first, then its neighbors in the order shown.
@@ -45,6 +51,10 @@ const PAGES: [town: string, neighbors: string[]][] = [
     "ozaukee-county",
     ["cedarburg", "mequon", "thiensville", "grafton", "port-washington", "saukville"],
   ],
+  // T-106: each Washington County town shows the other two, never an Ozaukee one.
+  ["west-bend", ["hartford", "germantown"]],
+  ["hartford", ["west-bend", "germantown"]],
+  ["germantown", ["west-bend", "hartford"]],
 ];
 
 // Pages that must not get tiles: every home value page and the four guides.

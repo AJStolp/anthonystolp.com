@@ -28,13 +28,20 @@ const TOWNS: { search: TownSearch; name: string }[] = [
   { search: "saukville", name: "Saukville" },
 ];
 const COUNTY = { search: "ozaukee-county", name: "Ozaukee County" } as const;
+// Tiles on their own town pages only. The homepage grid stays the Ozaukee
+// seven plus Northwoods (T-106).
+const WASHINGTON_TOWNS: { search: TownSearch; name: string }[] = [
+  { search: "west-bend", name: "West Bend" },
+  { search: "hartford", name: "Hartford" },
+  { search: "germantown", name: "Germantown" },
+];
 
 // The homepage's tiles are "home_tiles"; a town page's are "town_tiles".
 type HomePlacement = Extract<ListingPlacement, "home_tiles">;
 type TilePlacement = Extract<ListingPlacement, "home_tiles" | "town_tiles">;
 
 const NAME = Object.fromEntries(
-  [...TOWNS, COUNTY].map((t) => [t.search, t.name]),
+  [...TOWNS, COUNTY, ...WASHINGTON_TOWNS].map((t) => [t.search, t.name]),
 ) as Record<TownSearch, string>;
 
 // The smaller tiles under a town page's own town, nearest first. The county
@@ -47,6 +54,9 @@ const NEIGHBORS: Record<TownSearch, TownSearch[]> = {
   "port-washington": ["saukville", "grafton", "cedarburg"],
   saukville: ["port-washington", "grafton", "cedarburg"],
   "ozaukee-county": TOWNS.map((t) => t.search),
+  "west-bend": ["hartford", "germantown"],
+  hartford: ["west-bend", "germantown"],
+  germantown: ["west-bend", "hartford"],
 };
 
 const GUIDE_LINK =

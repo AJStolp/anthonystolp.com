@@ -3,18 +3,8 @@
 import { useEffect, useRef } from "react";
 import { ListingAlertCard } from "@/components/ListingAlertCard";
 import { TownTiles } from "@/components/TownTiles";
+import { ALERT_TOWNS } from "@/lib/alert-towns";
 import { track } from "@/lib/track";
-
-// The towns the homepage alert offers, in the tiles' order (T-095).
-const ALERT_TOWNS = [
-  "Cedarburg",
-  "Mequon",
-  "Thiensville",
-  "Grafton",
-  "Port Washington",
-  "Saukville",
-  "Ozaukee County",
-] as const;
 
 // "Homes for sale now", right under the homepage hero (T-089). The hero's
 // "See homes for sale" button is a plain href="#homes" that lands here.
