@@ -3,10 +3,10 @@ import Link from "next/link";
 import { BackToTop } from "./BackToTop";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
+import { BLOG_POSTS, blogPostPath } from "@/lib/blog-posts";
 import {
   COMMUNITIES,
   GUIDES,
-  MARKET_UPDATES,
   WASHINGTON_COMMUNITIES,
   homesHref,
   valueHref,
@@ -182,13 +182,20 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
                 Market updates
               </p>
               <ul className="mt-4 space-y-2 text-sm text-ink/75">
-                {MARKET_UPDATES.map((m) => (
-                  <li key={m.href}>
-                    <Link href={m.href} className="transition-colors hover:text-ink">
-                      {m.label}
+                {/* Every post, so a crawler reaches each one from every page
+                    rather than only from the sitemap. */}
+                {BLOG_POSTS.map((p) => (
+                  <li key={p.slug}>
+                    <Link href={blogPostPath(p.slug)} className="transition-colors hover:text-ink">
+                      {p.footerLabel}
                     </Link>
                   </li>
                 ))}
+                <li>
+                  <Link href="/blog" className="transition-colors hover:text-ink">
+                    All posts
+                  </Link>
+                </li>
               </ul>
             </nav>
           </div>
