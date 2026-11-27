@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { test, expect, type Locator, type Page } from "@playwright/test";
+import { testEmail } from "./test-email";
 
 // T-089: "Homes for sale now", the town tiles right under the homepage hero.
 // Every tile is a plain link to the town's live search on exsellexperts.com,
@@ -341,7 +342,7 @@ test.describe("The homepage listing alert", () => {
     await card.getByLabel("Town", { exact: true }).selectOption("Grafton");
     await card.getByLabel("First name").fill("Jamie");
     await card.getByLabel("Last name").fill("Rivera");
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("home-grafton"));
     await card.getByLabel(/I agree to the/).check();
     await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
 
@@ -353,7 +354,7 @@ test.describe("The homepage listing alert", () => {
       source: "listing-alert",
       firstName: "Jamie",
       lastName: "Rivera",
-      email: "buyer@example.com",
+      email: testEmail("home-grafton"),
       town: "Grafton",
       termsConsent: true,
     });
@@ -369,7 +370,7 @@ test.describe("The homepage listing alert", () => {
     await card.scrollIntoViewIfNeeded();
     await card.getByLabel("First name").fill("Jamie");
     await card.getByLabel("Last name").fill("Rivera");
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("home-no-town"));
     await card.getByLabel(/I agree to the/).check();
     await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
 

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { testEmail } from "./test-email";
 
 // T-106: the six Washington County pages (West Bend, Hartford, Germantown,
 // homes for sale and home value) went live as niche_pages rows on 2026-11-26.
@@ -109,7 +110,7 @@ test.describe("Washington County alert cards", () => {
     await card.scrollIntoViewIfNeeded();
     await card.getByLabel("First name").fill("Jamie");
     await card.getByLabel("Last name").fill("Rivera");
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("west-bend"));
     await card.getByLabel(/I agree to the/).check();
     await card.getByRole("button", { name: /Get West Bend listings/ }).click();
 
@@ -130,7 +131,7 @@ test.describe("Washington County alert cards", () => {
     await card.getByLabel("Town", { exact: true }).selectOption("Germantown");
     await card.getByLabel("First name").fill("Jamie");
     await card.getByLabel("Last name").fill("Rivera");
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("home-germantown"));
     await card.getByLabel(/I agree to the/).check();
     await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
 

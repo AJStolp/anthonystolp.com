@@ -1,8 +1,5 @@
 import { test, expect, type APIRequestContext } from "@playwright/test";
-
-// Unique stamp per run so test rows are filterable / cleanable.
-const STAMP = `pw-${Date.now()}`;
-const email = (suffix: string) => `${STAMP}+${suffix}@anthonystolp.com`;
+import { RUN_STAMP, testEmail } from "./test-email";
 
 // Two groups reach production when .env.local holds the live keys: "Funnel
 // submissions" posts real leads (Supabase rows, Resend mail, Lofty leads),
@@ -174,7 +171,7 @@ test.describe("Funnel submissions (real DB writes)", () => {
     await page.goto("/");
     const section = page.locator("section#market-report");
     await section.scrollIntoViewIfNeeded();
-    await section.getByLabel("Email", { exact: true }).fill(email("marketreport"));
+    await section.getByLabel("Email", { exact: true }).fill(testEmail("marketreport"));
     await section.getByLabel("Your zip (optional)").selectOption("53012");
     await section.getByLabel(/Send me The River Report once a month/).check();
     await section.getByRole("button", { name: "Send me The River Report" }).click();
@@ -188,8 +185,8 @@ test.describe("Funnel submissions (real DB writes)", () => {
     const contact = page.locator("section#contact");
     await contact.scrollIntoViewIfNeeded();
     // Scope every input to the contact section to avoid the River Report signup above.
-    await contact.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
-    await contact.getByLabel(/^email$/i).fill(email("contact"));
+    await contact.getByLabel(/^name$/i).fill(`${RUN_STAMP} Playwright`);
+    await contact.getByLabel(/^email$/i).fill(testEmail("contact"));
     await contact.getByLabel(/anything else/i).fill("Playwright end-to-end test submission");
     await contact.getByLabel(/i agree to the/i).check();
     await contact.getByRole("button", { name: /^send$/i }).click();
@@ -403,7 +400,7 @@ test.describe("/buy's own alert card", () => {
     await expect.poll(() => trackEvents).toContain("listing_alert_view");
     await card.getByLabel("First name").fill("Jamie");
     await card.getByLabel("Last name").fill("Rivera");
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("buy-no-town"));
     await card.getByLabel(/I agree to the/).check();
     await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
     await expect(card.getByRole("alert")).toHaveText("Choose a town");
@@ -546,7 +543,7 @@ test.describe("Static pages", () => {
     await page.route("**/api/lead", (r) => { posted = true; return r.abort(); });
     await page.goto("/home-value");
     await page.getByLabel(/^name$/i).fill("No Address");
-    await page.getByLabel(/^email$/i).first().fill("no-address@example.com");
+    await page.getByLabel(/^email$/i).first().fill(testEmail("no-address"));
     await page.getByLabel(/i agree to the terms/i).first().check();
     await page.getByRole("button", { name: /ask for my home value/i }).click();
     await expect(page.getByText("Add the address so I can pull the right sales.")).toBeVisible();
@@ -566,7 +563,7 @@ test.describe("Static pages", () => {
     await expect(timeframe.locator("option").nth(1)).toHaveText("1 to 3 months");
     await page.getByLabel(/home address/i).fill("123 Main St Cedarburg");
     await page.getByLabel(/^name$/i).fill("No Timeframe");
-    await page.getByLabel(/^email$/i).first().fill("no-timeframe@example.com");
+    await page.getByLabel(/^email$/i).first().fill(testEmail("no-timeframe"));
     await page.getByLabel(/i agree to the terms/i).first().check();
     await page.getByRole("button", { name: /ask for my home value/i }).click();
     await expect(page.getByText("Pick a timeframe so I know how soon to reach out.")).toBeVisible();
@@ -583,7 +580,7 @@ test.describe("Static pages", () => {
     await page.goto("/home-value");
     await page.getByLabel(/home address/i).fill("123 Main St Cedarburg");
     await page.getByLabel(/^name$/i).fill("Picked Timeframe");
-    await page.getByLabel(/^email$/i).first().fill("picked-timeframe@example.com");
+    await page.getByLabel(/^email$/i).first().fill(testEmail("picked-timeframe"));
     await page.getByLabel("Thinking about selling").selectOption("1-3mo");
     await page.getByLabel(/i agree to the terms/i).first().check();
     await page.getByRole("button", { name: /ask for my home value/i }).click();
@@ -750,8 +747,8 @@ test.describe("Paid-click attribution", () => {
   async function submitContact(page: import("@playwright/test").Page) {
     const contact = page.locator("section#contact");
     await contact.scrollIntoViewIfNeeded();
-    await contact.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
-    await contact.getByLabel(/^email$/i).fill(email("click"));
+    await contact.getByLabel(/^name$/i).fill(`${RUN_STAMP} Playwright`);
+    await contact.getByLabel(/^email$/i).fill(testEmail("click"));
     await contact.getByLabel(/i agree to the/i).check();
     await contact.getByRole("button", { name: /^send$/i }).click();
     await expect(contact.getByRole("heading", { name: /got it/i })).toBeVisible({
@@ -815,7 +812,7 @@ test.describe("Paid-click attribution", () => {
     const body = await captureLeadPost(page, async () => {
       const section = page.locator("section#market-report");
       await section.scrollIntoViewIfNeeded();
-      await section.getByLabel("Email", { exact: true }).fill(email("surface-mr"));
+      await section.getByLabel("Email", { exact: true }).fill(testEmail("surface-mr"));
       await section.getByLabel("Your zip (optional)").selectOption("53012");
       await section.getByLabel(/Send me The River Report once a month/).check();
       await section.getByRole("button", { name: "Send me The River Report" }).click();
@@ -842,8 +839,8 @@ test.describe("Paid-click attribution", () => {
     );
 
     const body = await captureLeadPost(page, async () => {
-      await page.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
-      await page.getByLabel(/^email$/i).fill(email("surface-oh"));
+      await page.getByLabel(/^name$/i).fill(`${RUN_STAMP} Playwright`);
+      await page.getByLabel(/^email$/i).fill(testEmail("surface-oh"));
       await page.getByLabel(/i agree to the/i).check();
       await signIn.click();
       await expect(
@@ -888,8 +885,8 @@ test.describe("Conversion events", () => {
   async function submitContactForm(page: import("@playwright/test").Page) {
     const contact = page.locator("section#contact");
     await contact.scrollIntoViewIfNeeded();
-    await contact.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
-    await contact.getByLabel(/^email$/i).fill(email("conv"));
+    await contact.getByLabel(/^name$/i).fill(`${RUN_STAMP} Playwright`);
+    await contact.getByLabel(/^email$/i).fill(testEmail("conv"));
     await contact.getByLabel(/i agree to the/i).check();
     await contact.getByRole("button", { name: /^send$/i }).click();
     await expect(contact.getByRole("heading", { name: /got it/i })).toBeVisible({
@@ -929,7 +926,7 @@ test.describe("Conversion events", () => {
       async () => {
         const section = page.locator("section#market-report");
         await section.scrollIntoViewIfNeeded();
-        await section.getByLabel("Email", { exact: true }).fill(email("conv-mr"));
+        await section.getByLabel("Email", { exact: true }).fill(testEmail("conv-mr"));
         await section.getByLabel("Your zip (optional)").selectOption("53012");
         await section.getByLabel(/Send me The River Report once a month/).check();
         await section.getByRole("button", { name: "Send me The River Report" }).click();
