@@ -37,6 +37,7 @@ const CORE: [path: string, file: string][] = [
   ["/privacy", "./privacy/content-date"],
   ["/terms", "./terms/content-date"],
   ["/fair-housing", "./fair-housing/content-date"],
+  ["/blog/cedarburg-market-nov-2026", "./blog/cedarburg-market-nov-2026/content-date"],
 ];
 
 const SITE = "https://anthonystolp.com";
