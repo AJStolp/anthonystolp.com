@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { BackToTop } from "./BackToTop";
+import { NewsletterSignup } from "./NewsletterSignup";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
 import { BLOG_POSTS, blogPostPath } from "@/lib/blog-posts";
@@ -244,6 +245,11 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
               <span aria-hidden>→</span>
             </a>
           </div>
+        </div>
+
+        {/* The River Report, site wide, above the legal links */}
+        <div className="mt-12 border-t border-ink/10 pt-10">
+          <NewsletterSignup variant="compact" placement="footer" cell={cell} />
         </div>
 
         {/* Legal row */}

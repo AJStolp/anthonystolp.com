@@ -1,6 +1,6 @@
-// CAN-SPAM compliance for market-report emails (commercial mail).
+// CAN-SPAM compliance for River Report emails (commercial mail).
 //
-// Every market-report send must carry (1) a working unsubscribe mechanism and
+// Every River Report send must carry (1) a working unsubscribe mechanism and
 // (2) a valid physical postal address. We append both deterministically at
 // send time rather than trusting the LLM to include them, so they can never be
 // dropped. We also linkify the Redfin attribution here, since Redfin Data
@@ -11,6 +11,7 @@
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { AgentProfile } from "./agent-profile";
+import { NEWSLETTER_NAME } from "./newsletter";
 
 const REDFIN_DATA_CENTER_URL = "https://www.redfin.com/news/data-center/";
 
@@ -92,7 +93,7 @@ function htmlFooter(agent: AgentProfile, unsubUrl: string): string {
   return [
     `<hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0" />`,
     `<p style="font-size:12px;line-height:1.5;color:#888">`,
-    `You are receiving this because you subscribed to ${agent.name}'s local market updates. `,
+    `You are receiving this because you signed up for ${NEWSLETTER_NAME}, ${agent.name}'s monthly email. `,
     `<a href="${unsubUrl}" style="color:#888">Unsubscribe</a>.`,
     `</p>`,
     `<p style="font-size:12px;line-height:1.5;color:#888">${agent.mailingAddress}</p>`,
@@ -103,7 +104,7 @@ function textFooter(agent: AgentProfile, unsubUrl: string): string {
   return [
     "",
     "",
-    `You are receiving this because you subscribed to ${agent.name}'s local market updates.`,
+    `You are receiving this because you signed up for ${NEWSLETTER_NAME}, ${agent.name}'s monthly email.`,
     `Unsubscribe: ${unsubUrl}`,
     "",
     agent.mailingAddress,

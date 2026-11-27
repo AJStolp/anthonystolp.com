@@ -147,7 +147,7 @@ test.describe("A listing on the market", () => {
     await expect(page.getByLabel("First name").last()).toBeFocused();
     await page.getByLabel("First name").last().fill("Pat");
     await page.getByLabel("Last name").last().fill("Lee");
-    await page.getByLabel("Email", { exact: true }).last().fill("saver@example.com");
+    await page.locator("main").getByLabel("Email", { exact: true }).last().fill("saver@example.com");
     await page.getByLabel(/I agree to the/).last().check();
     await page.getByRole("button", { name: "Save", exact: true }).click();
 
@@ -192,7 +192,7 @@ test.describe("A sold listing", () => {
     await page.getByRole("button", { name: "Get homes like this one" }).click();
     await page.getByLabel("First name").last().fill("Sam");
     await page.getByLabel("Last name").last().fill("Ortiz");
-    await page.getByLabel("Email", { exact: true }).last().fill("similar@example.com");
+    await page.locator("main").getByLabel("Email", { exact: true }).last().fill("similar@example.com");
     await page.getByLabel(/I agree to the/).last().check();
     await page.getByRole("button", { name: "Send them to me" }).click();
 

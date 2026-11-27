@@ -19,6 +19,8 @@ import {
 } from "@/lib/listing-leads";
 import { PropertyStatus } from "@/lib/properties";
 import { escapeHtml } from "@/lib/utils";
+import { NEWSLETTER_SOURCE } from "@/lib/newsletter";
+import { sendNewsletterConfirm } from "@/lib/newsletter-mail";
 
 // ── Validation ─────────────────────────────────────────────────────────────
 //
@@ -120,6 +122,8 @@ const schema = z.object({
   click: clickSchema,
   referrer: z.string().max(2048).optional(),
   landingPage: z.string().max(2048).optional(),
+  // Which signup on the page sent it, e.g. "home" or "footer" (T-113).
+  placement: z.string().max(64).optional(),
 });
 
 type LeadInput = z.infer<typeof schema>;
@@ -148,7 +152,7 @@ const sourceLabel: Record<string, string> = {
   "contact-form": "Contact form",
   "home-value": "Home value request",
   "search-redirect": "Search redirect (active listings)",
-  "market-report-subscribe": "Market report subscriber",
+  "market-report-subscribe": "River Report signup",
   "open-house": "Open house sign-in",
   northwoods: "Northwoods contact form",
   "northwoods-search": "Northwoods search (active listings)",
@@ -303,6 +307,24 @@ export async function POST(req: Request) {
           if (!id) console.error(`[lead] ${lead.source} lead not created in Lofty`);
         });
       }
+    }
+
+    // A River Report signup is not on the list until its confirm link is
+    // clicked. The confirm email goes out after the response, so a Resend
+    // failure never fails the signup (T-113). No Lofty push for this source.
+    if (lead.source === NEWSLETTER_SOURCE && leadId && lead.email) {
+      const signup = {
+        leadId,
+        email: lead.email,
+        firstName: lead.firstName ?? lead.name?.split(" ")[0],
+      };
+      after(async () => {
+        try {
+          await sendNewsletterConfirm(getSupabase(), signup);
+        } catch (err) {
+          console.error("[lead] newsletter confirm email failed:", err);
+        }
+      });
     }
 
     // AI draft generation runs after the response returns so the user doesn't

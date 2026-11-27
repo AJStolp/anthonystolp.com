@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { BLOG_POSTS, blogPostPath, formatPostDate } from "@/lib/blog-posts";
 import { AGENT_ID, SITE_URL } from "@/lib/json-ld";
@@ -121,6 +122,10 @@ export default function BlogIndexPage() {
               </li>
             ))}
           </ul>
+
+          <div className="mt-16">
+            <NewsletterSignup variant="card" placement="blog" cell={cell} streetCta />
+          </div>
 
           <h2 className={h2}>Have a question about your home or your town?</h2>
           <p className="mt-5 text-[15px] leading-[1.75] text-ink-soft md:text-[16px]">

@@ -174,18 +174,20 @@ test.describe("Funnel submissions (real DB writes)", () => {
     await page.goto("/");
     const section = page.locator("section#market-report");
     await section.scrollIntoViewIfNeeded();
-    await section.locator("#mr-email").fill(email("marketreport"));
-    await section.locator("#mr-zip").selectOption("53012");
-    await section.locator("#mr-terms").check();
-    await section.getByRole("button", { name: /send me the report/i }).click();
-    await expect(page.getByRole("heading", { name: /you're on the list/i })).toBeVisible({ timeout: 15_000 });
+    await section.getByLabel("Email", { exact: true }).fill(email("marketreport"));
+    await section.getByLabel("Your zip (optional)").selectOption("53012");
+    await section.getByLabel(/Send me The River Report once a month/).check();
+    await section.getByRole("button", { name: "Send me The River Report" }).click();
+    await expect(
+      section.getByRole("heading", { name: /check your email/i }),
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test("contact form submits + success state", async ({ page }) => {
     await page.goto("/#contact");
     const contact = page.locator("section#contact");
     await contact.scrollIntoViewIfNeeded();
-    // Scope every input to the contact section to avoid the MarketReport form above.
+    // Scope every input to the contact section to avoid the River Report signup above.
     await contact.getByLabel(/^name$/i).fill(`${STAMP} Playwright`);
     await contact.getByLabel(/^email$/i).fill(email("contact"));
     await contact.getByLabel(/anything else/i).fill("Playwright end-to-end test submission");
@@ -544,8 +546,8 @@ test.describe("Static pages", () => {
     await page.route("**/api/lead", (r) => { posted = true; return r.abort(); });
     await page.goto("/home-value");
     await page.getByLabel(/^name$/i).fill("No Address");
-    await page.getByLabel(/^email$/i).fill("no-address@example.com");
-    await page.getByLabel(/i agree to the terms/i).check();
+    await page.getByLabel(/^email$/i).first().fill("no-address@example.com");
+    await page.getByLabel(/i agree to the terms/i).first().check();
     await page.getByRole("button", { name: /ask for my home value/i }).click();
     await expect(page.getByText("Add the address so I can pull the right sales.")).toBeVisible();
     expect(posted).toBe(false);
@@ -564,8 +566,8 @@ test.describe("Static pages", () => {
     await expect(timeframe.locator("option").nth(1)).toHaveText("1 to 3 months");
     await page.getByLabel(/home address/i).fill("123 Main St Cedarburg");
     await page.getByLabel(/^name$/i).fill("No Timeframe");
-    await page.getByLabel(/^email$/i).fill("no-timeframe@example.com");
-    await page.getByLabel(/i agree to the terms/i).check();
+    await page.getByLabel(/^email$/i).first().fill("no-timeframe@example.com");
+    await page.getByLabel(/i agree to the terms/i).first().check();
     await page.getByRole("button", { name: /ask for my home value/i }).click();
     await expect(page.getByText("Pick a timeframe so I know how soon to reach out.")).toBeVisible();
     await expect(timeframe).toHaveAttribute("aria-invalid", "true");
@@ -581,9 +583,9 @@ test.describe("Static pages", () => {
     await page.goto("/home-value");
     await page.getByLabel(/home address/i).fill("123 Main St Cedarburg");
     await page.getByLabel(/^name$/i).fill("Picked Timeframe");
-    await page.getByLabel(/^email$/i).fill("picked-timeframe@example.com");
+    await page.getByLabel(/^email$/i).first().fill("picked-timeframe@example.com");
     await page.getByLabel("Thinking about selling").selectOption("1-3mo");
-    await page.getByLabel(/i agree to the terms/i).check();
+    await page.getByLabel(/i agree to the terms/i).first().check();
     await page.getByRole("button", { name: /ask for my home value/i }).click();
     await expect(page.getByText(/I'll personally email you an honest range/)).toBeVisible();
     expect(body.timeframe).toBe("1-3mo");
@@ -813,12 +815,12 @@ test.describe("Paid-click attribution", () => {
     const body = await captureLeadPost(page, async () => {
       const section = page.locator("section#market-report");
       await section.scrollIntoViewIfNeeded();
-      await section.locator("#mr-email").fill(email("surface-mr"));
-      await section.locator("#mr-zip").selectOption("53012");
-      await section.locator("#mr-terms").check();
-      await section.getByRole("button", { name: /send me the report/i }).click();
+      await section.getByLabel("Email", { exact: true }).fill(email("surface-mr"));
+      await section.getByLabel("Your zip (optional)").selectOption("53012");
+      await section.getByLabel(/Send me The River Report once a month/).check();
+      await section.getByRole("button", { name: "Send me The River Report" }).click();
       await expect(
-        page.getByRole("heading", { name: /you're on the list/i }),
+        section.getByRole("heading", { name: /check your email/i }),
       ).toBeVisible({ timeout: 15_000 });
     });
     expect(body.click).toMatchObject({ gclid: "pw-surface-mr" });
@@ -927,12 +929,12 @@ test.describe("Conversion events", () => {
       async () => {
         const section = page.locator("section#market-report");
         await section.scrollIntoViewIfNeeded();
-        await section.locator("#mr-email").fill(email("conv-mr"));
-        await section.locator("#mr-zip").selectOption("53012");
-        await section.locator("#mr-terms").check();
-        await section.getByRole("button", { name: /send me the report/i }).click();
+        await section.getByLabel("Email", { exact: true }).fill(email("conv-mr"));
+        await section.getByLabel("Your zip (optional)").selectOption("53012");
+        await section.getByLabel(/Send me The River Report once a month/).check();
+        await section.getByRole("button", { name: "Send me The River Report" }).click();
         await expect(
-          page.getByRole("heading", { name: /you're on the list/i }),
+          section.getByRole("heading", { name: /check your email/i }),
         ).toBeVisible({ timeout: 15_000 });
       },
     );
