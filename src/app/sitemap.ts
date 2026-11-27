@@ -9,7 +9,8 @@ import { CONTENT_DATE as NORTHWOODS_DATE } from "./northwoods/content-date";
 import { CONTENT_DATE as PRIVACY_DATE } from "./privacy/content-date";
 import { CONTENT_DATE as TERMS_DATE } from "./terms/content-date";
 import { CONTENT_DATE as FAIR_HOUSING_DATE } from "./fair-housing/content-date";
-import { CONTENT_DATE as CEDARBURG_NOV_2026_DATE } from "./blog/cedarburg-market-nov-2026/content-date";
+import { CONTENT_DATE as BLOG_DATE } from "./blog/content-date";
+import { BLOG_POSTS, blogPostPath } from "@/lib/blog-posts";
 
 const SITE_URL = "https://anthonystolp.com";
 
@@ -22,6 +23,14 @@ export const revalidate = 3600;
 function listingModified(updatedAt: string | null | undefined): Date | undefined {
   const t = updatedAt ? Date.parse(updatedAt) : NaN;
   return Number.isNaN(t) ? undefined : new Date(t);
+}
+
+// /blog changes when its own copy does or when a post is added to it, so its
+// lastmod is the later of its content date and its newest post's publish date.
+// Calendar dates in YYYY-MM-DD order the same as strings.
+function blogIndexModified(): string {
+  const newest = BLOG_POSTS[0]?.datePublished;
+  return newest && newest > BLOG_DATE ? newest : BLOG_DATE;
 }
 
 // Each fixed page's lastmod is the content date kept beside that page.
@@ -80,11 +89,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${SITE_URL}/blog/cedarburg-market-nov-2026`,
-      lastModified: CEDARBURG_NOV_2026_DATE,
-      changeFrequency: "yearly",
+      url: `${SITE_URL}/blog`,
+      lastModified: blogIndexModified(),
+      changeFrequency: "monthly",
       priority: 0.6,
     },
+    ...BLOG_POSTS.map((p) => ({
+      url: `${SITE_URL}${blogPostPath(p.slug)}`,
+      lastModified: p.dateModified,
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
+    })),
     ...nicheEntries,
     ...propertyEntries,
     {

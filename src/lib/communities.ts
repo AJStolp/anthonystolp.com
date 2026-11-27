@@ -34,11 +34,5 @@ export const GUIDES: { label: string; href: string }[] = [
   { label: "Downsizing in Wisconsin", href: "/search/downsizing-in-wisconsin" },
 ];
 
-// Market posts under /blog, newest first. The footer links each one, so a
-// crawler reaches a post from every page rather than only from the sitemap.
-export const MARKET_UPDATES: { label: string; href: string }[] = [
-  { label: "Cedarburg market, November 2026", href: "/blog/cedarburg-market-nov-2026" },
-];
-
 export const homesHref = (slug: string) => `/search/${slug}-homes-for-sale`;
 export const valueHref = (slug: string) => `/search/${slug}-home-value`;
