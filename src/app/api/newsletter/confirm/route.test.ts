@@ -20,6 +20,7 @@ mock.module("@/lib/supabase-server", () => ({ getSupabase: () => db.client }));
 
 process.env.UNSUBSCRIBE_SECRET = "test-secret";
 process.env.RESEND_API_KEY = "re_test";
+process.env.NEWSLETTER_RESEND_API_KEY = "re_news";
 process.env.NEWSLETTER_FROM_EMAIL = "anthony@news.anthonystolp.com";
 
 const { GET } = await import("./route");
