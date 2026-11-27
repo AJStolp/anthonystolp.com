@@ -3,10 +3,15 @@ import { fakeSupabase } from "./fake-supabase";
 
 // T-113: The River Report's double opt-in. Bun loads .env.local, which holds
 // a live RESEND_API_KEY, so Resend is replaced before anything imports it:
-// each send lands in `sent` and nothing leaves the machine.
+// each send lands in `sent` and nothing leaves the machine. `keys` records the
+// API key each Resend client is built with (T-130).
 const sent: Record<string, unknown>[] = [];
+const keys: (string | undefined)[] = [];
 mock.module("resend", () => ({
   Resend: class {
+    constructor(key?: string) {
+      keys.push(key);
+    }
     emails = {
       send: async (msg: Record<string, unknown>) => {
         sent.push(msg);
@@ -35,8 +40,12 @@ const NEWS_FROM = "anthony@news.anthonystolp.com";
 const env = { ...process.env };
 beforeEach(() => {
   sent.length = 0;
+  keys.length = 0;
   process.env.UNSUBSCRIBE_SECRET = "test-secret";
+  // The root domain key stays set, so a newsletter send that fell back to it
+  // would show up.
   process.env.RESEND_API_KEY = "re_test";
+  process.env.NEWSLETTER_RESEND_API_KEY = "re_news";
   process.env.NEWSLETTER_FROM_EMAIL = NEWS_FROM;
 });
 afterEach(() => {
@@ -235,5 +244,60 @@ describe("clicking the confirm link", () => {
     await confirmNewsletter(db.client, LID, confirmToken(LID));
     expect(await confirmNewsletter(db.client, LID, confirmToken(LID))).toBe("confirmed");
     expect(sent).toHaveLength(1);
+  });
+});
+
+// T-130: production's RESEND_API_KEY only sends from the root domain, so
+// Resend refused every newsletter send from news.anthonystolp.com.
+describe("the newsletter Resend key", () => {
+  function signupRow() {
+    return fakeSupabase({
+      funnel_leads: [
+        { id: LID, agent_id: null, source: SOURCE, email: "sam@example.com", name: "Sam Tester", newsletter_confirmed_at: null, unsubscribed_at: null },
+      ],
+    });
+  }
+
+  test("is NEWSLETTER_RESEND_API_KEY for the confirm email and the welcome", async () => {
+    const db = signupRow();
+    expect(await sendNewsletterConfirm(db.client, { leadId: LID, email: "sam@example.com" })).toBe("sent");
+    expect(keys).toEqual(["re_news"]);
+    expect(await confirmNewsletter(db.client, LID, confirmToken(LID))).toBe("confirmed");
+    expect(keys).toEqual(["re_news", "re_news"]);
+    expect(sent.map((m) => m.subject)).toEqual(["Confirm your River Report signup", "You're on the list"]);
+  });
+
+  test("unset, nothing is sent and the warning names NEWSLETTER_RESEND_API_KEY", async () => {
+    delete process.env.NEWSLETTER_RESEND_API_KEY;
+    delete process.env.RESEND_API_KEY;
+    const warn = spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const db = signupRow();
+      expect(await sendNewsletterConfirm(db.client, { leadId: LID, email: "sam@example.com" })).toBe("not-sent");
+      expect(sent).toHaveLength(0);
+      expect(keys).toHaveLength(0);
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(String(warn.mock.calls[0][0])).toContain("NEWSLETTER_RESEND_API_KEY is not set");
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  test("RESEND_API_KEY alone sends no confirm and no welcome, and the confirm still counts", async () => {
+    delete process.env.NEWSLETTER_RESEND_API_KEY;
+    expect(process.env.RESEND_API_KEY).toBe("re_test");
+    const warn = spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const db = signupRow();
+      expect(await sendNewsletterConfirm(db.client, { leadId: LID, email: "sam@example.com" })).toBe("not-sent");
+      expect(await confirmNewsletter(db.client, LID, confirmToken(LID))).toBe("confirmed");
+      expect(db.tables.funnel_leads[0].newsletter_confirmed_at).toBeTruthy();
+      expect(sent).toHaveLength(0);
+      expect(keys).toHaveLength(0);
+      expect(warn).toHaveBeenCalledTimes(2);
+      for (const [line] of warn.mock.calls) expect(String(line)).toContain("NEWSLETTER_RESEND_API_KEY");
+    } finally {
+      warn.mockRestore();
+    }
   });
 });
