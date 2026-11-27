@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { testEmail } from "./test-email";
 
 // T-078, from the 2026-11-24 handoff: a listing alert on each buy town page,
 // Save this home (or Get homes like this one) and Anthony's call or text line
@@ -59,7 +60,7 @@ test.describe("Listing alert on a town page", () => {
     await card.scrollIntoViewIfNeeded();
     await card.getByLabel("First name").fill("Jamie");
     await card.getByLabel("Last name").fill("Rivera");
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("cedarburg-alert"));
     await card.getByLabel("Price range (optional)").selectOption("300k-500k");
     await card.getByLabel("Beds (optional)").selectOption("3");
     await card.getByLabel(/I agree to the/).check();
@@ -73,7 +74,7 @@ test.describe("Listing alert on a town page", () => {
       source: "listing-alert",
       firstName: "Jamie",
       lastName: "Rivera",
-      email: "buyer@example.com",
+      email: testEmail("cedarburg-alert"),
       town: "Cedarburg",
       priceRange: "300k-500k",
       beds: "3",
@@ -98,7 +99,7 @@ test.describe("Listing alert on a town page", () => {
     const card = page.getByRole("region", { name: "Get new Mequon listings first" }).first();
     await card.getByLabel("First name").fill("Jamie");
     await card.getByLabel("Last name").fill("Rivera");
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("mequon-no-terms"));
     await card.getByRole("button", { name: "Get Mequon listings" }).click();
     await expect(card.getByRole("alert")).toContainText("You must agree to continue");
     expect(leads).toHaveLength(0);
@@ -108,7 +109,7 @@ test.describe("Listing alert on a town page", () => {
     const { leads } = await watch(page);
     await page.goto("/search/grafton-homes-for-sale");
     const card = page.getByRole("region", { name: "Get new Grafton listings first" }).first();
-    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel("Email").fill(testEmail("grafton-no-name"));
     await card.getByLabel(/I agree to the/).check();
     await card.getByRole("button", { name: "Get Grafton listings" }).click();
     await expect(card.getByText("First name is required")).toBeVisible();
@@ -147,7 +148,7 @@ test.describe("A listing on the market", () => {
     await expect(page.getByLabel("First name").last()).toBeFocused();
     await page.getByLabel("First name").last().fill("Pat");
     await page.getByLabel("Last name").last().fill("Lee");
-    await page.locator("main").getByLabel("Email", { exact: true }).last().fill("saver@example.com");
+    await page.locator("main").getByLabel("Email", { exact: true }).last().fill(testEmail("save-home"));
     await page.getByLabel(/I agree to the/).last().check();
     await page.getByRole("button", { name: "Save", exact: true }).click();
 
@@ -157,7 +158,7 @@ test.describe("A listing on the market", () => {
       source: "save-home",
       firstName: "Pat",
       lastName: "Lee",
-      email: "saver@example.com",
+      email: testEmail("save-home"),
       propertySlug: "e2e-fixture-active",
       address: "100 Fixture Lane",
       propertyStatus: "active",
@@ -192,7 +193,7 @@ test.describe("A sold listing", () => {
     await page.getByRole("button", { name: "Get homes like this one" }).click();
     await page.getByLabel("First name").last().fill("Sam");
     await page.getByLabel("Last name").last().fill("Ortiz");
-    await page.locator("main").getByLabel("Email", { exact: true }).last().fill("similar@example.com");
+    await page.locator("main").getByLabel("Email", { exact: true }).last().fill(testEmail("similar-homes"));
     await page.getByLabel(/I agree to the/).last().check();
     await page.getByRole("button", { name: "Send them to me" }).click();
 

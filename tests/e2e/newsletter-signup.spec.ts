@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { testEmail } from "./test-email";
 
 // T-113: The River Report signup replaces the homepage zip report form. A
 // card on the pages below, a compact row in every footer.
@@ -226,7 +227,7 @@ test.describe("Signing up", () => {
     const { leads } = await watch(page);
     await gotoHydrated(page, "/blog");
     const c = card(page);
-    await c.getByLabel("Email", { exact: true }).fill("sam@example.com");
+    await c.getByLabel("Email", { exact: true }).fill(testEmail("river-no-consent"));
     await c.getByRole("button", { name: "Send me The River Report" }).click();
     const consent = c.getByLabel(/Send me The River Report once a month/);
     await expect(c.getByRole("alert")).toHaveText("Check the box so I know it's OK to email you.");
@@ -258,7 +259,7 @@ test.describe("Signing up", () => {
       .toBe(true);
     const c = card(page);
     await c.scrollIntoViewIfNeeded();
-    await c.getByLabel("Email", { exact: true }).fill("sam@example.com");
+    await c.getByLabel("Email", { exact: true }).fill(testEmail("river-card"));
     await c.getByLabel("First name (optional)").fill("Sam");
     await c.getByLabel("Your zip (optional)").selectOption("53012");
     await c.getByLabel(/Send me The River Report once a month/).check();
@@ -266,7 +267,7 @@ test.describe("Signing up", () => {
 
     await expect(c.getByRole("status")).toContainText("Almost done. Check your email.");
     await expect(c.getByRole("status")).toContainText(
-      "I just sent a confirm link to sam@example.com. Click it and you're on the list. The River Report goes out the first Tuesday of the month.",
+      `I just sent a confirm link to ${testEmail("river-card")}. Click it and you're on the list. The River Report goes out the first Tuesday of the month.`,
     );
     await expect(c.getByRole("status")).toContainText(
       "Don't see it? Check promotions or spam, or text me at (262) 483-7932.",
@@ -276,7 +277,7 @@ test.describe("Signing up", () => {
       source: "market-report-subscribe",
       funnelStep: "completed",
       intent: "exploring",
-      email: "sam@example.com",
+      email: testEmail("river-card"),
       firstName: "Sam",
       postalCode: "53012",
       termsConsent: true,
@@ -299,7 +300,7 @@ test.describe("Signing up", () => {
     await gotoHydrated(page, "/about");
     const row = compact(page);
     await row.scrollIntoViewIfNeeded();
-    await row.getByLabel("Email", { exact: true }).fill("pat@example.com");
+    await row.getByLabel("Email", { exact: true }).fill(testEmail("river-footer"));
     await row.getByRole("button", { name: "Sign up" }).click();
     await expect(row.getByRole("alert")).toHaveText("Check the box so I know it's OK to email you.");
     expect(leads).toHaveLength(0);
@@ -310,7 +311,7 @@ test.describe("Signing up", () => {
     expect(leads).toHaveLength(1);
     expect(leads[0]).toMatchObject({
       source: "market-report-subscribe",
-      email: "pat@example.com",
+      email: testEmail("river-footer"),
       termsConsent: true,
       placement: "footer",
     });
@@ -323,7 +324,7 @@ test.describe("Signing up", () => {
     const { leads, named, gtagEvents } = await watch(page, { status: 200, body: '{"ok":true}' });
     await gotoHydrated(page, "/blog");
     const c = card(page);
-    await c.getByLabel("Email", { exact: true }).fill("sam@example.com");
+    await c.getByLabel("Email", { exact: true }).fill(testEmail("river-honeypot"));
     await c.getByLabel(/Send me The River Report once a month/).check();
     await c.getByRole("button", { name: "Send me The River Report" }).click();
     await expect(c.getByRole("status")).toContainText("Check your email");
@@ -337,7 +338,7 @@ test.describe("Signing up", () => {
     await watch(page, { status: 502, body: '{"error":"Failed to send email"}' });
     await gotoHydrated(page, "/blog");
     const c = card(page);
-    await c.getByLabel("Email", { exact: true }).fill("sam@example.com");
+    await c.getByLabel("Email", { exact: true }).fill(testEmail("river-server-error"));
     await c.getByLabel(/Send me The River Report once a month/).check();
     await c.getByRole("button", { name: "Send me The River Report" }).click();
     await expect(c.getByRole("alert")).toHaveText(
