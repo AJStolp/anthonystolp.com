@@ -120,6 +120,23 @@ test("a city page links to every other city page, the guides, /buy and /about, w
   await expect(page.locator("h1")).toHaveCount(1);
 });
 
+// The market post is not a niche_pages row, so only the sitemap found it until
+// the footer linked it (T-109). Written out, like the slugs above.
+const MARKET_POST = "/blog/cedarburg-market-nov-2026";
+
+test("the footer links the Cedarburg market post from the home page and a city page, and it returns 200", async ({
+  request,
+}) => {
+  for (const path of ["/", CEDARBURG]) {
+    const html = await serverHtml(request, path);
+    expect(hrefs(html), `${path} links to ${MARKET_POST}`).toContain(MARKET_POST);
+    expect(html.replace(/<!-- -->/g, "")).toMatch(
+      new RegExp(`<a\\b[^>]*href="${MARKET_POST}"[^>]*>Cedarburg market, November 2026</a>`),
+    );
+  }
+  await serverHtml(request, MARKET_POST);
+});
+
 test("at 375px the home page community grid is one column", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
