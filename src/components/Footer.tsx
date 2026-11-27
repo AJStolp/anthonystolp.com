@@ -6,6 +6,7 @@ import { telHref } from "@/lib/phone";
 import {
   COMMUNITIES,
   GUIDES,
+  MARKET_UPDATES,
   WASHINGTON_COMMUNITIES,
   homesHref,
   valueHref,
@@ -160,20 +161,37 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
               ])}
             </ul>
           </nav>
-          <nav aria-label="Seller guides">
-            <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
-              Seller guides
-            </p>
-            <ul className="mt-4 space-y-2 text-sm text-ink/75">
-              {GUIDES.map((g) => (
-                <li key={g.href}>
-                  <Link href={g.href} className="transition-colors hover:text-ink">
-                    {g.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          {/* One column, so the grid keeps its three */}
+          <div className="space-y-10">
+            <nav aria-label="Seller guides">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
+                Seller guides
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-ink/75">
+                {GUIDES.map((g) => (
+                  <li key={g.href}>
+                    <Link href={g.href} className="transition-colors hover:text-ink">
+                      {g.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            <nav aria-label="Market updates">
+              <p className="text-[11px] uppercase tracking-[0.32em] text-ink/65">
+                Market updates
+              </p>
+              <ul className="mt-4 space-y-2 text-sm text-ink/75">
+                {MARKET_UPDATES.map((m) => (
+                  <li key={m.href}>
+                    <Link href={m.href} className="transition-colors hover:text-ink">
+                      {m.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
         </div>
 
         {/* Huge wordmark */}
