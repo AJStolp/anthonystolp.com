@@ -23,7 +23,6 @@ export function ReportEditor({ report }: { report: ReportShape }) {
   const [bodyHtml, setBodyHtml] = useState(report.body_html);
   const [status, setStatus] = useState(report.status);
   const [saving, setSaving] = useState(false);
-  const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"text" | "html" | "review">("text");
@@ -61,7 +60,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
     }
   }
 
-  async function markReady() {
+  async function approve() {
     setSaving(true);
     setError(null);
     setMessage(null);
@@ -76,46 +75,12 @@ export function ReportEditor({ report }: { report: ReportShape }) {
         throw new Error(data.error ?? `Save failed (${res.status})`);
       }
       setStatus("ready");
-      setMessage("Marked ready.");
+      setMessage("Approved. This section goes out in the next River Report.");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function send() {
-    if (
-      !confirm(
-        `Send this report to all subscribers for zip ${report.zip}? This cannot be undone.`,
-      )
-    )
-      return;
-    setSending(true);
-    setError(null);
-    setMessage(null);
-    try {
-      const res = await fetch(`/api/admin/reports/${report.id}/send`, {
-        method: "POST",
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        sent?: number;
-        recipients?: number;
-        errors?: string[];
-        error?: string;
-      };
-      if (!res.ok) {
-        throw new Error(data.error ?? `Send failed (${res.status})`);
-      }
-      setMessage(
-        `Sent to ${data.sent} of ${data.recipients} subscribers${data.errors && data.errors.length > 0 ? ` (${data.errors.length} errors)` : ""}.`,
-      );
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Send failed");
-    } finally {
-      setSending(false);
     }
   }
 
@@ -160,7 +125,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
 
       <div>
         <label className="block text-[11px] uppercase tracking-[0.28em] text-ink-soft/70">
-          Subject
+          Section heading
         </label>
         <input
           type="text"
@@ -207,11 +172,6 @@ export function ReportEditor({ report }: { report: ReportShape }) {
             />
           )}
         </div>
-        <p className="mt-2 text-[11px] text-ink-soft/70">
-          Use the literal token <code>{`{{first_name}}`}</code> where the
-          subscriber&apos;s first name should appear. The send pipeline
-          substitutes it per recipient.
-        </p>
       </div>
 
       {message ? (
@@ -223,7 +183,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
         <button
           type="button"
           onClick={save}
-          disabled={saving || sending || !dirty || isSent}
+          disabled={saving || !dirty || isSent}
           className="border border-ink/40 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-white disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save changes"}
@@ -231,26 +191,18 @@ export function ReportEditor({ report }: { report: ReportShape }) {
         {status === "draft" ? (
           <button
             type="button"
-            onClick={markReady}
-            disabled={saving || sending || dirty}
-            className="border border-ink/40 px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-ink hover:bg-ink hover:text-white disabled:opacity-50"
+            onClick={approve}
+            disabled={saving || dirty}
+            className="border border-ink bg-ink px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-white hover:bg-transparent hover:text-ink disabled:opacity-50"
           >
-            Mark ready
+            Approve
           </button>
         ) : null}
-        <button
-          type="button"
-          onClick={send}
-          disabled={sending || dirty || isSent || status !== "ready"}
-          className="border border-ink bg-ink px-5 py-2.5 text-[11px] uppercase tracking-[0.28em] text-white hover:bg-transparent hover:text-ink disabled:opacity-50"
-        >
-          {sending ? "Sending…" : `Send to zip ${report.zip}`}
-        </button>
         <span className="flex-1" />
         <button
           type="button"
           onClick={deleteReport}
-          disabled={saving || sending}
+          disabled={saving}
           className="text-[11px] uppercase tracking-[0.24em] text-accent hover:underline disabled:opacity-50"
         >
           Delete

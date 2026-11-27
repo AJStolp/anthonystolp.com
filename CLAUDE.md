@@ -85,7 +85,7 @@ Monthly Vercel cron (`vercel.json` → `/api/cron/market-reports`, verified by `
 3. Claude drafts
 4. **Two pass safety**: deterministic `validateDraft` plus Claude `factCheckDraft` against source stats
 
-Both passes must succeed for `status: "ready"`; otherwise `"draft"` for human inspection. Sending is gated behind manual approval in `/admin/reports` unless `AUTO_SEND=true`. Outbound marketing email goes through `applyComplianceFooter()` for the CAN-SPAM address and unsubscribe headers.
+Both passes must succeed for `status: "ready"`; otherwise `"draft"` for human inspection. Each report is a section of The River Report, not its own email: the cron sends nothing but the summary to Anthony, sections are approved in `/admin/reports`, and `/api/admin/reports/[id]/send` answers 410. A zip gets a section only when it has a `market-report-subscribe` row with `newsletter_confirmed_at` set and `unsubscribed_at` null. Outbound marketing email goes through `applyComplianceFooter()` for the CAN-SPAM address and unsubscribe headers.
 
 ## Hard constraints
 
