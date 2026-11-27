@@ -89,8 +89,16 @@ export type TrackEvent =
       properties: { zip: string; month?: string };
     })
   | (BaseFields & {
+      // A River Report signup the server accepted (T-113). The name predates
+      // the newsletter and is kept so the GA4 conversion keeps counting.
+      // `zip` is set only when one was picked.
       event: "market_report_lead";
-      properties: { zip: string };
+      properties: { zip?: string; placement: string };
+    })
+  | (BaseFields & {
+      // A River Report signup scrolled into view, once a page view.
+      event: "newsletter_view";
+      properties: { placement: string; page_path: string };
     })
   | (BaseFields & {
       // A tap on any tel: or sms: link. `placement` names where the link sits
@@ -170,6 +178,7 @@ function firePixels(name: EventName, properties: Record<string, unknown> | undef
     case "search_gate_view":
     case "search_gate_skip":
     case "listing_alert_view":
+    case "newsletter_view":
     case "home_tiles_view":
     case "save_home_click":
     case "similar_homes_lead":

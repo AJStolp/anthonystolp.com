@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { NEWSLETTER_NAME } from "@/lib/newsletter";
 
 export const metadata: Metadata = {
   title: "Unsubscribe",
-  description: "Unsubscribe from Anthony Stolp market-update emails.",
+  description: `Unsubscribe from ${NEWSLETTER_NAME}, Anthony Stolp's monthly email.`,
   robots: { index: false, follow: false },
 };
 
-// Confirmation page for the unsubscribe link in market-report emails. We never
+// Confirmation page for the unsubscribe link in River Report emails. We never
 // opt out on page load — only when the visitor presses the button, which POSTs
 // to /api/unsubscribe. This keeps link-prefetchers and inbox security scanners
 // from unsubscribing people without their intent.
@@ -31,8 +32,9 @@ export default async function UnsubscribePage({
         {hasLink ? (
           <>
             <p className="mt-6 text-[15px] leading-[1.75] text-ink/80">
-              Click the button below to stop receiving local market-update
-              emails. This will not affect anything else.
+              Click the button below and you will no longer receive{" "}
+              {NEWSLETTER_NAME} from Anthony Stolp. This will not affect
+              anything else.
             </p>
             <form action={action} method="POST" className="mt-8">
               <button

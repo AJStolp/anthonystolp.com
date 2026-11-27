@@ -1,7 +1,8 @@
 import { getSupabase } from "@/lib/supabase-server";
 import { verifyUnsubscribeToken } from "@/lib/email-compliance";
+import { NEWSLETTER_NAME } from "@/lib/newsletter";
 
-// One-click + form-submit unsubscribe target for market-report emails.
+// One-click + form-submit unsubscribe target for River Report emails.
 //
 // Reached two ways, both POST (per RFC 8058 we never mutate on GET, so link
 // pre-fetchers and security scanners can't unsubscribe people by accident):
@@ -66,7 +67,7 @@ export async function POST(req: Request): Promise<Response> {
 
   return page(
     "You’re unsubscribed",
-    "You will no longer receive market-update emails from Anthony Stolp. It can take a moment to take effect across already-queued sends.",
+    `You will no longer receive ${NEWSLETTER_NAME} from Anthony Stolp. It can take a moment to take effect across already-queued sends.`,
     200,
   );
 }
