@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { GetAlertsLine } from "@/components/GetAlertsLine";
+import { ListingAlertCard } from "@/components/ListingAlertCard";
 import { ListingSearchLink } from "@/components/ListingSearchLink";
+import { ALERT_TOWNS } from "@/lib/alert-towns";
 import { agentJsonLd, brokerageJsonLd } from "@/lib/json-ld";
 import { COMMUNITIES } from "@/lib/communities";
 import { getActiveDirectory } from "@/lib/niche-pages";
@@ -150,11 +152,17 @@ export default async function BuyPage() {
             >
               See Ozaukee County homes for sale
             </ListingSearchLink>
-            {/* /buy has no alerts card of its own, so the line goes to the
-                Ozaukee County page's, the same search the button opens. */}
-            <GetAlertsLine href="/search/ozaukee-county-homes-for-sale#alerts" />
+            <GetAlertsLine />
           </div>
         </section>
+
+        {/* "Get alerts" above lands here, on the page's one id="alerts"
+            (T-103), with the homepage's town dropdown. */}
+        <div className="mx-auto max-w-3xl px-6">
+          <div id="alerts" className="w-full scroll-mt-20">
+            <ListingAlertCard town="Ozaukee County" towns={ALERT_TOWNS} />
+          </div>
+        </div>
 
         {/* Why buy with me */}
         <section className="mx-auto max-w-3xl px-6 py-12">

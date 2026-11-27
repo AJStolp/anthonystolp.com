@@ -309,6 +309,7 @@ test.describe("Listings links work with JavaScript off", () => {
     ["/search/cedarburg-homes-for-sale", "Want new Cedarburg listings sent to you first? Get alerts"],
     ["/search/thiensville-homes-for-sale", "Want new Thiensville listings sent to you first? Get alerts"],
     ["/northwoods", "Want new listings sent to you first? Get alerts"],
+    ["/buy", "Want new listings sent to you first? Get alerts"],
   ] as const) {
     test(`${path} offers alerts under the button, pointing at its one alerts block`, async ({ page }) => {
       await page.goto(path);
@@ -335,16 +336,73 @@ test.describe("Listings links work with JavaScript off", () => {
     await expect(page.getByText("Want new listings sent to you first? Get alerts", { exact: true })).toHaveCount(2);
     await expect(page.locator("#alerts").getByRole("heading", { name: /Find your place\s*up north\./ })).toHaveCount(1);
   });
+});
 
-  test("/buy has no alerts card, so its line goes to the Ozaukee County page's", async ({ page }) => {
+// T-103: /buy has its own alert card, so "Get alerts" no longer leaves the
+// page. JavaScript is on here, as for a real visitor, so the card hydrates.
+test.describe("/buy's own alert card", () => {
+  let leadPosts = 0;
+  let trackEvents: string[] = [];
+  test.beforeEach(async ({ page }) => {
+    leadPosts = 0;
+    trackEvents = [];
+    await page.route("**/api/track", (r) => {
+      trackEvents.push(JSON.parse(r.request().postData() ?? "{}").event);
+      return r.fulfill({ status: 204 });
+    });
+    await page.route("**/api/lead", (r) => {
+      leadPosts += 1;
+      return r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"accepted":true}' });
+    });
+  });
+
+  test("Get alerts scrolls to the card on /buy and the URL stays /buy#alerts", async ({ page }) => {
     await page.goto("/buy");
     const line = page.getByText("Want new listings sent to you first? Get alerts", { exact: true });
     await expect(line).toHaveCount(1);
     await line.getByRole("link", { name: "Get alerts" }).click();
-    await page.waitForURL(/\/search\/ozaukee-county-homes-for-sale#alerts$/);
+    await page.waitForURL(/\/buy#alerts$/);
+    expect(new URL(page.url()).pathname).toBe("/buy");
+    const target = page.locator("#alerts");
+    await expect(target).toHaveCount(1);
     await expect(
-      page.locator("#alerts").getByRole("heading", { name: "Get new Ozaukee County listings first" }),
+      target.getByRole("heading", { name: "Get new Ozaukee County listings first" }),
     ).toHaveCount(1);
+    // scroll-mt-20 puts the card 80px under the top of the window.
+    await expect
+      .poll(() => target.evaluate((el) => Math.round(el.getBoundingClientRect().top)))
+      .toBe(80);
+  });
+
+  test("the card's Town dropdown lists the homepage's seven towns in order", async ({ page }) => {
+    await page.goto("/buy");
+    const select = page.locator("#alerts").getByLabel("Town", { exact: true });
+    await expect(select.locator("option")).toHaveText([
+      "Choose a town",
+      "Cedarburg",
+      "Mequon",
+      "Thiensville",
+      "Grafton",
+      "Port Washington",
+      "Saukville",
+      "Ozaukee County",
+    ]);
+  });
+
+  test("submitting without a town shows Choose a town and posts no lead", async ({ page }) => {
+    await page.goto("/buy");
+    const card = page.locator("#alerts");
+    // The card's own view event means it has hydrated, so the click below
+    // reaches react-hook-form rather than a native form submit.
+    await card.scrollIntoViewIfNeeded();
+    await expect.poll(() => trackEvents).toContain("listing_alert_view");
+    await card.getByLabel("First name").fill("Jamie");
+    await card.getByLabel("Last name").fill("Rivera");
+    await card.getByLabel("Email").fill("buyer@example.com");
+    await card.getByLabel(/I agree to the/).check();
+    await card.getByRole("button", { name: "Get Ozaukee County listings" }).click();
+    await expect(card.getByRole("alert")).toHaveText("Choose a town");
+    expect(leadPosts).toBe(0);
   });
 });
 
