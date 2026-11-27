@@ -2,7 +2,7 @@
 title: "The River Report, Issue 1: December 2026"
 slug: newsletter-2026-12
 keywords: [ozaukee county real estate news, washington county wi housing market, cedarburg real estate, firemens park cedarburg, ozaukee county home sales october 2026]
-summary: "Issue 1 of Anthony Stolp's monthly newsletter: the $2 million Firemen's Park vote, October home sales in Ozaukee and Washington County, and how many Cedarburg homes are for sale heading into winter."
+summary: "Issue 1 of The River Report, Anthony Stolp's monthly newsletter: the $2 million Firemen's Park vote, October home sales in Ozaukee and Washington County, and how many Cedarburg homes are for sale heading into winter."
 target_path: src/app/newsletter/2026-12/page.tsx
 ---
 
@@ -15,6 +15,10 @@ target_path: src/app/newsletter/2026-12/page.tsx
 That's how many homes sold in Ozaukee County in October, according to the Greater Milwaukee Association of REALTORS. That's up 8.4% from 95 a year ago, while sales across the four county Milwaukee metro fell 3.5%.
 
 Hi, I'm Anthony Stolp. Welcome to the first issue of The River Report. Once a month I'll send you what's actually happening in Ozaukee and Washington County real estate: a little local news, the numbers that matter, and what they mean for your house. Every number has a source. No sales pitch.
+
+**Already getting my monthly zip code report?** This replaces it. Same once a month email, now with local news, and your zip's numbers right at the top. One email, one unsubscribe link.
+
+<!-- EMAIL ONLY: insert the subscriber's zip section here (see Notes). Omit on the archive page and for subscribers with no zip. -->
 
 ## Around the two counties
 
@@ -76,25 +80,32 @@ Notes for Claude Code
 
 Two uses for this one draft
 1. The archive page at /newsletter/2026-12 (target_path src/app/newsletter/2026-12/page.tsx). Also add a /newsletter index that lists issues newest first, with the NewsletterSignup card at the top (see drafts/newsletter-signup.md). Add both URLs to src/app/sitemap.ts, each with a content-date.ts like the blog post.
-2. The email body for the Resend Broadcast. The Subject and Preheader lines above are for the email only. Don't render them on the archive page.
+2. The shared body of the December River Report email. The Subject and Preheader lines above are for the email only. Don't render them on the archive page.
+
+Full build spec: /home/box/shared/real-estate/handoffs/river-report-handoff-2026-11-27.md
+
+Zip section (email only)
+- At the EMAIL ONLY comment, insert the subscriber's zip section: the "ready" market_reports row for their postal_code and this month, rendered under an H2 "Your zip: {zip label}". It keeps its Redfin attribution line.
+- No zip on file, or no ready row for that zip: leave the section out. Everything else is the same for every subscriber.
+- On the archive page the comment and the zip section are omitted.
 
 Archive page
 - Title (layout appends " · Anthony Stolp"): "The River Report: December 2026". Meta description (151 characters): "Ozaukee sold more homes in October while Washington County prices climbed. Plus the Firemen's Park vote. Anthony Stolp's monthly local market newsletter."
 - One H1 on the page. Use "The River Report: December 2026" as the page H1, and turn the "103 homes" hook into a styled lead line or an H2, not a second H1.
-- Self canonical /newsletter/2026-12. JSON-LD: an Article (headline, datePublished 2026-12-01, author a RealEstateAgent reference to https://anthonystolp.com/#agent, about Ozaukee County, WI and Washington County, WI) plus a BreadcrumbList (Home > Newsletter > December 2026). No Review or aggregateRating.
+- Self canonical /newsletter/2026-12. JSON-LD: an Article (headline, datePublished = the actual send date, author a RealEstateAgent reference to https://anthonystolp.com/#agent, about Ozaukee County, WI and Washington County, WI) plus a BreadcrumbList (Home > Newsletter > December 2026). No Review or aggregateRating.
 - Write the body as JSX like the Cedarburg post. The niche_pages parser prints markdown links as text.
 - Internal links: /blog/cedarburg-market-nov-2026 and /home-value. You may add contextual links to /search/west-bend-homes-for-sale, /search/hartford-homes-for-sale and /search/germantown-homes-for-sale on the town names in the Washington County item, and /search/cedarburg-homes-for-sale on "56 homes for sale."
 - The sms and tel links use telHref / smsHref from src/lib/phone.ts with data-placement newsletter_street_sms / newsletter_street_call.
 - Render the Sources list as visible links at the bottom. Keep the table as a real <table> with a caption.
-- Don't render this Notes block, the frontmatter, or the Subject and Preheader lines.
+- Don't render this Notes block, the frontmatter, the Subject and Preheader lines, or the EMAIL ONLY comment.
 
 Email version
-- Append the CAN-SPAM footer with applyComplianceFooter() from src/lib/email-compliance.ts (unsubscribe link, List-Unsubscribe headers, agent.mailingAddress), or Resend's built-in unsubscribe link plus the same address. Don't hardcode the address in this draft. Anthony is confirming it.
-- Send from NEWSLETTER_FROM_EMAIL on news.anthonystolp.com only after that domain is verified in Resend. Send a test to Anthony before every Broadcast.
+- Append the CAN-SPAM footer with applyComplianceFooter() from src/lib/email-compliance.ts (per subscriber unsubscribe link, List-Unsubscribe and One-Click headers, agent.mailingAddress). The address is the Germantown office in agent.mailingAddress: "ExSell Experts | Epique Realty, W193N10980 Kleinmann Dr, Germantown, WI 53022" (Anthony approved, Nov 27). Don't hardcode it in this draft.
+- Send from NEWSLETTER_FROM_EMAIL on news.anthonystolp.com only after that domain is verified in Resend. Send a test to Anthony before every send.
 - Tables in email: use a simple inline styled table or a short bulleted list, so Gmail and Apple Mail render it cleanly.
 
 Timing (read before publishing)
-- Written to go out Tuesday, Dec 1, 2026, before the County Board vote on Wednesday, Dec 2. If it goes out on or after Dec 2, Grok/ContentEngine will update the Firemen's Park item with the result. Don't publish the "expected to vote" wording after the vote has happened.
+- Written as if sent before the County Board vote on Wednesday, Dec 2. The recommended send is Tuesday, Dec 8 (the merged send flow is unlikely to be built and tested by Dec 1). If it goes out on or after Dec 2, ContentEngine updates the Firemen's Park item with the result first, and the "I'll share the result next month" line goes away. Don't publish the "expected to vote" wording after the vote has happened.
 
 Facts, all checked against the sources on Nov 27, 2026
 - GMAR Nov 13 release: Ozaukee October sales 103 vs 95 (+8.4%); Ozaukee October listings 150 vs 122 (+23.0%); metro four county sales 1,493 vs 1,547 (-3.5%). GMAR's county "Listings" table doesn't say new vs active. The metro total there (2,019) is far below the 5,062 active listings GMAR cites, so it is likely new listings. The copy just says "listings" on purpose.
