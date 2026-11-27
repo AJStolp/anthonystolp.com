@@ -33,7 +33,7 @@ describe("the shared agent node", () => {
     expect(agentJsonLd.worksFor["@id"]).toBe(brokerageJsonLd["@id"]);
   });
 
-  test("serves the six towns and five counties", () => {
+  test("serves the six Ozaukee towns, then the three Washington County towns, then five counties", () => {
     expect(agentJsonLd.areaServed.map((a) => a.name)).toEqual([
       "Cedarburg, Wisconsin",
       "Mequon, Wisconsin",
@@ -41,12 +41,20 @@ describe("the shared agent node", () => {
       "Grafton, Wisconsin",
       "Port Washington, Wisconsin",
       "Saukville, Wisconsin",
+      "West Bend, Wisconsin",
+      "Hartford, Wisconsin",
+      "Germantown, Wisconsin",
       "Ozaukee County, Wisconsin",
       "Washington County, Wisconsin",
       "Waukesha County, Wisconsin",
       "Sheboygan County, Wisconsin",
       "Milwaukee County, Wisconsin",
     ]);
+  });
+
+  test("lists each town as a City and each county as an AdministrativeArea", () => {
+    const types = agentJsonLd.areaServed.map((a) => a["@type"]);
+    expect(types).toEqual([...Array(9).fill("City"), ...Array(5).fill("AdministrativeArea")]);
   });
 
   test("carries the Wisconsin license and the two real estate profiles", () => {

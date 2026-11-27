@@ -33,6 +33,10 @@ const TOWNS: [key: string, name: string][] = [
   ["ozaukee-county", "Ozaukee County"],
 ];
 
+// The alert dropdown: the tiles' seven, then the three Washington County towns
+// (T-106), which have no homepage tile.
+const ALERT_TOWNS = [...TOWNS.map(([, name]) => name), "West Bend", "Hartford", "Germantown"];
+
 const COUNT_COPY = /[0-9,]+ active homes?|as of [A-Z][a-z]{2} [0-9]/;
 
 function expectSearch(href: string | null, key: string) {
@@ -316,13 +320,13 @@ test.describe("The homepage listing alert", () => {
   test.describe("with JavaScript off", () => {
     test.use({ javaScriptEnabled: false });
 
-    test("the dropdown is labelled Town and lists the seven towns in order", async ({ page }) => {
+    test("the dropdown is labelled Town and lists the ten towns in order", async ({ page }) => {
       await page.goto("/");
       const select = page.locator("section#homes").getByLabel("Town", { exact: true });
       await expect(select).toHaveCount(1);
       await expect(select.locator("option")).toHaveText([
         "Choose a town",
-        ...TOWNS.map(([, name]) => name),
+        ...ALERT_TOWNS,
       ]);
     });
   });

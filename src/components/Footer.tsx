@@ -3,7 +3,13 @@ import Link from "next/link";
 import { BackToTop } from "./BackToTop";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { telHref } from "@/lib/phone";
-import { COMMUNITIES, GUIDES, homesHref, valueHref } from "@/lib/communities";
+import {
+  COMMUNITIES,
+  GUIDES,
+  WASHINGTON_COMMUNITIES,
+  homesHref,
+  valueHref,
+} from "@/lib/communities";
 
 const SITE_LINKS: { href: string; label: string }[] = [
   { href: "/", label: "Home" },
@@ -140,7 +146,7 @@ export function Footer({ wordmark = "ANTHONY STOLP", tagline, contacts }: Props 
               Communities
             </p>
             <ul className="mt-4 grid grid-cols-1 gap-x-8 gap-y-2 text-sm text-ink/75 sm:grid-cols-2">
-              {COMMUNITIES.flatMap((c) => [
+              {[...COMMUNITIES, ...WASHINGTON_COMMUNITIES].flatMap((c) => [
                 <li key={homesHref(c.slug)}>
                   <Link href={homesHref(c.slug)} className="transition-colors hover:text-ink">
                     {c.name} homes for sale

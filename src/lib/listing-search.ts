@@ -7,6 +7,11 @@
 // Thiensville is a `place-` where the rest are `city-`, and Marinette must be
 // the `county-` search, because Marinette Township is also labelled "Marinette
 // County" in AgentFire's search box and returns a much smaller list.
+//
+// West Bend, Hartford and Germantown were added on 2026-11-26 (T-106) the same
+// way: each town typed into AgentFire's own search box, its suggestion picked,
+// the search run, then checked with status=Active to show "Properties in
+// {Town}". Germantown is a `place-`, like Thiensville.
 
 export const LISTING_SEARCH = {
   cedarburg:
@@ -23,6 +28,12 @@ export const LISTING_SEARCH = {
     "https://exsellexperts.com/properties/city-Saukville,%20WI/?listingType=Residential&status=Active",
   "ozaukee-county":
     "https://exsellexperts.com/properties/county-Ozaukee,%20WI/?listingType=Residential&status=Active",
+  "west-bend":
+    "https://exsellexperts.com/properties/city-West%20Bend,%20WI/?listingType=Residential&status=Active",
+  hartford:
+    "https://exsellexperts.com/properties/city-Hartford,%20WI/?listingType=Residential&status=Active",
+  germantown:
+    "https://exsellexperts.com/properties/place-Germantown,%20WI/?listingType=Residential&status=Active",
   "marinette-homes":
     "https://exsellexperts.com/properties/county-Marinette,%20WI/?listingType=Residential&status=Active",
   "marinette-land":
@@ -45,14 +56,14 @@ export function listingSearchForSlug(slug: string): ListingSearch {
   return isListingSearch(town) ? town : FALLBACK_SEARCH;
 }
 
-// The seven towns with a /search/{town}-homes-for-sale page: every search but
+// The ten towns with a /search/{town}-homes-for-sale page: every search but
 // the two Northwoods ones.
 export type TownSearch = Exclude<ListingSearch, "marinette-homes" | "marinette-land">;
 
 // "cedarburg-homes-for-sale" -> "cedarburg", and null for every other page:
 // home value pages, guides, and a town with no search. Unlike
-// listingSearchForSlug there is no fallback, so only the seven town pages
-// get the town tiles (T-094).
+// listingSearchForSlug there is no fallback, so only the ten town pages get
+// the town tiles (T-094).
 export function townSearchForSlug(slug: string): TownSearch | null {
   const match = /^(.+)-homes-for-sale$/.exec(slug);
   if (!match) return null;
