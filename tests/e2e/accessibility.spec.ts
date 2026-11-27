@@ -26,6 +26,7 @@ const PAGES = [
   ["fair housing", "/fair-housing"],
   ["unsubscribe", "/unsubscribe"],
   ["northwoods", "/northwoods"],
+  ["the blog", "/blog"],
   ["the home value form", "/home-value"],
   ["a home value city page", "/search/cedarburg-home-value"],
 ] as const;

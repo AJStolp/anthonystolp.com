@@ -3,17 +3,19 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { getAgentProfile } from "@/lib/agent-profile";
+import { blogPostPath, getBlogPost } from "@/lib/blog-posts";
 import { AGENT_ID, SITE_URL } from "@/lib/json-ld";
 import { OG_IMAGES } from "@/lib/og";
 import { telHref } from "@/lib/phone";
-import { CONTENT_DATE } from "./content-date";
 
-const PATH = "/blog/cedarburg-market-nov-2026";
+// Title, description and dates come from this post's entry in the post list.
+const POST = getBlogPost("cedarburg-market-nov-2026");
+const PATH = blogPostPath(POST.slug);
 const PAGE_URL = `${SITE_URL}${PATH}`;
-const TITLE = "Cedarburg Market Update: November 2026";
-const DESCRIPTION =
-  "Cedarburg still favors sellers, but buyers have more listings than a year ago. Anthony Stolp breaks down October and November 2026 market numbers.";
-const PUBLISHED = "2026-11-26";
+const TITLE = POST.title;
+const DESCRIPTION = POST.description;
+const PUBLISHED = POST.datePublished;
+const CONTENT_DATE = POST.dateModified;
 
 export const metadata: Metadata = {
   title: TITLE,

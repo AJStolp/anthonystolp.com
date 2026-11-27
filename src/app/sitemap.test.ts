@@ -13,6 +13,9 @@ let listings: { slug: string; updated_at: string | null }[] = [];
 let pages: { slug: string; active: boolean; updated_at: string }[] = [];
 
 const realProperties = await import("@/lib/properties");
+// A copy, not the namespace: mock.module patches the namespace in place, so
+// spreading it after a mock would put the mock back rather than the real list.
+const realBlogPosts = { ...(await import("@/lib/blog-posts")) };
 const realNichePages = await import("@/lib/niche-pages");
 const serveTestData = () => {
   mock.module("@/lib/properties", () => ({
@@ -41,6 +44,10 @@ const CORE: [path: string, file: string][] = [
 ];
 
 const SITE = "https://anthonystolp.com";
+
+// /blog is in the sitemap too, but its lastmod is worked out rather than read
+// from one file, so it has its own tests below.
+const BLOG_INDEX = "/blog";
 
 function entry(entries: Awaited<ReturnType<typeof sitemap>>, path: string) {
   const found = entries.find((e) => e.url === `${SITE}${path}`);
@@ -99,10 +106,67 @@ describe("sitemap lastModified", () => {
     try {
       const entries = await sitemap();
       expect(entries.map((e) => e.url).sort()).toEqual(
-        CORE.map(([p]) => `${SITE}${p}`).sort(),
+        [...CORE.map(([p]) => p), BLOG_INDEX].map((p) => `${SITE}${p}`).sort(),
       );
     } finally {
       serveTestData();
+    }
+  });
+});
+
+// T-111: posts come from BLOG_POSTS, and /blog carries the later of its own
+// content date and its newest post's publish date. The list is replaced for
+// each test, then put back for the tests that run after.
+describe("sitemap blog entries", () => {
+  const post = (slug: string, datePublished: string, dateModified = datePublished) => ({
+    slug,
+    title: slug,
+    description: slug,
+    datePublished,
+    dateModified,
+    footerLabel: slug,
+  });
+  const serve = (posts: ReturnType<typeof post>[]) =>
+    mock.module("@/lib/blog-posts", () => ({ ...realBlogPosts, BLOG_POSTS: posts }));
+  const restore = () => mock.module("@/lib/blog-posts", () => realBlogPosts);
+
+  test("every post in the list is in the sitemap with its own modified date", async () => {
+    serve([post("second-post", "2027-02-01", "2027-02-03"), post("first-post", "2027-01-05")]);
+    try {
+      const entries = await sitemap();
+      expect(entry(entries, "/blog/second-post").lastModified).toBe("2027-02-03");
+      expect(entry(entries, "/blog/first-post").lastModified).toBe("2027-01-05");
+      const blogUrls = entries.map((e) => e.url).filter((u) => u.startsWith(`${SITE}/blog/`));
+      expect(blogUrls.sort()).toEqual([`${SITE}/blog/first-post`, `${SITE}/blog/second-post`]);
+    } finally {
+      restore();
+    }
+  });
+
+  test("/blog takes the newest post's publish date when it is later than its own", async () => {
+    serve([post("newer", "2099-03-04"), post("older", "2000-01-01")]);
+    try {
+      expect(entry(await sitemap(), BLOG_INDEX).lastModified).toBe("2099-03-04");
+    } finally {
+      restore();
+    }
+  });
+
+  test("/blog keeps its own content date when every post is older", async () => {
+    const { CONTENT_DATE } = await import("./blog/content-date");
+    serve([post("old", "2000-01-01")]);
+    try {
+      expect(entry(await sitemap(), BLOG_INDEX).lastModified).toBe(CONTENT_DATE);
+    } finally {
+      restore();
+    }
+  });
+
+  test("with the real list, /blog and each post are listed once", async () => {
+    const entries = await sitemap();
+    const urls = entries.map((e) => e.url);
+    for (const p of [BLOG_INDEX, ...realBlogPosts.BLOG_POSTS.map((x) => `/blog/${x.slug}`)]) {
+      expect(urls.filter((u) => u === `${SITE}${p}`), p).toHaveLength(1);
     }
   });
 });
