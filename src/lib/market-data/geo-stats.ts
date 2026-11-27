@@ -6,7 +6,7 @@
 import { getSupabase } from "../supabase-server";
 
 // Niche-page geo string -> Redfin zip(s) it covers (single-tenant: AJ's areas).
-// Mequon spans two zips; the county rolls up all six.
+// Mequon and West Bend span two zips; the county rolls up all six Ozaukee zips.
 const GEO_ZIPS: Record<string, string[]> = {
   "Cedarburg, WI": ["53012"],
   "Grafton, WI": ["53024"],
@@ -15,6 +15,9 @@ const GEO_ZIPS: Record<string, string[]> = {
   "Port Washington, WI": ["53074"],
   "Saukville, WI": ["53080"],
   "Ozaukee County, WI": ["53012", "53024", "53092", "53097", "53074", "53080"],
+  "West Bend, WI": ["53090", "53095"],
+  "Hartford, WI": ["53027"],
+  "Germantown, WI": ["53022"],
 };
 
 // Geos whose zip covers more than the town itself. Redfin publishes zips, not
@@ -23,6 +26,14 @@ const ZIP_AREA: Record<string, { label: string; note: string }> = {
   "Thiensville, WI": {
     label: "Thiensville and Mequon (53092)",
     note: "Redfin reports the 53092 zip code, which covers Thiensville and much of Mequon, not the village alone.",
+  },
+  "West Bend, WI": {
+    label: "West Bend and nearby (53090 and 53095)",
+    note: "Redfin reports the 53090 and 53095 zip codes, which cover West Bend and some of the surrounding area, not the city limits alone.",
+  },
+  "Hartford, WI": {
+    label: "Hartford and nearby (53027)",
+    note: "Redfin reports the 53027 zip code, which reaches past the city into the Town of Hartford and nearby areas.",
   },
 };
 

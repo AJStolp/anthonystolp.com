@@ -374,7 +374,7 @@ test.describe("/buy's own alert card", () => {
       .toBe(80);
   });
 
-  test("the card's Town dropdown lists the homepage's seven towns in order", async ({ page }) => {
+  test("the card's Town dropdown lists the homepage's ten towns in order", async ({ page }) => {
     await page.goto("/buy");
     const select = page.locator("#alerts").getByLabel("Town", { exact: true });
     await expect(select.locator("option")).toHaveText([
@@ -386,6 +386,9 @@ test.describe("/buy's own alert card", () => {
       "Port Washington",
       "Saukville",
       "Ozaukee County",
+      "West Bend",
+      "Hartford",
+      "Germantown",
     ]);
   });
 

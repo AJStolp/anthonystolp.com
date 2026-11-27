@@ -8,7 +8,7 @@ import {
 } from "./listing-search";
 
 describe("which pages get the town tiles", () => {
-  test("each of the seven homes for sale pages names its town", () => {
+  test("each of the ten homes for sale pages names its town", () => {
     expect(townSearchForSlug("cedarburg-homes-for-sale")).toBe("cedarburg");
     expect(townSearchForSlug("mequon-homes-for-sale")).toBe("mequon");
     expect(townSearchForSlug("thiensville-homes-for-sale")).toBe("thiensville");
@@ -20,17 +20,24 @@ describe("which pages get the town tiles", () => {
     expect(townSearchForSlug("ozaukee-county-homes-for-sale")).toBe(
       "ozaukee-county",
     );
+    expect(townSearchForSlug("west-bend-homes-for-sale")).toBe("west-bend");
+    expect(townSearchForSlug("hartford-homes-for-sale")).toBe("hartford");
+    expect(townSearchForSlug("germantown-homes-for-sale")).toBe("germantown");
   });
 
   test("home value pages and guides get none, with no fallback", () => {
     expect(townSearchForSlug("cedarburg-home-value")).toBeNull();
     expect(townSearchForSlug("ozaukee-county-home-value")).toBeNull();
+    expect(townSearchForSlug("west-bend-home-value")).toBeNull();
+    expect(townSearchForSlug("germantown-home-value")).toBeNull();
     expect(townSearchForSlug("downsizing-in-wisconsin")).toBeNull();
     expect(townSearchForSlug("selling-a-house-during-divorce-wisconsin")).toBeNull();
   });
 
   test("a town with no search, a bare town, or a Northwoods search gets none", () => {
-    expect(townSearchForSlug("west-bend-homes-for-sale")).toBeNull();
+    // Jackson and Slinger are named on the homepage but have no pages.
+    expect(townSearchForSlug("jackson-homes-for-sale")).toBeNull();
+    expect(townSearchForSlug("slinger-homes-for-sale")).toBeNull();
     expect(townSearchForSlug("cedarburg")).toBeNull();
     expect(townSearchForSlug("-homes-for-sale")).toBeNull();
     expect(townSearchForSlug("cedarburg-homes-for-sale-old")).toBeNull();
@@ -49,6 +56,9 @@ describe("which search a page opens", () => {
     expect(listingSearchForSlug("ozaukee-county-homes-for-sale")).toBe(
       "ozaukee-county",
     );
+    expect(listingSearchForSlug("west-bend-homes-for-sale")).toBe("west-bend");
+    expect(listingSearchForSlug("hartford-homes-for-sale")).toBe("hartford");
+    expect(listingSearchForSlug("germantown-homes-for-sale")).toBe("germantown");
   });
 
   test("a page with no town of its own opens Ozaukee County", () => {
@@ -57,7 +67,7 @@ describe("which search a page opens", () => {
     expect(listingSearchForSlug("downsizing-in-wisconsin")).toBe(
       "ozaukee-county",
     );
-    expect(listingSearchForSlug("west-bend-homes-for-sale")).toBe(
+    expect(listingSearchForSlug("jackson-homes-for-sale")).toBe(
       "ozaukee-county",
     );
   });
@@ -90,6 +100,20 @@ describe("the search URL", () => {
       expect(url).not.toContain("/anthony-stolp/");
       expect(url).toContain("status=Active");
     }
+  });
+
+  // Taken from AgentFire's own search box on 2026-11-26 (T-106). Written out
+  // here so a URL built from the town name cannot pass.
+  test("the three Washington County towns open the searches AgentFire gave", () => {
+    expect(LISTING_SEARCH["west-bend"]).toBe(
+      "https://exsellexperts.com/properties/city-West%20Bend,%20WI/?listingType=Residential&status=Active",
+    );
+    expect(LISTING_SEARCH.hartford).toBe(
+      "https://exsellexperts.com/properties/city-Hartford,%20WI/?listingType=Residential&status=Active",
+    );
+    expect(LISTING_SEARCH.germantown).toBe(
+      "https://exsellexperts.com/properties/place-Germantown,%20WI/?listingType=Residential&status=Active",
+    );
   });
 
   test("Thiensville is a place and Marinette is the county", () => {

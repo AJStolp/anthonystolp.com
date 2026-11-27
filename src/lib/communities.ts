@@ -19,6 +19,14 @@ export const COMMUNITIES: Community[] = [
   { name: "Ozaukee County", slug: "ozaukee-county" },
 ];
 
+// Kept apart from the Ozaukee set: the homepage shows them as their own
+// cluster, and hot-lead.ts names them on its own.
+export const WASHINGTON_COMMUNITIES: Community[] = [
+  { name: "West Bend", slug: "west-bend", zip: "53090 · 53095" },
+  { name: "Hartford", slug: "hartford", zip: "53027" },
+  { name: "Germantown", slug: "germantown", zip: "53022" },
+];
+
 export const GUIDES: { label: string; href: string }[] = [
   { label: "Selling during a divorce", href: "/search/selling-a-house-during-divorce-wisconsin" },
   { label: "Selling an inherited house", href: "/search/selling-an-inherited-house-wisconsin" },

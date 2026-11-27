@@ -6,10 +6,11 @@ import { expect, test, type APIRequestContext } from "@playwright/test";
 // through the request fixture, which runs no JavaScript, because that is the
 // HTML a crawler reads.
 //
-// The 18 slugs are written out here rather than imported from
-// src/lib/communities.ts on purpose. They were checked against the live
-// sitemap on 2026-11-20. Importing the list would let a dropped or misspelled
-// entry change the expectation along with the bug.
+// The 24 slugs are written out here rather than imported from
+// src/lib/communities.ts on purpose. The Ozaukee ones were checked against the
+// live sitemap on 2026-11-20, and the Washington County ones against the
+// niche_pages rows inserted on 2026-11-26 (T-106). Importing the list would
+// let a dropped or misspelled entry change the expectation along with the bug.
 const TOWNS: [slug: string, name: string][] = [
   ["cedarburg", "Cedarburg"],
   ["mequon", "Mequon"],
@@ -18,6 +19,9 @@ const TOWNS: [slug: string, name: string][] = [
   ["port-washington", "Port Washington"],
   ["saukville", "Saukville"],
   ["ozaukee-county", "Ozaukee County"],
+  ["west-bend", "West Bend"],
+  ["hartford", "Hartford"],
+  ["germantown", "Germantown"],
 ];
 const CITY_PAGES = TOWNS.flatMap(([t]) => [
   `/search/${t}-homes-for-sale`,
@@ -48,7 +52,7 @@ function hrefs(html: string): Set<string> {
 test("the home page server HTML links to every city page and guide, and each returns 200", async ({
   request,
 }) => {
-  // One dev compile of /search/[slug] plus 18 Supabase backed renders.
+  // One dev compile of /search/[slug] plus 28 Supabase backed renders.
   test.setTimeout(180_000);
 
   const html = await serverHtml(request, "/");
@@ -58,7 +62,7 @@ test("the home page server HTML links to every city page and guide, and each ret
   for (const path of [...CITY_PAGES, ...GUIDES]) {
     expect(links, `home page links to ${path}`).toContain(path);
   }
-  expect(search.length).toBeGreaterThanOrEqual(18);
+  expect(search.length).toBeGreaterThanOrEqual(24);
 
   // The anchor text is what tells Google what the page is about, so the
   // ticket fixes it as "{Town} homes for sale" and "{Town} home values".
@@ -70,6 +74,11 @@ test("the home page server HTML links to every city page and guide, and each ret
   const anchors = html
     .slice(start, html.indexOf("</section>", start))
     .replace(/<!-- -->/g, "");
+  // The three Washington County towns are links now, not a sentence; only
+  // Jackson and Slinger, which have no pages, stay as text.
+  expect(anchors).not.toContain("Also serving Washington County");
+  expect(anchors).toContain("Also serving Jackson and Slinger.");
+  expect(anchors).not.toMatch(/href="\/search\/(jackson|slinger)-/);
   for (const [slug, name] of TOWNS) {
     for (const [suffix, text] of [
       ["homes-for-sale", `${name} homes for sale`],
