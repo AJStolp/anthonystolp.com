@@ -9,6 +9,7 @@ import { CONTENT_DATE as NORTHWOODS_DATE } from "./northwoods/content-date";
 import { CONTENT_DATE as PRIVACY_DATE } from "./privacy/content-date";
 import { CONTENT_DATE as TERMS_DATE } from "./terms/content-date";
 import { CONTENT_DATE as FAIR_HOUSING_DATE } from "./fair-housing/content-date";
+import { CONTENT_DATE as CEDARBURG_NOV_2026_DATE } from "./blog/cedarburg-market-nov-2026/content-date";
 
 const SITE_URL = "https://anthonystolp.com";
 
@@ -77,6 +78,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: NORTHWOODS_DATE,
       changeFrequency: "monthly",
       priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/blog/cedarburg-market-nov-2026`,
+      lastModified: CEDARBURG_NOV_2026_DATE,
+      changeFrequency: "yearly",
+      priority: 0.6,
     },
     ...nicheEntries,
     ...propertyEntries,
