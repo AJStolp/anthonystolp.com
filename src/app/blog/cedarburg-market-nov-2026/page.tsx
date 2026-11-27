@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { blogPostPath, getBlogPost } from "@/lib/blog-posts";
 import { AGENT_ID, SITE_URL } from "@/lib/json-ld";
@@ -202,6 +203,10 @@ export default function CedarburgMarketNov2026Page() {
               , I can set up new listing alerts and tell you what is wrong with a
               house before I tell you what is right.
             </p>
+          </div>
+
+          <div className="mt-16">
+            <NewsletterSignup variant="card" placement="blog_post" cell={cell} streetCta />
           </div>
         </article>
       </main>

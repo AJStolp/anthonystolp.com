@@ -6,7 +6,7 @@ import { Reviews } from "@/components/Reviews";
 import { RecentResults } from "@/components/RecentResults";
 import { Approach } from "@/components/Approach";
 import { Communities } from "@/components/Communities";
-import { MarketReportSubscribe } from "@/components/MarketReportSubscribe";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { LeadForm } from "@/components/LeadForm";
 import { Footer } from "@/components/Footer";
 import { getRecentResults } from "@/lib/properties";
@@ -70,7 +70,16 @@ export default async function Home() {
         <RecentResults results={rest} />
         <Approach />
         <Communities />
-        <MarketReportSubscribe />
+        <div className="w-full bg-white py-24 md:py-32">
+          <div className="mx-auto max-w-3xl px-6 md:px-12">
+            <NewsletterSignup
+              variant="card"
+              placement="home"
+              id="market-report"
+              cell={getAgentProfile().mobilePhone}
+            />
+          </div>
+        </div>
         <LeadForm cell={getAgentProfile().mobilePhone} />
         <Footer />
       </main>

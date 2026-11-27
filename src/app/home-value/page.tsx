@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { HomeValueFunnel } from "@/components/HomeValueFunnel";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { getAgentProfile } from "@/lib/agent-profile";
 import { BNDRYIQ_LIVE } from "@/lib/home-value";
 import {
@@ -216,6 +217,12 @@ export default function HomeValuePage() {
             </div>
           </div>
         </section>
+        {/* Below the FAQ, never above the home value form (T-113). */}
+        <div className="relative w-full bg-white pb-24">
+          <div className="mx-auto w-full max-w-3xl px-6 md:px-12">
+            <NewsletterSignup variant="card" placement="home_value" cell={cell} />
+          </div>
+        </div>
         <Footer />
       </main>
     </>
