@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type APIRequestContext } from "@playwright/test";
 
 // Unique stamp per run so test rows are filterable / cleanable.
 const STAMP = `pw-${Date.now()}`;
@@ -600,6 +600,93 @@ test.describe("Static pages", () => {
     );
     expect(html).not.toMatch(/southeast Wisconsin/i);
     expect(html.match(/<h1[\s>]/g) ?? []).toHaveLength(1);
+  });
+
+  // T-104: Google only allows FAQ markup for questions shown on the page, so
+  // /home-value shows these three, word for word, and its JSON-LD says the same.
+  const HOME_VALUE_FAQS = [
+    {
+      q: "Is the home value really free?",
+      a: "Yes. No cost and no obligation. You get a price range and the nearby sales I based it on.",
+    },
+    {
+      q: "How is this different from an online estimate?",
+      a: "Online estimates are an algorithm guessing from public records. I look at what actually sold near you, plus the condition and updates you tell me about, and I send a range with the reasons behind it.",
+    },
+    {
+      q: "Do I have to list with you?",
+      a: "No. Use the number however you want. If you ever want to talk about selling, call or text me at (262) 483-7932.",
+    },
+  ];
+
+  type GraphNode = {
+    "@type": string;
+    mainEntity?: { name: string; acceptedAnswer: { text: string } }[];
+  };
+
+  async function serverGraph(request: APIRequestContext) {
+    const html = await (await request.get("/home-value")).text();
+    const blocks = [
+      ...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g),
+    ];
+    return blocks.flatMap((b) => (JSON.parse(b[1])["@graph"] ?? []) as GraphNode[]);
+  }
+
+  test("/home-value's server HTML carries FAQPage beside its other schema", async ({ request }) => {
+    const graph = await serverGraph(request);
+    expect(graph.map((n) => n["@type"]).sort()).toEqual([
+      "BreadcrumbList",
+      "FAQPage",
+      "RealEstateAgent",
+      "RealEstateOrganization",
+      "Service",
+      "WebPage",
+    ]);
+    const faq = graph.find((n) => n["@type"] === "FAQPage");
+    expect(
+      faq?.mainEntity?.map((m) => ({ q: m.name, a: m.acceptedAnswer.text })),
+    ).toEqual(HOME_VALUE_FAQS);
+  });
+
+  test("/home-value shows the same three questions above the footer, with the cell linked", async ({
+    page,
+    request,
+  }) => {
+    await page.route("**/api/track", (r) => r.fulfill({ status: 204 }));
+    await page.route("**/api/lead", (r) => r.abort());
+    const graph = await serverGraph(request);
+    const faq = graph.find((n) => n["@type"] === "FAQPage");
+
+    await page.goto("/home-value");
+    const section = page.locator("#faq");
+    await expect(section.getByRole("heading", { level: 2 })).toHaveText("Questions");
+    const questions = section.getByRole("heading", { level: 3 });
+    await expect(questions).toHaveText(HOME_VALUE_FAQS.map((f) => f.q));
+    const answers = section.locator("h3 + p");
+    await expect(answers).toHaveCount(3);
+    for (const [i, f] of HOME_VALUE_FAQS.entries()) {
+      // Each visible pair is exactly what the JSON-LD says.
+      expect(await questions.nth(i).textContent()).toBe(faq?.mainEntity?.[i].name);
+      expect((await answers.nth(i).textContent())?.trim()).toBe(f.a);
+      expect((await answers.nth(i).textContent())?.trim()).toBe(
+        faq?.mainEntity?.[i].acceptedAnswer.text,
+      );
+    }
+
+    const cell = answers.nth(2).locator('a[href="tel:+12624837932"]');
+    await expect(cell).toHaveText("(262) 483-7932");
+
+    // One h1 for the page, and the questions come after it and before the footer.
+    await expect(page.locator("h1")).toHaveCount(1);
+    const order = await section.evaluate((s) => {
+      const h1 = document.querySelector("h1")!;
+      const footer = document.querySelector("footer")!;
+      return {
+        afterH1: Boolean(h1.compareDocumentPosition(s) & Node.DOCUMENT_POSITION_FOLLOWING),
+        beforeFooter: Boolean(s.compareDocumentPosition(footer) & Node.DOCUMENT_POSITION_FOLLOWING),
+      };
+    });
+    expect(order).toEqual({ afterH1: true, beforeFooter: true });
   });
 });
 
