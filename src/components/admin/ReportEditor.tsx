@@ -201,10 +201,7 @@ export function ReportEditor({ report }: { report: ReportShape }) {
               className="w-full border border-ink/15 bg-white p-4 font-mono text-[12px] leading-[1.5] text-ink outline-none focus-visible:border-ink"
             />
           ) : (
-            <div
-              className="border border-ink/15 bg-white p-6 text-[14px] leading-[1.65] text-ink"
-              dangerouslySetInnerHTML={{ __html: bodyHtml }}
-            />
+            <ReportPreview html={bodyHtml} />
           )}
         </div>
         <p className="mt-2 text-[11px] text-ink-soft/70">
@@ -257,6 +254,21 @@ export function ReportEditor({ report }: { report: ReportShape }) {
         </button>
       </div>
     </div>
+  );
+}
+
+// The report HTML is whatever is in the HTML tab, so anything pasted there is
+// untrusted. An empty sandbox gives the frame an opaque origin with scripts,
+// forms, popups and navigation all off: an onerror handler in the report never
+// runs, and nothing in it can reach the admin session.
+export function ReportPreview({ html }: { html: string }) {
+  return (
+    <iframe
+      title="Report preview"
+      sandbox=""
+      srcDoc={html}
+      className="h-[640px] w-full border border-ink/15 bg-white"
+    />
   );
 }
 

@@ -8,11 +8,19 @@ const SLUG_ALPHABET =
 const SITE_URL = process.env.SITE_URL ?? "https://anthonystolp.com";
 const MAX_INSERT_RETRIES = 5;
 
-function generateSlug(length = 10): string {
-  const bytes = randomBytes(length);
+// 56 does not divide 256, so `byte % 56` would favor the first 32 characters.
+// Bytes at or above the largest multiple of 56 below 256 (224) are dropped
+// and redrawn, which leaves every character equally likely.
+const UNBIASED_LIMIT = 256 - (256 % SLUG_ALPHABET.length);
+
+export function generateSlug(length = 10): string {
   let out = "";
-  for (let i = 0; i < length; i++) {
-    out += SLUG_ALPHABET[bytes[i]! % SLUG_ALPHABET.length];
+  while (out.length < length) {
+    for (const byte of randomBytes(length)) {
+      if (byte >= UNBIASED_LIMIT) continue;
+      out += SLUG_ALPHABET[byte % SLUG_ALPHABET.length];
+      if (out.length === length) break;
+    }
   }
   return out;
 }

@@ -85,6 +85,14 @@ sd = {}; record(built, { data: { previews: ['https://x/p.png'] } });
 is('preview commits no send', (sd.mailedLeadIds || []).length, 0);
 is('preview commits no count', sd.mailWeekCount || 0, 0);
 
+// thanks.io's preview URLs land in <img src="...">. A quote in one must stay inside the src
+// rather than close it and add an onerror handler. The `&` catches escaping in the wrong order.
+const HOSTILE_URL = `https://x/p.png?a=1&b"onerror="alert(1)'`;
+const unescape = (v) => v.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+sd = {}; const imgSrc = (String(record(built, { data: { previews: [HOSTILE_URL] } }).html).match(/<img src="([^"]*)"/) || [])[1] || '';
+is('quoted preview url stays inside its src', unescape(imgSrc), HOSTILE_URL);
+is('no single quote left raw in the src', imgSrc.includes("'"), false);
+
 sd = {}; const live = { ...built, preview: false };
 is('vendor error renders', title(record(live, { message: 'Insufficient credits' }).html), 'Not sent');
 is('vendor error commits nothing', (sd.mailedLeadIds || []).length, 0);

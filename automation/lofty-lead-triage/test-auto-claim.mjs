@@ -76,5 +76,15 @@ is('pipeline card offers Open in Lofty', (d.html.match(/Open in Lofty/g) || []).
 is('no claim webhook link', /lofty-claim/.test(d.html), false);
 is('no results falls back to plain count', digest(none).subject, 'Lead review · 2026-10-28 · 3 worth a letter');
 
+// Lead data is outside input and the email lands inside href="mailto:...". A quote in it must
+// stay inside the attribute rather than close it and start an onmouseover handler. The `&` is
+// there to catch escaping in the wrong order, which would double escape the quotes.
+const HOSTILE = `a&b"onmouseover="alert(1)'x@example.com`;
+const unescape = (v) => v.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+const hostile = digest([lead('9', 'pond', 'A', { claim: 'claimed', email: HOSTILE })]).html;
+const mailto = (hostile.match(/href="(mailto:[^"]*)"/) || [])[1] || '';
+is('quoted email stays inside its href', unescape(mailto), `mailto:${HOSTILE}`);
+is('no single quote left raw in the href', mailto.includes("'"), false);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

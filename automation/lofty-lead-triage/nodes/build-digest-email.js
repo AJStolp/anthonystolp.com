@@ -13,7 +13,7 @@ const pipe = items.filter(i => i.bucket === 'pipeline');
 const shortlist = pond.filter(i => i.tier === 'A' || i.tier === 'B');
 const rest = pond.filter(i => i.tier !== 'A' && i.tier !== 'B');
 
-const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 const color = t => t === 'A' ? '#1a7f37' : t === 'B' ? '#9a6700' : '#6e7781';
 const money = n => (n == null || n === '') ? null : '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
 const fmtPhone = p => { const d = String(p || '').replace(/\D/g, ''); if (d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`; if (d.length === 11 && d[0] === '1') return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`; return p || ''; };
