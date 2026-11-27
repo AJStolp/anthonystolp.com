@@ -4,9 +4,11 @@
 // funnel_leads, confirmed once newsletter_confirmed_at is set.
 //
 // Newsletter mail goes from the news. subdomain only, so the root domain's
-// reputation (lead alerts, home value replies) is never spent on it. Until
-// NEWSLETTER_FROM_EMAIL names an address there, nothing is sent: the lead is
-// still saved, and a warning is logged.
+// reputation (lead alerts, home value replies) is never spent on it. It sends
+// with NEWSLETTER_RESEND_API_KEY, a Resend key restricted to that subdomain,
+// and never with RESEND_API_KEY, which only sends from the root domain. Until
+// NEWSLETTER_FROM_EMAIL names an address there and NEWSLETTER_RESEND_API_KEY
+// is set, nothing is sent: the lead is still saved, and a warning is logged.
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -86,9 +88,9 @@ async function sendNewsletterMail(agent: AgentProfile, msg: Message): Promise<bo
     );
     return false;
   }
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.NEWSLETTER_RESEND_API_KEY;
   if (!apiKey) {
-    console.warn(`[newsletter] RESEND_API_KEY is not set; not sending "${msg.subject}".`);
+    console.warn(`[newsletter] NEWSLETTER_RESEND_API_KEY is not set; not sending "${msg.subject}".`);
     return false;
   }
   const res = await new Resend(apiKey).emails.send({
