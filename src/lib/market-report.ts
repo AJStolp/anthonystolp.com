@@ -1,17 +1,21 @@
-// Claude-drafted monthly market report for a single zip + safety checks.
+// Claude-drafted monthly market section for a single zip + safety checks.
+// Each section goes out inside The River Report for subscribers in that zip;
+// nothing here sends email.
 //
 // Pipeline:
-//   1. draftReport()       — Claude writes the email
-//   2. validateDraft()     — deterministic checks (em dashes, attribution,
-//                            sign-off, length) — free, instant, no LLM
-//   3. factCheckDraft()    — Claude verifies every numerical claim matches
-//                            the underlying market_stats row
-//   4. Both passes → status=ready (or auto-send via env flag)
-//      Any failure → status=draft with specific notes
+//   1. draftReport()       Claude writes the section
+//   2. validateDraft()     deterministic checks (em dashes, attribution,
+//                          length). Free, instant, no LLM
+//   3. factCheckDraft()    Claude verifies every numerical claim matches
+//                          the underlying market_stats row
+//   4. Both passes → status=ready, which counts as approved
+//      Any failure → status=draft with specific notes, for AJ to fix and
+//      approve in /admin/reports
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AgentProfile } from "./agent-profile";
 
 const MODEL = "claude-opus-4-7";
@@ -55,34 +59,38 @@ export type DraftInput = {
 };
 
 function buildSystemPrompt(agent: AgentProfile): string {
-  return `You are the personal email drafter for ${agent.name}, a Realtor on the ExSell Experts team (${agent.brokerage}) serving ${agent.serviceArea}.
+  return `You are the writer for ${agent.name}, a Realtor on the ExSell Experts team (${agent.brokerage}) serving ${agent.serviceArea}.
 
-Your job is to draft a SHORT market report email for one zip code, based on a rolling 90-day window of stats. The email is delivered monthly to subscribers who explicitly asked to hear about that zip's market. Write in ${agent.shortName}'s voice.
+Your job is to write ONE SECTION of The River Report, ${agent.shortName}'s monthly newsletter, covering one zip code from a rolling 90-day window of stats. The section is placed inside the newsletter for subscribers who asked to hear about that zip's market. It is not a standalone email. Write in ${agent.shortName}'s voice.
 
 VOICE
 ${agent.voiceNotes}
 
 STRUCTURE
-- Subject line (one line, no quotes around it)
-- Greeting using the subscriber's first name placeholder: "Hi {{first_name}}," (use the exact token {{first_name}})
-- Open with a one-sentence read on the period
-- 2-3 short paragraphs with the actual numbers, each grounded in the stat data you are given
-- One concrete take or interpretation (what does this mean for someone in that zip)
-- Close: a single line offering a personal conversation ("Reply if you want me to dig into your specific block.")
-- Sign off: "Talk soon," then "${agent.shortName}" on the next line
+- subject: a short section heading for the zip (one line, no quotes around it)
+- One or two short paragraphs with the actual numbers, each grounded in the stat data you are given
+- One plain take: what this means for someone in that zip, in a sentence or two
+- The attribution line, as its own final paragraph
+
+The newsletter supplies the greeting and the sign off, so the section has neither.
+
+DO NOT INCLUDE
+- A greeting ("Hi", "Hello", any name or name placeholder)
+- A sign off or a signature
+- A call to reply or book a conversation
 
 KEEP IT TIGHT
-- 2-3 body paragraphs MAX. Not 4-5. Subscribers skim.
+- Two body paragraphs MAX, plus the take and the attribution. Subscribers skim.
 - One stat per sentence is fine, not three.
 
 ATTRIBUTION
-Always include a small line at the very bottom: "Data from Redfin Data Center. Past performance does not predict future results." Required in both bodyText and bodyHtml.
+Always end with this exact line: "Data from Redfin Data Center. Past performance does not predict future results." Required in both bodyText and bodyHtml.
 
 NUMBERS
 - Format prices with commas and dollar signs ($425,000 not 425000)
 - Round percentages to one decimal ("4.2% above last year")
-- mom_pct and yoy_pct are decimals (0.159 = 15.9%) — multiply by 100 when writing them out
-- If a stat is null/missing, do not invent — say so or skip
+- mom_pct and yoy_pct are decimals (0.159 = 15.9%), so multiply by 100 when writing them out
+- If a stat is null/missing, do not invent. Say so or skip it
 - Compare current to prior windows when both are present
 - Never quote a single-window change without context
 
@@ -94,7 +102,7 @@ DO NOT
 - Mention you are an AI
 
 OUTPUT
-Return JSON with subject, bodyText, bodyHtml. bodyHtml uses only <p> and <strong>, no inline styles.`;
+Return JSON with subject (the section heading), bodyText, bodyHtml. Separate paragraphs in bodyText with a blank line. bodyHtml uses only <p> and <strong>, no inline styles.`;
 }
 
 function buildUserPrompt(input: DraftInput): string {
@@ -108,7 +116,7 @@ function buildUserPrompt(input: DraftInput): string {
   return [
     `Zip: ${input.zip} (${input.zipLabel})`,
     `Reporting window anchor: ${monthName}`,
-    "Note: this is a 90-day rolling window from Redfin. Frame the email around the period, not a specific calendar month.",
+    "Note: this is a 90-day rolling window from Redfin. Frame the section around the period, not a specific calendar month.",
     "",
     "CURRENT WINDOW STATS:",
     fmt(input.current),
@@ -116,7 +124,7 @@ function buildUserPrompt(input: DraftInput): string {
     "PRIOR WINDOW (for trend context):",
     fmt(input.priorMonth),
     "",
-    `Draft the report for ${input.zipLabel}. Return JSON only.`,
+    `Write the River Report section for ${input.zipLabel}. Return JSON only.`,
   ].join("\n");
 }
 
@@ -145,13 +153,10 @@ export async function draftReport(input: DraftInput): Promise<Draft | null> {
 
 /**
  * Deterministic checks. Free, instant, no LLM. Catches the things we know we
- * never want to see in a sent email — em dashes, missing attribution, missing
- * sign-off, missing {{first_name}} token, wildly off length.
+ * never want to see in a River Report section: em dashes, missing
+ * attribution, wildly off length.
  */
-export function validateDraft(
-  draft: Draft,
-  agent: AgentProfile,
-): ValidationResult {
+export function validateDraft(draft: Draft): ValidationResult {
   const issues: string[] = [];
 
   // No em dashes anywhere
@@ -170,18 +175,7 @@ export function validateDraft(
     issues.push("Missing exact 'Redfin Data Center' attribution in bodyHtml (required for linkify)");
   }
 
-  // Sign-off
-  const signoff = `Talk soon,\n${agent.shortName}`;
-  if (!draft.bodyText.includes(signoff)) {
-    issues.push(`Missing exact sign-off "Talk soon,\\n${agent.shortName}" in bodyText`);
-  }
-
-  // First-name token
-  if (!draft.bodyText.includes("{{first_name}}")) {
-    issues.push("Missing {{first_name}} token in greeting");
-  }
-
-  // Subject sanity
+  // Subject (the section heading) sanity
   if (!draft.subject.trim() || draft.subject.length > 120) {
     issues.push(`Subject length problem (${draft.subject.length} chars)`);
   }
@@ -189,16 +183,38 @@ export function validateDraft(
     issues.push("Subject is wrapped in quotes");
   }
 
-  // Length sanity — 2-7 paragraphs (greeting + body + signoff + attribution)
+  // Length sanity: 2 to 4 paragraphs (one or two body paragraphs, the take,
+  // the attribution line)
   const paragraphs = draft.bodyText.split(/\n\n+/).filter((p) => p.trim());
-  if (paragraphs.length < 3) {
-    issues.push(`Body too short (${paragraphs.length} paragraphs)`);
+  if (paragraphs.length < 2) {
+    issues.push(`Section too short (${paragraphs.length} paragraphs)`);
   }
-  if (paragraphs.length > 9) {
-    issues.push(`Body too long (${paragraphs.length} paragraphs)`);
+  if (paragraphs.length > 4) {
+    issues.push(`Section too long (${paragraphs.length} paragraphs)`);
   }
 
   return { valid: issues.length === 0, issues };
+}
+
+/**
+ * A zip has subscribers only when at least one market-report-subscribe row
+ * for it has confirmed the newsletter and has not unsubscribed. Unconfirmed
+ * signups do not get The River Report, so they do not earn a section either.
+ */
+export async function zipHasSubscribers(
+  supabase: SupabaseClient,
+  zip: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("funnel_leads")
+    .select("id")
+    .eq("source", "market-report-subscribe")
+    .eq("postal_code", zip)
+    .not("newsletter_confirmed_at", "is", null)
+    .is("unsubscribed_at", null)
+    .limit(1);
+  if (error) throw new Error(`subscriber check failed: ${error.message}`);
+  return (data ?? []).length > 0;
 }
 
 /**
@@ -238,7 +254,7 @@ OUTPUT
 Return JSON with:
 - claims: array of { text (the literal claim from the draft), source_field (the JSON key it maps to or null), source_value (string rep of source value or null), matches (bool), note (one-line explanation when matches=false, or null) }
 - accurate: true if every claim matches, false otherwise
-- confidence: 0-100 — your overall confidence in this fact-check (lower if the draft has many claims, or if some claims were ambiguous)
+- confidence: 0-100, your overall confidence in this fact-check (lower if the draft has many claims, or if some claims were ambiguous)
 - summary: 1-2 sentences. If accurate, say so. If not, list the worst offenders.`;
 
   const user = [

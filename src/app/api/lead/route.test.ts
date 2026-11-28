@@ -45,6 +45,7 @@ process.env.RESEND_API_KEY = "re_test";
 process.env.LEAD_TO_EMAIL = "anthony@exsellexperts.com";
 process.env.UNSUBSCRIBE_SECRET = "test-secret";
 process.env.NEWSLETTER_FROM_EMAIL = "anthony@news.anthonystolp.com";
+process.env.NEWSLETTER_RESEND_API_KEY = "re_news";
 const { POST } = await import("./route");
 
 let ip = 0;
@@ -192,6 +193,27 @@ describe("a River Report signup", () => {
       console.error = error;
     }
     expect(confirms()).toHaveLength(0);
+  });
+
+  test("with no NEWSLETTER_RESEND_API_KEY: the row is saved, Anthony's alert goes, no confirm email", async () => {
+    db = fakeSupabase({ funnel_leads: [] });
+    delete process.env.NEWSLETTER_RESEND_API_KEY;
+    const warn = console.warn;
+    const warnings: string[] = [];
+    console.warn = (line: unknown) => void warnings.push(String(line));
+    try {
+      const { status, body } = await signUp({ email: "sam@example.com" });
+      expect(status).toBe(200);
+      expect(body).toMatchObject({ ok: true, accepted: true });
+      expect(db.tables.funnel_leads[0]).toMatchObject({ source: SOURCE, email: "sam@example.com" });
+      await flush();
+    } finally {
+      console.warn = warn;
+      process.env.NEWSLETTER_RESEND_API_KEY = "re_news";
+    }
+    expect(confirms()).toHaveLength(0);
+    expect(sent.some((m) => String(m.subject).startsWith("New river report signup"))).toBe(true);
+    expect(warnings.some((w) => w.includes("NEWSLETTER_RESEND_API_KEY is not set"))).toBe(true);
   });
 
   test("is never pushed to Lofty", async () => {
