@@ -75,6 +75,10 @@ function loadExceptions() {
       console.error("  " + entry.id + " has no ticket. Every exception needs one.");
       process.exit(1);
     }
+    // The nightly scan's opengrep and zizmor exceptions share this file. They
+    // name a rule and a path, not an advisory, so they are not this check's to
+    // call stale. headspace's security_scan.py draws the same line.
+    if (entry.tool && entry.tool !== "osv-scanner") continue;
     allowed.set(entry.package + " " + entry.id, entry);
   }
   return allowed;
