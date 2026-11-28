@@ -16,6 +16,7 @@ const realProperties = await import("@/lib/properties");
 // A copy, not the namespace: mock.module patches the namespace in place, so
 // spreading it after a mock would put the mock back rather than the real list.
 const realBlogPosts = { ...(await import("@/lib/blog-posts")) };
+const realIssues = { ...(await import("@/lib/newsletter-issues")) };
 const realNichePages = await import("@/lib/niche-pages");
 const serveTestData = () => {
   mock.module("@/lib/properties", () => ({
@@ -41,13 +42,15 @@ const CORE: [path: string, file: string][] = [
   ["/terms", "./terms/content-date"],
   ["/fair-housing", "./fair-housing/content-date"],
   ["/blog/cedarburg-market-nov-2026", "./blog/cedarburg-market-nov-2026/content-date"],
+  ["/newsletter/2026-12", "./newsletter/2026-12/content-date"],
 ];
 
 const SITE = "https://anthonystolp.com";
 
-// /blog is in the sitemap too, but its lastmod is worked out rather than read
-// from one file, so it has its own tests below.
+// /blog and /newsletter are in the sitemap too, but their lastmod is worked
+// out rather than read from one file, so they have their own tests below.
 const BLOG_INDEX = "/blog";
+const NEWSLETTER_INDEX = "/newsletter";
 
 function entry(entries: Awaited<ReturnType<typeof sitemap>>, path: string) {
   const found = entries.find((e) => e.url === `${SITE}${path}`);
@@ -106,7 +109,7 @@ describe("sitemap lastModified", () => {
     try {
       const entries = await sitemap();
       expect(entries.map((e) => e.url).sort()).toEqual(
-        [...CORE.map(([p]) => p), BLOG_INDEX].map((p) => `${SITE}${p}`).sort(),
+        [...CORE.map(([p]) => p), BLOG_INDEX, NEWSLETTER_INDEX].map((p) => `${SITE}${p}`).sort(),
       );
     } finally {
       serveTestData();
@@ -168,5 +171,62 @@ describe("sitemap blog entries", () => {
     for (const p of [BLOG_INDEX, ...realBlogPosts.BLOG_POSTS.map((x) => `/blog/${x.slug}`)]) {
       expect(urls.filter((u) => u === `${SITE}${p}`), p).toHaveLength(1);
     }
+  });
+});
+
+// T-132: issues come from NEWSLETTER_ISSUES, and /newsletter carries the later
+// of its own content date and its newest issue's publish date, as /blog does.
+describe("sitemap newsletter entries", () => {
+  const issue = (slug: string, datePublished: string, dateModified = datePublished) => ({
+    slug,
+    title: slug,
+    description: slug,
+    datePublished,
+    dateModified,
+    subject: slug,
+    preheader: slug,
+  });
+  const serve = (issues: ReturnType<typeof issue>[]) =>
+    mock.module("@/lib/newsletter-issues", () => ({ ...realIssues, NEWSLETTER_ISSUES: issues }));
+  const restore = () => mock.module("@/lib/newsletter-issues", () => realIssues);
+
+  test("every issue in the list is in the sitemap with its own modified date", async () => {
+    serve([issue("2027-02", "2027-02-02", "2027-02-05"), issue("2027-01", "2027-01-05")]);
+    try {
+      const entries = await sitemap();
+      expect(entry(entries, "/newsletter/2027-02").lastModified).toBe("2027-02-05");
+      expect(entry(entries, "/newsletter/2027-01").lastModified).toBe("2027-01-05");
+      const urls = entries.map((e) => e.url).filter((u) => u.startsWith(`${SITE}/newsletter/`));
+      expect(urls.sort()).toEqual([`${SITE}/newsletter/2027-01`, `${SITE}/newsletter/2027-02`]);
+    } finally {
+      restore();
+    }
+  });
+
+  test("/newsletter takes the newest issue's publish date when it is later than its own", async () => {
+    serve([issue("2099-03", "2099-03-04"), issue("2000-01", "2000-01-01")]);
+    try {
+      expect(entry(await sitemap(), NEWSLETTER_INDEX).lastModified).toBe("2099-03-04");
+    } finally {
+      restore();
+    }
+  });
+
+  test("/newsletter keeps its own content date when every issue is older", async () => {
+    const { CONTENT_DATE } = await import("./newsletter/content-date");
+    serve([issue("2000-01", "2000-01-01")]);
+    try {
+      expect(entry(await sitemap(), NEWSLETTER_INDEX).lastModified).toBe(CONTENT_DATE);
+    } finally {
+      restore();
+    }
+  });
+
+  test("with the real list, /newsletter and each issue are listed once, and /newsletter/confirmed is not", async () => {
+    const urls = (await sitemap()).map((e) => e.url);
+    for (const p of [NEWSLETTER_INDEX, ...realIssues.NEWSLETTER_ISSUES.map((x) => `/newsletter/${x.slug}`)]) {
+      expect(urls.filter((u) => u === `${SITE}${p}`), p).toHaveLength(1);
+    }
+    expect(urls).not.toContain(`${SITE}/newsletter/confirmed`);
   });
 });

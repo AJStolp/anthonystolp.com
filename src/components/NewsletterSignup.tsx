@@ -5,7 +5,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { captureAttribution } from "@/lib/attribution";
-import { NEWSLETTER_NAME, NEWSLETTER_SOURCE, NEWSLETTER_ZIPS } from "@/lib/newsletter";
+import {
+  NEWSLETTER_NAME,
+  NEWSLETTER_SOURCE,
+  NEWSLETTER_ZIPS,
+  STREET_SMS_BODY,
+} from "@/lib/newsletter";
 import { smsHref, telHref } from "@/lib/phone";
 import { track } from "@/lib/track";
 import { getOrCreateVisitorId } from "@/lib/visitor";
@@ -16,8 +21,6 @@ import { Honeypot } from "@/components/Honeypot";
 // email row in the site footer. Both post to /api/lead as
 // market-report-subscribe, and the server sends a confirm email: nobody is on
 // the list until they click it.
-
-const STREET_SMS_BODY = "Hi Anthony, my street is ";
 
 const ERRORS = {
   email: "That email doesn't look right. Mind checking it?",
