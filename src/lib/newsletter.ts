@@ -9,6 +9,10 @@ export const NEWSLETTER_NAME = "The River Report";
 // route and /api/unsubscribe all filter funnel_leads on it.
 export const NEWSLETTER_SOURCE = "market-report-subscribe";
 
+// The text a "Text me your street" link fills in, on the signup card and in
+// an issue's "Your street" section.
+export const STREET_SMS_BODY = "Hi Anthony, my street is ";
+
 // Zip choices for the signup card. When multi-tenant, read from the agent
 // profile's targetZips.
 export const NEWSLETTER_ZIPS = [
