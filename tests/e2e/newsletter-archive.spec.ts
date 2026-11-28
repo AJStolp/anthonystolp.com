@@ -21,8 +21,7 @@ const DESCRIPTION =
 // page fails the test.
 const FIGURES = [
   "103 homes", "up 8.4% from 95", "fell 3.5%",
-  "$2 million", "about 16 acres", "39 acre site", "Monday, Nov. 30", "Wednesday, Dec. 2",
-  "about another $3 million", "Ozaukee Press, Nov. 24, 2026",
+  "$2 million", "about 16 acres", "39 acre site", "about another $3 million",
   "$420,000", "up 10.5% from $380,000", "139 from 156", "3.6 months", "$419,500, up 8.1%",
   "GMAR counted 103 Ozaukee sales and WRA counted 97",
   "56 homes for sale", "up 26%", "$499,900", "about 15%", "31 days", "98% of asking",
@@ -132,6 +131,22 @@ test.describe("/newsletter/2026-12", () => {
     for (const f of FIGURES) expect(body, f).toContain(f);
     const h2s = [...doc.matchAll(/<h2\b[^>]*>([^<]*)<\/h2>/g)].map((m) => decode(m[1]));
     expect(h2s.filter((h) => HEADINGS.includes(h))).toEqual(HEADINGS);
+  });
+
+  // AJ, 2026-11-27: the Firemen's Park item went live saying the County Board
+  // "is expected to vote" on Wed Dec 2, and must not be published that way on
+  // or after that day. AJ is sending the post vote paragraph. Until it
+  // replaces the old one, this fails every run from Dec 2 (Central time), so no
+  // release can carry the old wording past the vote. The "Nov. 30" and "Dec. 2"
+  // dates are left out of FIGURES so the new paragraph needs no test change.
+  test("does not say the board is expected to vote once Dec 2 has come", async ({ request }) => {
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+    test.skip(today < "2026-12-02", "the vote has not happened yet");
+    const body = text(article(await html(request, ISSUE)));
+    expect(
+      body,
+      "Replace the Firemen's Park item in src/app/newsletter/2026-12/page.tsx with AJ's post vote paragraph, and drop \"I'll share the result next month\"",
+    ).not.toContain("expected to vote");
   });
 
   test("has one h1, the title, and no en or em dashes", async ({ request }) => {

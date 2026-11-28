@@ -155,14 +155,6 @@ export default function RiverReportDecember2026Page() {
               a little local news, the numbers that matter, and what they mean
               for your house. Every number has a source. No sales pitch.
             </p>
-            <p>
-              <strong className="text-ink">
-                Already getting my monthly zip code report?
-              </strong>{" "}
-              This replaces it. Same once a month email, now with local news,
-              and your zip&apos;s numbers right at the top. One email, one
-              unsubscribe link.
-            </p>
 
             <h2 className={h2}>Around the two counties</h2>
             <p>
