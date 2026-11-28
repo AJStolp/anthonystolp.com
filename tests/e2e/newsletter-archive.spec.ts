@@ -134,19 +134,21 @@ test.describe("/newsletter/2026-12", () => {
   });
 
   // AJ, 2026-11-27: the Firemen's Park item went live saying the County Board
-  // "is expected to vote" on Wed Dec 2, and must not be published that way on
-  // or after that day. AJ is sending the post vote paragraph. Until it
-  // replaces the old one, this fails every run from Dec 2 (Central time), so no
-  // release can carry the old wording past the vote. The "Nov. 30" and "Dec. 2"
-  // dates are left out of FIGURES so the new paragraph needs no test change.
-  test("does not say the board is expected to vote once Dec 2 has come", async ({ request }) => {
+  // "is expected to vote" on Wed Dec 2. The vote is at 9am that day, and the
+  // update (drafts/newsletter-issue-01-firemens-park-update.md, T-133) waits
+  // for the confirmed result, so from Dec 3 (Central time) this fails every
+  // run until the swap ships, and no release can carry the old wording on.
+  // It matches "is expected to vote" only: the delayed version says the board
+  // "had been expected to vote", which is right after the vote. The "Nov. 30"
+  // and "Dec. 2" dates are left out of FIGURES so the swap needs no test change.
+  test("does not say the board is expected to vote once Dec 3 has come", async ({ request }) => {
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
-    test.skip(today < "2026-12-02", "the vote has not happened yet");
+    test.skip(today < "2026-12-03", "the vote result has had no day to be reported yet");
     const body = text(article(await html(request, ISSUE)));
     expect(
       body,
-      "Replace the Firemen's Park item in src/app/newsletter/2026-12/page.tsx with AJ's post vote paragraph, and drop \"I'll share the result next month\"",
-    ).not.toContain("expected to vote");
+      "Swap the Firemen's Park item in src/app/newsletter/2026-12/page.tsx for the matching version in drafts/newsletter-issue-01-firemens-park-update.md (T-133)",
+    ).not.toContain("is expected to vote");
   });
 
   test("has one h1, the title, and no en or em dashes", async ({ request }) => {
