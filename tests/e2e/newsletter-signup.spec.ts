@@ -16,6 +16,8 @@ const CARD_PAGES = [
   ["/blog", "blog"],
   ["/blog/cedarburg-market-nov-2026", "blog_post"],
   ["/home-value", "home_value"],
+  ["/newsletter", "newsletter_archive"],
+  ["/newsletter/2026-12", "newsletter_issue"],
 ] as const;
 const STREET_CTA_PAGES = ["/blog", "/blog/cedarburg-market-nov-2026"];
 const SMS = "sms:+12624837932?&body=Hi%20Anthony%2C%20my%20street%20is%20";
@@ -359,16 +361,21 @@ test.describe("Signing up", () => {
 });
 
 test.describe("/newsletter/confirmed", () => {
-  test("is noindex, with one h1, the draft's copy and no signup", async ({ request }) => {
+  test("is noindex with its own canonical, one h1, the draft's copy and no signup", async ({ request }) => {
     const res = await request.get("/newsletter/confirmed");
     expect(res.status()).toBe(200);
     const html = (await res.text()).replace(/<!-- -->/g, "");
     expect(html).toMatch(/<meta name="robots" content="noindex, nofollow"\/?>/);
+    expect([...html.matchAll(/<link rel="canonical" href="([^"]*)"/g)].map((m) => m[1])).toEqual([
+      "https://anthonystolp.com/newsletter/confirmed",
+    ]);
+    // T-132: "see the latest issue" links the newest issue.
+    expect(html).toMatch(/<a\b[^>]*href="\/newsletter\/2026-12"[^>]*>see the latest issue<\/a>/);
     const h1s = [...html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)].map((m) => m[1]);
     expect(h1s).toEqual(["You&#x27;re on the list."]);
     const text = html.replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
     expect(text).toContain(
-      "The River Report goes out the first Tuesday of the month. While you're here, read the Cedarburg market update , or get a free home value . Questions? Call or text me at (262) 483-7932 .",
+      "The River Report goes out the first Tuesday of the month. While you're here, see the latest issue , or get a free home value . Questions? Call or text me at (262) 483-7932 .",
     );
     // They just signed up, so the page offers no second signup.
     expect(html).not.toContain("Send me The River Report");

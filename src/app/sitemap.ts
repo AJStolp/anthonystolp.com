@@ -10,7 +10,9 @@ import { CONTENT_DATE as PRIVACY_DATE } from "./privacy/content-date";
 import { CONTENT_DATE as TERMS_DATE } from "./terms/content-date";
 import { CONTENT_DATE as FAIR_HOUSING_DATE } from "./fair-housing/content-date";
 import { CONTENT_DATE as BLOG_DATE } from "./blog/content-date";
+import { CONTENT_DATE as NEWSLETTER_DATE } from "./newsletter/content-date";
 import { BLOG_POSTS, blogPostPath } from "@/lib/blog-posts";
+import { NEWSLETTER_ISSUES, newsletterIssuePath } from "@/lib/newsletter-issues";
 
 const SITE_URL = "https://anthonystolp.com";
 
@@ -29,8 +31,16 @@ function listingModified(updatedAt: string | null | undefined): Date | undefined
 // lastmod is the later of its content date and its newest post's publish date.
 // Calendar dates in YYYY-MM-DD order the same as strings.
 function blogIndexModified(): string {
-  const newest = BLOG_POSTS[0]?.datePublished;
-  return newest && newest > BLOG_DATE ? newest : BLOG_DATE;
+  return laterOf(BLOG_DATE, BLOG_POSTS[0]?.datePublished);
+}
+
+// /newsletter the same way, from its newest issue.
+function newsletterIndexModified(): string {
+  return laterOf(NEWSLETTER_DATE, NEWSLETTER_ISSUES[0]?.datePublished);
+}
+
+function laterOf(own: string, newest: string | undefined): string {
+  return newest && newest > own ? newest : own;
 }
 
 // Each fixed page's lastmod is the content date kept beside that page.
@@ -97,6 +107,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...BLOG_POSTS.map((p) => ({
       url: `${SITE_URL}${blogPostPath(p.slug)}`,
       lastModified: p.dateModified,
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
+    })),
+    {
+      url: `${SITE_URL}/newsletter`,
+      lastModified: newsletterIndexModified(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    ...NEWSLETTER_ISSUES.map((i) => ({
+      url: `${SITE_URL}${newsletterIssuePath(i.slug)}`,
+      lastModified: i.dateModified,
       changeFrequency: "yearly" as const,
       priority: 0.6,
     })),
