@@ -6,6 +6,13 @@
       "path": "src/app/property/[slug]/page.tsx",
       "ticket": "T-123",
       "reason": "Deliberate: the call writes a JSON-LD script tag. Its data comes from properties rows, which only an admin can edit, and JSON.stringify plus escaping < as \\u003c means the content cannot close the script tag early."
+    },
+    {
+      "tool": "opengrep",
+      "rule": "typescript.react.security.audit.react-dangerouslysetinnerhtml",
+      "path": "src/app/search/[slug]/page.tsx",
+      "ticket": "T-124",
+      "reason": "Deliberate: the call writes a JSON-LD script tag. Its data comes from niche_pages, which only an admin can edit, and JSON.stringify plus escaping < as \\u003c means the content cannot close the script tag early."
     }
   ]
 }
